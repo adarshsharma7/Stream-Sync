@@ -1,9 +1,10 @@
-import { connect } from "@/dbConfig/dbConfig";
+
+import { dbConnect } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel"
 import verifyonsignup from "@/models/verifyEmailModel";
 import {NextRequest,NextResponse} from 'next/server'
 
-connect()
+
 // export async function POST(req:NextRequest){
 //   try {
 //       const reqBody=await req.json()
@@ -23,7 +24,7 @@ connect()
 //   }
 // }
 export async function POST(req:NextRequest){
-  
+  await dbConnect()
   
   try {
     const reqBody=await req.json()
