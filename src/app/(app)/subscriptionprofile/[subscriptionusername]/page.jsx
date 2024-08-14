@@ -37,12 +37,12 @@ function Page() {
     }
     fetchedUser()
   }, [])
-  
+
   useEffect(() => {
     if (user && user._id) {
-        checkSubscribed(user._id,dispatch)
+      checkSubscribed(user._id, dispatch)
     }
-    }, [user])
+  }, [user])
 
 
 
@@ -51,9 +51,14 @@ function Page() {
     <div className='w-full min-h-screen bg-gray-100'>
       {/* User Profile Section */}
       <div className='flex items-center bg-white p-4 shadow-md'>
-        <div className='w-20 h-20 rounded-full border-4 border-gray-200 overflow-hidden'>
-        
-          <Image src={user.avatar} alt="User Avatar" className='w-full h-full object-cover' />
+        <div className='w-20 h-20 rounded-full border-4 border-gray-200 overflow-hidden relative'>
+          <Image
+            src={user.avatar}
+            alt="User Avatar"
+            className='object-cover'
+            layout="fill"  // Image will fill the entire container
+            objectFit="cover" // Image will cover the container while maintaining aspect ratio
+          />
         </div>
         <div className='ml-4'>
           <h1 className='text-xl font-semibold text-gray-800'>{user?.fullName}</h1>
@@ -64,29 +69,29 @@ function Page() {
             <p>{user.uploadedVideos?.length || 0} videos</p>
           </div>
           <div className='flex '>
-             {user.createdAt && (
-            <p className='text-sm text-gray-500 mt-2 mr-14'>
-              Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+            {user.createdAt && (
+              <p className='text-sm text-gray-500 mt-2 mr-14'>
+                Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
 
-            </p>
-            
-          )}
-            <div className='subscribeButtonBox  ' onClick={() => subscribe(user._id,state,dispatch)}>
-            
-                        <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
-                            {state.isSubscribe ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Subscribing...
-                                </>
-                            ) : (
-                                state.userSubscribe ? 'Subscribed' : 'Subscribe'
-                            )}
-                        </Button>
-                    </div>
+              </p>
+
+            )}
+            <div className='subscribeButtonBox  ' onClick={() => subscribe(user._id, state, dispatch)}>
+
+              <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
+                {state.isSubscribe ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Subscribing...
+                  </>
+                ) : (
+                  state.userSubscribe ? 'Subscribed' : 'Subscribe'
+                )}
+              </Button>
+            </div>
 
           </div>
-         
+
         </div>
       </div>
 
@@ -104,15 +109,22 @@ function Page() {
               onClick={() => router.push(`/videoplay/${video._id}`)}
               className='cursor-pointer border border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200'
             >
-              <div className='h-48 w-full overflow-hidden'>
-                <Image src={video.thumbnail} alt="Thumbnail" className='w-full h-full object-cover' />
+              <div className='h-48 w-full overflow-hidden relative'>
+                <Image
+                  src={video.thumbnail}
+                  alt="Thumbnail"
+                  className='object-cover'
+                  layout="fill"
+                  objectFit="cover"
+                />
               </div>
               <div className='p-3'>
                 <h3 className='text-sm font-medium text-gray-800'>{video.title}</h3>
                 <div className='flex items-center text-xs text-gray-500 mt-1'>
-                  <div className='flex items-center'>
-                    <Image src={user.avatar} alt="User Avatar" className='w-5 h-5 rounded-full mr-2' />
-                    <span>{user.username}</span>
+                  <div className='flex items-center h-5 w-5 relative'>
+                    <Image src={user.avatar} alt="User Avatar" layout="fill"
+                      objectFit="cover" className='rounded-full mr-2 object-cover' />
+                    <span className='ml-6'>{user.username}</span>
                   </div>
                 </div>
                 <div className='flex justify-between text-xs text-gray-500 mt-2'>

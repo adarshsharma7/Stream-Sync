@@ -279,8 +279,8 @@ function Page() {
     }
 
     return (
-        <div className='w-full h-screen border-2 border-red-700 flex flex-col relative'>
-            <div className='videPlayBox h-[300px] w-full rounded-lg border-2 border-green-600 '>
+        <div className='w-full h-screen border-2 flex flex-col relative'>
+            <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
                 <video
                     src={videoData.videoFile}
                     controls
@@ -291,7 +291,7 @@ function Page() {
             </div>
 
 
-            <div className='videPlayDetailBox flex flex-col h-[28%] w-full border-2 border-red-600 p-2 rounded-t-[10px] gap-1'>
+            <div className='videPlayDetailBox flex flex-col h-[28%] w-full border-2 p-2 rounded-t-[10px] gap-1'>
                 <div><h1 className='text-2xl font-bold'>{videoData.title}</h1></div>
                 <div className='discriptionBox flex text-sm '>
                     <p className='mr-2'>{videoData.views} views</p>
@@ -299,7 +299,7 @@ function Page() {
                     <p onClick={() => setDescriptionBox(true)}>more...</p>
                 </div>
                 <div className='flex justify-between items-center'>
-                    <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='flex gap-2 items-center'>
+                    <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
                         <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
                             <img src={videoData.owner.avatar} alt="dp" />
                         </div>
@@ -362,7 +362,7 @@ function Page() {
             <div className='bottomBox h-full w-full grid grid-cols-1 overflow-y-auto p-2'>
 
                 {videosFetchingMessage ? (
-                    <div className="w-full h-full text-red-700 flex justify-center items-center">
+                    <div className="w-full h-ful flex justify-center items-center">
                         <h1>{videosFetchingMessage}</h1>
                     </div>
                 ) : (
@@ -370,13 +370,13 @@ function Page() {
 
                         state.fetchedAllVideos.filter(video => video._id !== videoId).map((video, index) => (
 
-                            <div key={index} onClick={() => router.push(`/videoplay/${video._id}`)} className='cursor-pointer h-[260px] border-2 border-yellow-800 rounded-lg flex flex-col gap-1'>
+                            <div key={index} onClick={() => router.push(`/videoplay/${video._id}`)} className='cursor-pointer h-[260px] border-2  rounded-lg flex flex-col gap-1'>
                                 <div className='thumbnailBox rounded-2xl w-full overflow-hidden h-[75%] border-2 border-b-red-950'>
                                     <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
                                 </div>
                                 <div className='userDetailsBox flex gap-2 p-1'>
-                                    <div className='w-8 h-8 rounded-full overflow-hidden border-2 border-red-600'> <img src={`${video.owner.avatar}`} alt="dp" /></div>
-                                    <div className='border-2 border-green-600 w-full'>{video.title}</div>
+                                    <div className='w-8 h-8 rounded-full overflow-hidden border-2 '> <img src={`${video.owner.avatar}`} alt="dp" /></div>
+                                    <div className='border-2  w-full'>{video.title}</div>
                                 </div>
                                 <div className='w-full'>
                                     <p>{video.owner.username}</p>
@@ -402,7 +402,7 @@ function Page() {
 
             </div>
 
-            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-gray-300 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-gray-300 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-14`}>
                 <div className='flex justify-between items-center mb-4'>
                     <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
                     <div onClick={() => setCommentBox(false)} className="cursor-pointer">
@@ -576,7 +576,7 @@ function Page() {
 
 
 
-            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-slate-600 text-red-600 p-2 z-50 absolute border-2 border-blue-700 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-slate-600 p-2 z-50 absolute border-2 border-blue-700 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                 <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
 
                     <h1 className='text-2xl'>Description</h1>
