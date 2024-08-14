@@ -26,7 +26,7 @@ import { RxDotsVertical, RxCross2 } from "react-icons/rx";
 
 
 
-function page() {
+function Page() {
     const [videoData, setVideoData] = useState()
     // { title: "ddd", comments: [{ content: "good video", owner: { avatar: "dbb", username: "sagarsh" } }], owner: { username: "adarsh sharma", avatar: "aaa", subscribers: 4 } }
     const [comments, setComments] = useState([])
@@ -630,4 +630,4 @@ function page() {
     )
 }
 
-export default page
+export default Page

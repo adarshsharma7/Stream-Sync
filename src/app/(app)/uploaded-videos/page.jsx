@@ -39,7 +39,7 @@ function Page() {
 
   useEffect(() => {
     setVideos(state.profile.uploadedVideos)
-  }, [])
+  })
 
   const deletevideo = async (videoId) => {
     try {

@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/context'
 import { RxDotsVertical } from "react-icons/rx";
-function page() {
+function Page() {
 
     const { state, dispatch } = useUser()
     const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -157,4 +157,4 @@ function page() {
     )
 }
 
-export default page
+export default Page

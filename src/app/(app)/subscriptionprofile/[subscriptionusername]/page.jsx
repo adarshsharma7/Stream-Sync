@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { useUser } from '@/context/context'
 import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
@@ -50,7 +51,8 @@ function Page() {
       {/* User Profile Section */}
       <div className='flex items-center bg-white p-4 shadow-md'>
         <div className='w-20 h-20 rounded-full border-4 border-gray-200 overflow-hidden'>
-          <img src={user.avatar} alt="User Avatar" className='w-full h-full object-cover' />
+        
+          <Image src={user.avatar} alt="User Avatar" className='w-full h-full object-cover' />
         </div>
         <div className='ml-4'>
           <h1 className='text-xl font-semibold text-gray-800'>{user?.fullName}</h1>
@@ -102,13 +104,13 @@ function Page() {
               className='cursor-pointer border border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200'
             >
               <div className='h-48 w-full overflow-hidden'>
-                <img src={video.thumbnail} alt="Thumbnail" className='w-full h-full object-cover' />
+                <Image src={video.thumbnail} alt="Thumbnail" className='w-full h-full object-cover' />
               </div>
               <div className='p-3'>
                 <h3 className='text-sm font-medium text-gray-800'>{video.title}</h3>
                 <div className='flex items-center text-xs text-gray-500 mt-1'>
                   <div className='flex items-center'>
-                    <img src={user.avatar} alt="User Avatar" className='w-5 h-5 rounded-full mr-2' />
+                    <Image src={user.avatar} alt="User Avatar" className='w-5 h-5 rounded-full mr-2' />
                     <span>{user.username}</span>
                   </div>
                 </div>
