@@ -402,7 +402,7 @@ function Page() {
 
             </div>
 
-            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-gray-300 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-14`}>
+            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-gray-300 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-20`}>
                 <div className='flex justify-between items-center mb-4'>
                     <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
                     <div onClick={() => setCommentBox(false)} className="cursor-pointer">
@@ -410,8 +410,8 @@ function Page() {
                     </div>
                 </div>
 
-                <div className='h-full w-full flex flex-col gap-4'>
-                    <div className='overflow-y-auto h-[70%] w-full'>
+                <div className='h-full w-full flex flex-col border-2 border-red-700'>
+                    <div className='overflow-y-auto h-[70%] w-full border-2 border-green-700'>
                         {comments.length > 0 ? comments.map((videoComment, index) => (
                             <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
                                 <div className='flex gap-3 items-center w-full'>
@@ -496,7 +496,7 @@ function Page() {
                         )}
                     </div>
 
-                    <div className=''>
+                    <div className='border-2 border-yellow-700'>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(editingCommentId ? saveEditedComment : sendComment)} className="flex items-center rounded-lg shadow-sm border border-gray-300 p-2 bg-gray-100">
                                 <div className="flex-grow">
