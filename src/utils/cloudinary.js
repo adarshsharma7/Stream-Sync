@@ -1,81 +1,77 @@
-// import { v2 as cloudinary } from 'cloudinary';
-// import fs from 'fs';
-// import path from 'path';
+ import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs';
+ import path from 'path';
 
-// cloudinary.config({ 
-//   cloud_name: process.env.CLOUD_NAME,
-//   api_key: process.env.API_KEY,
-//   api_secret: process.env.API_SECRET,
-//   secure: true,
-// });
+ cloudinary.config({ 
+   cloud_name: process.env.CLOUD_NAME,
+   api_key: process.env.API_KEY,
+   api_secret: process.env.API_SECRET,
+   secure: true,
+ });
 
-// const uploadOnCloudinary = async ( fileName) => {
-//   let tempFilePath;
-//   try {
-//     if ( !fileName) return null;
-
-//      tempFilePath = path.join(__dirname, '../../../../../../public/temp', fileName);
-
-//     // Decode base64 and save to a file
-//     const buffer = Buffer.from(base64Data.split(',')[1], 'base64'); // Split and remove the prefix
-//     fs.writeFileSync(tempFilePath, fileName);
-//     let resourceType = "auto";
-//     if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) {
-//         resourceType = "image";
-//     } else if (fileName.match(/\.(mp4|avi|mkv|mov)$/)) {
-//         resourceType = "video";
-//     }
-
-//     console.log("upload hone jaa raha hai clodinary pa");
-
-//     let response = await cloudinary.uploader.upload(tempFilePath, {
-//       resource_type: resourceType,
-//     });
-//     console.log("upload hone k baad ka hisab h yuu");
-//     // Remove the temporary file
-//     fs.unlinkSync(tempFilePath);
-
-//     return response;
-
-//   } catch (error) {
-//     if (tempFilePath && fs.existsSync(tempFilePath)) {
-//       fs.unlinkSync(tempFilePath);
-//     }
-//     console.log("Error in Cloudinary upload:", error);
-//     return null;
-//   }
-  
-// }
-
-// export { uploadOnCloudinary };
-
-
-const uploadOnCloudinary = async (base64Data, fileName) => {
+const uploadOnCloudinary = async (base64Data) => {
+  let tempFilePath;
   try {
-    if (!base64Data || !fileName) return null;
+    if ( !base64Data) return null;
 
-    const buffer = Buffer.from(base64Data.split(',')[1], 'base64');
-    let resourceType = "auto";
+      
+ 
+    // Decode base64 and save to a file
+    const buffer = Buffer.from(base64Data.split(',')[1], 'base64'); // Split and remove the prefix
+    console.log(buffer);
+    
+   
+   
+    console.log("upload hone jaa raha hai clodinary pa");
 
-    if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) {
-      resourceType = "image";
-    } else if (fileName.match(/\.(mp4|avi|mkv|mov)$/)) {
-      resourceType = "video";
-    }
-
-    const response = await cloudinary.uploader.upload_stream(
-      { resource_type: resourceType },
-      (error, result) => {
-        if (error) throw error;
-        return result;
-      }
-    ).end(buffer);
+    let response = await cloudinary.uploader.upload(buffer, {
+      resource_type: 'auto',
+    });
+    console.log("upload hone k baad ka hisab h yuu");
+    // Remove the temporary file
+ 
 
     return response;
 
   } catch (error) {
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+     
+    }
     console.log("Error in Cloudinary upload:", error);
     return null;
   }
+  
 }
+
+export { uploadOnCloudinary };
+
+
+// export const uploadOnCloudinary = async (base64Data, fileName) => {
+//   try {
+//     if (!base64Data || !fileName) return null;
+
+//     const buffer = Buffer.from(base64Data.split(',')[1], 'base64');
+//     let resourceType = "auto";
+
+//     if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) {
+//       resourceType = "image";
+//     } else if (fileName.match(/\.(mp4|avi|mkv|mov)$/)) {
+//       resourceType = "video";
+//     }
+
+//     const response =  cloudinary.uploader.upload_stream(
+//       { resource_type: resourceType },
+//       (error, result) => {
+//         if (error) throw error;
+//         return result;
+//       }
+//     ).end(buffer);
+
+//     return response;
+
+//   } catch (error) {
+//     console.log("Error in Cloudinary upload:", error);
+//     return null;
+//   }
+// }
 

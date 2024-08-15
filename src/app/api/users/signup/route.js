@@ -9,6 +9,8 @@ export async function POST(request) {
     dbConnect()
     try {
         const { username, email, password, fullName, avatar } = await request.json();
+        
+        
 
         const avatarFileName = `avatar_${Date.now()}.jpg`;
 
@@ -39,7 +41,7 @@ export async function POST(request) {
             }, { status: 400 })
         }
         else {
-            const avatarResponse = await uploadOnCloudinary(avatar, avatarFileName);
+            const avatarResponse = await uploadOnCloudinary(avatar);
             if (!avatarResponse || !avatarResponse.url) {
                 return Response.json({
                     message: "Problem uploading image",
