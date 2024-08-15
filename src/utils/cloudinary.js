@@ -43,7 +43,7 @@ export const uploadOnCloudinary = async (base64Data) => {
   
 }
 
-export { uploadOnCloudinary };
+
 
 
 // export const uploadOnCloudinary = async (base64Data, fileName) => {
