@@ -199,7 +199,7 @@ export default function SignUpForm() {
             name="avatar"
             render={() => (
               <FormItem>
-                <FormLabel className="text-sm text-gray-700">Upload Video</FormLabel>
+                <FormLabel className="text-sm text-gray-700">Upload Profile Image</FormLabel>
                 <FormControl>
                   <Input
                     type="file"

@@ -22,13 +22,7 @@ export async function POST(request) {
             }, { status: 400 })
         }
 
-        if (!avatarResponse) {
-            return NextResponse.json({
-                success: false,
-                message: 'Error while uploading avatar',
-            }, { status: 500 });
-        }
-
+        
         let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
         if (user) {

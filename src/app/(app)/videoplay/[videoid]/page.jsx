@@ -279,7 +279,7 @@ function Page() {
     }
 
     return (
-        <div className='w-full h-screen border-2 flex flex-col relative'>
+        <div className='w-full h-screen border-2 flex flex-col relative  border-red-80'>
             <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
                 <video
                     src={videoData.videoFile}
@@ -402,7 +402,7 @@ function Page() {
 
             </div>
 
-            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-gray-300 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-20`}>
+            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-2 border-red-800 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-20`}>
                 <div className='flex justify-between items-center mb-4'>
                     <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
                     <div onClick={() => setCommentBox(false)} className="cursor-pointer">

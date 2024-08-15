@@ -9,16 +9,16 @@
 //   secure: true,
 // });
 
-// const uploadOnCloudinary = async (base64Data, fileName) => {
+// const uploadOnCloudinary = async ( fileName) => {
 //   let tempFilePath;
 //   try {
-//     if (!base64Data || !fileName) return null;
+//     if ( !fileName) return null;
 
 //      tempFilePath = path.join(__dirname, '../../../../../../public/temp', fileName);
 
 //     // Decode base64 and save to a file
 //     const buffer = Buffer.from(base64Data.split(',')[1], 'base64'); // Split and remove the prefix
-//     fs.writeFileSync(tempFilePath, buffer);
+//     fs.writeFileSync(tempFilePath, fileName);
 //     let resourceType = "auto";
 //     if (fileName.match(/\.(jpg|jpeg|png|gif)$/)) {
 //         resourceType = "image";

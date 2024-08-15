@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 function Page() {
   const { state, dispatch } = useUser()
-  const [videos, setVideos] = useState(null)
+  const [videos, setVideos] = useState([])
   const [showPopup, setShowPopup] = useState(false)
   const [videoToDelete, setVideoToDelete] = useState(null)
   const [editingVideoId, setEditingVideoId] = useState(null)
@@ -37,9 +37,9 @@ function Page() {
 })
 
 
-  useEffect(() => {
-    setVideos(state.profile.uploadedVideos)
-  })
+useEffect(() => {
+  setVideos(state.profile.uploadedVideos || []);
+}, [state.profile.uploadedVideos]);
 
   const deletevideo = async (videoId) => {
     try {
@@ -77,7 +77,7 @@ function Page() {
       })
       setVideos((prevVideos) =>
         prevVideos.map((video) =>
-          video._id === editingVideoId
+          video._id == editingVideoId
             ? { ...video, title: data.title, description: data.description }
             : video
         )
