@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Videos",
   }],
+  watchLater: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Videos",
+  }],
   avatar: {
     type: String,
   },

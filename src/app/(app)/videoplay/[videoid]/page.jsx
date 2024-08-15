@@ -23,6 +23,7 @@ import { useUser } from '@/context/context'
 import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
+import { MdOutlineWatchLater,MdWatchLater } from "react-icons/md";
 
 
 
@@ -47,6 +48,7 @@ function Page() {
     const [editedContent, setEditedContent] = useState(''); // To store the edited content
     const [editCommentLoading, setEditCommentLoading] = useState(false);
     const [currentCommentContent, setCurrentCommentContent] = useState();
+    const [isWatchLater, setIsWatchLater] = useState(false);
 
 
 
@@ -72,8 +74,13 @@ function Page() {
     const debouncedLike = useDebounceCallback(async () => {
         await axios.post("/api/videos/sendlike", { videoId: videoId });
     }, 2000);
+
     const debouncedCommentLike = useDebounceCallback(async (commentId) => {
         const response = await axios.post("/api/videos/sendcommentlike", { commentId })
+    }, 2000);
+
+    const debouncedWatchLater = useDebounceCallback(async () => {
+        const response = await axios.post("/api/videos/addordeletevideotowatchlater", { videoId })
     }, 2000);
 
 
@@ -123,9 +130,18 @@ function Page() {
 
         }
 
+        const getWatchLaterVideos=async()=>{
+        let response=await axios.post("/api/videos/getwatchlatervideo",{videoId})
+        if(response.data.message=="Already added to watch later"){
+            setIsWatchLater(true)
+        } 
+        //not need else because initially setIsWatchLater is false
+        }
+
         findVideo()
         like()
         fetchAllVideos()
+        getWatchLaterVideos()
 
     }, [videoId]);
 
@@ -216,6 +232,7 @@ function Page() {
         debouncedLike(); // Call the debounced function
     };
 
+
     const likeComment = async (commentId, initialLikeCount) => {
         try {
             const currentCount = commentLikesCount[commentId] || initialLikeCount;
@@ -298,7 +315,7 @@ function Page() {
                     {/* <p>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</p> */}
                     <p onClick={() => setDescriptionBox(true)}>more...</p>
                 </div>
-                <div className='flex justify-between items-center'>
+                <div className='no-select flex justify-between items-center'>
                     <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
                         <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
                             <img src={videoData.owner.avatar} alt="dp" />
@@ -328,7 +345,11 @@ function Page() {
                 <div className='buttonsBox flex gap-4 mb-2'>
                     <div onClick={() => like()} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
                     <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
-                    <div className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><MdDownloadForOffline /></div>
+                    <div onClick={() => {
+                      setIsWatchLater(!isWatchLater)
+                      debouncedWatchLater()
+                    }
+                    } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater/> :<MdOutlineWatchLater/> }</div>
                     <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
 
                 </div>
@@ -419,7 +440,7 @@ function Page() {
 
                                 <div className='flex justify-between w-full'>
                                     <div className='flex gap-1 items-center'>
-                                        <div onClick={()=>router.push(`/subscriptionprofile/${videoComment.owner.username}`) } className='flex items-center'>
+                                        <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner.username}`)} className='flex items-center'>
                                             <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
                                                 <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
                                             </div>
@@ -533,7 +554,7 @@ function Page() {
                                         </FormItem>
                                     )}
                                 />
-                                
+
                             </div>
                             <div className="ml-2">
                                 {isLoading || editCommentLoading ? (

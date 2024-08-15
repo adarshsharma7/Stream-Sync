@@ -44,6 +44,7 @@ function Page() {
                 }
 
 
+
                 dispatch({ type: "FETCHED_PROFILE", payload: response.data.data })
             } catch (error) {
 
@@ -146,6 +147,25 @@ function Page() {
                 </div>
                 <div className="flex gap-4 overflow-x-auto">
                     {state.profile.watchHistory?.slice(0, 2).map((video, index) => (
+                        <div key={index} className="w-48 h-28 rounded-lg overflow-hidden bg-gray-300">
+                            <img src={video.thumbnail} alt="thumbnail" className="w-full h-full object-cover" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+
+            {/* Watch Later Videos Section */}
+            <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-semibold">Watch Later</h2>
+                        <p className="text-gray-600">{state.profile.watchLater?.length}</p>
+                    </div>
+                    <button onClick={() => router.push('/watch-later')} className="text-blue-600 hover:underline">View All</button>
+                </div>
+                <div className="flex gap-4 overflow-x-auto">
+                    {state.profile.watchLater?.slice(0, 2).map((video, index) => (
                         <div key={index} className="w-48 h-28 rounded-lg overflow-hidden bg-gray-300">
                             <img src={video.thumbnail} alt="thumbnail" className="w-full h-full object-cover" />
                         </div>

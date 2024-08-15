@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { useUser } from '@/context/context';
 import Fuse from 'fuse.js';
+import Image from 'next/image';
 
 function Page() {
   const { state, dispatch } = useUser();
@@ -34,10 +35,10 @@ function Page() {
         setMicPopup(false);
         setSearchVisible(true);
         let transcript = event.results[0][0].transcript;
-          // Remove trailing period, whitespace, and any hidden characters
-    transcript = transcript.replace(/\.$/, "").trim();
-         // Normalize the input (you can also remove special characters if needed)
-    transcript = transcript.normalize('NFKD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        // Remove trailing period, whitespace, and any hidden characters
+        transcript = transcript.replace(/\.$/, "").trim();
+        // Normalize the input (you can also remove special characters if needed)
+        transcript = transcript.normalize('NFKD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
         setSearchTerm(transcript);
         handleSearch(transcript);
@@ -49,7 +50,7 @@ function Page() {
 
       recognition.onspeechend = () => {
         recognition.stop();
-     
+
       };
 
       recognitionRef.current = recognition;
@@ -77,12 +78,12 @@ function Page() {
     fetchAllVideos();
   }, [dispatch]);
 
-// Initialize Fuse.js
-const fuse = new Fuse(state.fetchedAllVideos, {
-  keys: ['title', 'owner.username', 'description'],
-  includeScore: true,
-  threshold: 0.3, // Adjust the threshold for sensitivity (0.0 to 1.0)
-});
+  // Initialize Fuse.js
+  const fuse = new Fuse(state.fetchedAllVideos, {
+    keys: ['title', 'owner.username', 'description'],
+    includeScore: true,
+    threshold: 0.3, // Adjust the threshold for sensitivity (0.0 to 1.0)
+  });
 
 
   const handleSearch = (term) => {
@@ -94,20 +95,20 @@ const fuse = new Fuse(state.fetchedAllVideos, {
       setFilteredVideos(state.fetchedAllVideos);
       setHeading("")
     } else {
-        // Perform fuzzy search
-    const results = fuse.search(term);
+      // Perform fuzzy search
+      const results = fuse.search(term);
 
 
       // Extract results and handle empty case
       const filteredResults = results.map(result => result.item);
 
-      
+
       if (filteredResults.length === 0) {
         setVideosFetchingMessage("No Videos Found");
       } else {
         setFilteredVideos(filteredResults);
       }
-      
+
     }
   };
 
@@ -192,12 +193,26 @@ const fuse = new Fuse(state.fetchedAllVideos, {
                 onClick={() => router.push(`/videoplay/${video._id}`)}
                 className='cursor-pointer bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition duration-300'
               >
-                <div className='w-full h-48 bg-gray-200'>
-                  <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
+                <div className='w-full h-[215px] bg-gray-200 relative'>
+                  <Image
+                    src={video.thumbnail}
+                    alt="thumbnail"
+                    fill
+                    style={{ objectFit: "cover" }}
+                  />
                 </div>
                 <div className='p-4'>
-                  <div className='flex items-center gap-2 mb-2'>
-                    <img src={video.owner.avatar} alt="dp" className='w-10 h-10 rounded-full object-cover' />
+                  <div className='flex items-center gap-2 mb-2 overflow-hidden'>
+                    <div className='overflow-hidden h-10 w-10 rounded-full relative'>
+                      <Image
+                        src={video.owner.avatar}
+                        alt="dp"
+                        fill
+                        sizes="40px" // Adjust according to your requirements
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+
                     <div>
                       <h2 className='text-lg font-semibold text-gray-900'>{video.title}</h2>
                       <p className='text-sm text-gray-600'>{video.owner.username}</p>

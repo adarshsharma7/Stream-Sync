@@ -16,6 +16,7 @@ import { updateVideoSchema } from '@/Schemas/uploadVideoSchema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
+
 function Page() {
   const { state, dispatch } = useUser()
   const [videos, setVideos] = useState([])
@@ -23,6 +24,7 @@ function Page() {
   const [videoToDelete, setVideoToDelete] = useState(null)
   const [editingVideoId, setEditingVideoId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [editingContent, setEditingContent] = useState({title:"",description:""})
 
   const router = useRouter()
 
@@ -30,21 +32,23 @@ function Page() {
   const form = useForm({
     resolver: zodResolver(updateVideoSchema),
     defaultValues: {
-        description: "",
-        title: "",
-     
+      description: "",
+      title: "",
+
     }
-})
+  })
 
 
-useEffect(() => {
-  setVideos(state.profile.uploadedVideos || []);
-}, [state.profile.uploadedVideos]);
+  useEffect(() => {
+    setVideos(state.profile.uploadedVideos || []);
+  }, [state.profile.uploadedVideos]);
 
   const deletevideo = async (videoId) => {
     try {
       await axios.post("/api/videos/deleteuploadedvideo", { videoId })
-      setVideos((prevVideos) => prevVideos.filter((video) => video._id !== videoId))
+      let updatedVideos = videos.filter((video) => video._id !== videoId)
+      setVideos(updatedVideos)
+      dispatch({ type: "UPDATE_UPLOADED_VIDEOS", payload: updatedVideos })
       setShowPopup(false)
     } catch (error) {
       console.error("Error deleting video:", error)
@@ -70,23 +74,26 @@ useEffect(() => {
   const handleSaveEdit = async (data) => {
     setIsLoading(true)
     try {
+      let updatedVideos = videos.map((video) =>
+        video._id == editingVideoId
+          ? { ...video, title: data.title, description: data.description }
+          : video
+      )
+      setVideos(updatedVideos)
+      dispatch({ type: "UPDATE_UPLOADED_VIDEOS", payload: updatedVideos })
+      setIsLoading(false)
+
       await axios.post('/api/videos/updatevideo', {
         videoId: editingVideoId,
         title: data.title,
         description: data.description
       })
-      setVideos((prevVideos) =>
-        prevVideos.map((video) =>
-          video._id == editingVideoId
-            ? { ...video, title: data.title, description: data.description }
-            : video
-        )
-      )
+
+
       setEditingVideoId(null)
+      setEditingContent({title:"",description:""})
     } catch (error) {
       console.error("Error updating video:", error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -112,13 +119,13 @@ useEffect(() => {
                 key={index}
                 className='cursor-pointer flex flex-col border border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200'
               >
-                <div className='flex items-start' onClick={() =>{
-                    // Only navigate if not editing
-                    if (editingVideoId==null) {
-                      router.push(`/videoplay/${video._id}`)
-                    }
-                 
-                  }}>
+                <div className='flex items-start' onClick={() => {
+                  // Only navigate if not editing
+                  if (editingVideoId == null) {
+                    router.push(`/videoplay/${video._id}`)
+                  }
+
+                }}>
                   <div className='w-40 h-24 overflow-hidden'>
                     <img src={video.thumbnail} alt="Thumbnail" className='w-full h-full object-cover' />
                   </div>
@@ -133,11 +140,19 @@ useEffect(() => {
                               name="title"
                               render={({ field }) => (
                                 <FormItem>
-                                 
+
                                   <FormControl>
-                                    <Input  placeholder={`${video.title}.... Title (required)`} {...field} className="border border-gray-300 rounded-md shadow-sm" />
+                                    <Input
+                                    
+                                    placeholder={`${video.title}.... Title (required)`} {...field}
+                                    value={editingContent.title}
+                                    onChange={(e) => {
+                                      field.onChange(e);
+                                     setEditingContent((prevContent)=>({...prevContent,title:e.target.value}))
+                                  }}
+                                    className="border border-gray-300 rounded-md shadow-sm" />
                                   </FormControl>
-                                
+
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -148,16 +163,22 @@ useEffect(() => {
                               name="description"
                               render={({ field }) => (
                                 <FormItem>
-                                 
+
                                   <FormControl>
                                     <Textarea
-                                      
+                              
                                       placeholder={`${video.description} .......Tell viewers about your video`}
                                       className="resize-none border border-gray-300 rounded-md shadow-sm"
+                                      
                                       {...field}
+                                      value={editingContent.description}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                       setEditingContent((prevContent)=>({...prevContent,description:e.target.value}))
+                                    }}
                                     />
                                   </FormControl>
-                                  
+
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -170,7 +191,7 @@ useEffect(() => {
                               >
                                 Cancel
                               </Button>
-                        
+
                               <div className="flex items-center">
                                 {isLoading ? (
                                   <Button disabled className="bg-gray-400 text-white hover:bg-gray-500">
@@ -187,7 +208,7 @@ useEffect(() => {
                           </form>
                         </Form>
                       </>
-                    
+
                     ) : (
                       <>
                         <h3 className='text-lg font-medium text-gray-800'>{video.title}</h3>
@@ -206,7 +227,11 @@ useEffect(() => {
                   <div onClick={(e) => {
                     e.stopPropagation()
                     setEditingVideoId(video._id)
-                  
+                    setEditingContent({
+                      title: video.title,
+                      description: video.description
+                    });
+
                   }} className='z-50 mr-4 cursor-pointer'>
                     <CiEdit />
                   </div>

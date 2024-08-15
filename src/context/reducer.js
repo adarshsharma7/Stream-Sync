@@ -55,6 +55,11 @@ const reducer = (state, action) => {
             ...state,
             isSubscribe: action.payload,
           };
+        case actionTypes.UPDATE_UPLOADED_VIDEOS:
+          return {
+            ...state,profile:{...state.profile, uploadedVideos: action.payload,}
+          
+          };
       default:
         return state;
   }
