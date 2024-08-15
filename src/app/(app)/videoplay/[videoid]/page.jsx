@@ -553,7 +553,7 @@ function Page() {
 
 
 
-            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-slate-600 p-2 z-50 fixed border-2 border-blue-700 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                 <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
 
                     <h1 className='text-2xl'>Description</h1>
@@ -584,12 +584,13 @@ function Page() {
                             </div>
                             <div className='flex flex-col items-center'>
                                 <h1 className='font-semibold'>Date</h1>
-                                {/* <h1>{videoData.views}</h1> */}
+                                <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1>
+                               
                             </div>
 
                         </div>
 
-                        <div className='bg-slate-500 h-full w-full'>
+                        <div className='bg-slate-200 h-full w-full'>
                             <h1>{videoData.description}</h1>
                         </div>
                     </div>
