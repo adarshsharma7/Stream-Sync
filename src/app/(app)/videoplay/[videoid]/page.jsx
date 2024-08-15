@@ -460,7 +460,7 @@ function Page() {
                                 )}
                             </div>
                             <div className="mt-2">
-                                <h2 className="text-base text-gray-700">{videoComment.content}</h2>
+                                <h2 className="text-base text-gray-700 break-words">{videoComment.content}</h2>
                             </div>
                             <div className="flex mt-2 space-x-4 justify-between">
                                 <div className='flex gap-1'>
