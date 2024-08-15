@@ -410,80 +410,93 @@ function Page() {
                     </div>
                 </div>
 
-                <div className='flex-grow overflow-y-auto w-full border-2'>
-                    <div className='h-full w-full border-2'>
-                        {comments.length > 0 ? comments.map((videoComment, index) => (
-                            <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
-                                {/* Comment Content */}
-                                <div className='flex gap-3 items-center w-full'>
-                                    <div className='h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
-                                        <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
-                                    </div>
-                                    <div className='flex justify-between w-full'>
-                                        <div className='flex gap-1'>
+                <div className='flex-grow h-full pb-12 overflow-y-auto w-full border-2'>
+
+                    {comments.length > 0 ? comments.map((videoComment, index) => (
+                        <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
+                            {/* Comment Content */}
+                            <div className='flex gap-3 items-center w-full'>
+
+                                <div className='flex justify-between w-full'>
+                                    <div className='flex gap-1 items-center'>
+                                        <div onClick={()=>router.push(`/subscriptionprofile/${videoComment.owner.username}`) } className='flex items-center'>
+                                            <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
+                                                <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
+                                            </div>
                                             <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
-                                            <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                                         </div>
-                                        {videoComment.owner._id == user._id && (
-                                            <p onClick={() => {
-                                                setUniqueComment(index);
-                                                setCommentDeletePopup(true);
-                                            }}>{<RxDotsVertical />}</p>
-                                        )}
+
+                                        <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                                     </div>
-                                    {commentDeletePopup && uniqueComment == index && (
-                                        <div
-                                            ref={delComPopup}
-                                            className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
-                                        >
-                                            <button
-                                                onClick={() => commentDelete(videoComment._id, videoComment.content)}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
-                                            >
-                                                Delete
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setEditingCommentId(videoComment._id);
-                                                    setEditedContent(videoComment.content);
-                                                    setCurrentCommentContent(videoComment.content);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
-                                            >
-                                                Edit
-                                            </button>
-                                        </div>
+                                    {videoComment.owner._id == user._id && (
+                                        <p onClick={() => {
+                                            setUniqueComment(index);
+                                            setCommentDeletePopup(true);
+                                        }}>{<RxDotsVertical />}</p>
                                     )}
                                 </div>
-                                <div className="mt-2">
-                                    <h2 className="text-base text-gray-700">{videoComment.content}</h2>
-                                </div>
-                                <div className="flex mt-2 space-x-4 justify-between">
-                                    <div className='flex gap-1'>
-                                        <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
-                                            {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
+                                {commentDeletePopup && uniqueComment == index && (
+                                    <div
+                                        ref={delComPopup}
+                                        className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
+                                    >
+                                        <button
+                                            onClick={() => commentDelete(videoComment._id, videoComment.content)}
+                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
+                                        >
+                                            Delete
                                         </button>
-                                        <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                                        <button className="ml-2 text-blue-500 hover:underline">Reply</button>
+                                        <button
+                                            onClick={() => {
+                                                setEditingCommentId(videoComment._id);
+                                                setEditedContent(videoComment.content);
+                                                setCurrentCommentContent(videoComment.content);
+                                            }}
+                                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
+                                        >
+                                            Edit
+                                        </button>
                                     </div>
-                                    <div>
-                                        <p className='text-sm text-gray-600 font-extralight'>
-                                            {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
-                                        </p>
-                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-2">
+                                <h2 className="text-base text-gray-700">{videoComment.content}</h2>
+                            </div>
+                            <div className="flex mt-2 space-x-4 justify-between">
+                                <div className='flex gap-1'>
+                                    <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                                        {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
+                                    </button>
+                                    <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
+                                    <button className="ml-2 text-blue-500 hover:underline">Reply</button>
+                                </div>
+                                <div>
+                                    <p className='text-sm text-gray-600 font-extralight'>
+                                        {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
+                                    </p>
                                 </div>
                             </div>
-                        )) : (
-                            <div className='flex justify-center items-center'>
-                                <h1 className="text-lg text-gray-500">No Comments</h1>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )) : (
+                        <div className='flex justify-center items-center'>
+                            <h1 className="text-lg text-gray-500">No Comments</h1>
+                        </div>
+                    )}
+
                 </div>
 
                 <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(editingCommentId ? saveEditedComment : sendComment)} className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100">
+                        <form onSubmit={form.handleSubmit(async (data) => {
+
+                            if (editingCommentId) {
+                                await saveEditedComment();
+                            } else {
+                                await sendComment(data);
+                            }
+                            form.reset();//Reset the full Form input field after submitting
+                            // form.setValue("comment", ""); // Reset the indivisual input field after submitting
+                        })} className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100">
                             <div className="flex-grow">
                                 <FormField
                                     control={form.control}
@@ -520,8 +533,9 @@ function Page() {
                                         </FormItem>
                                     )}
                                 />
+                                
                             </div>
-                            <div className="ml-3">
+                            <div className="ml-2">
                                 {isLoading || editCommentLoading ? (
                                     <Button
                                         disabled
@@ -585,7 +599,7 @@ function Page() {
                             <div className='flex flex-col items-center'>
                                 <h1 className='font-semibold'>Date</h1>
                                 <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1>
-                               
+
                             </div>
 
                         </div>
