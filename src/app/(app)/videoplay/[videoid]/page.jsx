@@ -181,7 +181,7 @@ function Page() {
             edited: false,
             likes: [],
             commentOnVideo: videoId,
-            createdAt:new Date(),
+            createdAt: new Date(),
             owner: {
                 _id: user._id,
                 username: user.username,
@@ -266,7 +266,7 @@ function Page() {
         setEditCommentLoading(true)
         setComments(prevComments => prevComments.map(comment =>
             comment._id === editingCommentId
-                ? { ...comment, content: editedContent, edited: true,updatedAt:new Date() } // update the content
+                ? { ...comment, content: editedContent, edited: true, updatedAt: new Date() } // update the content
                 : comment // keep other comments unchanged
         )
         );
@@ -279,7 +279,7 @@ function Page() {
     }
 
     return (
-        <div className='w-full h-screen border-2 flex flex-col relative  border-red-80'>
+        <div className='w-full h-screen border-2 relative flex flex-col '>
             <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
                 <video
                     src={videoData.videoFile}
@@ -371,7 +371,7 @@ function Page() {
                         state.fetchedAllVideos.filter(video => video._id !== videoId).map((video, index) => (
 
                             <div key={index} onClick={() => router.push(`/videoplay/${video._id}`)} className='cursor-pointer h-[260px] border-2  rounded-lg flex flex-col gap-1'>
-                                <div className='thumbnailBox rounded-2xl w-full overflow-hidden h-[75%] border-2 border-b-red-950'>
+                                <div className='thumbnailBox rounded-2xl w-full overflow-hidden h-[75%] border-2 '>
                                     <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
                                 </div>
                                 <div className='userDetailsBox flex gap-2 p-1'>
@@ -402,7 +402,7 @@ function Page() {
 
             </div>
 
-            <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full  opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 absolute border-t border-2 border-red-800 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col pb-20`}>
+            <div className={`${commentBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed bottom-0 left-0 right-0 border-t border-2 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                 <div className='flex justify-between items-center mb-4'>
                     <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
                     <div onClick={() => setCommentBox(false)} className="cursor-pointer">
@@ -410,10 +410,11 @@ function Page() {
                     </div>
                 </div>
 
-                <div className='h-full w-full flex flex-col border-2 border-red-700'>
-                    <div className='overflow-y-auto h-[70%] w-full border-2 border-green-700'>
+                <div className='flex-grow overflow-y-auto w-full border-2'>
+                    <div className='h-full w-full border-2'>
                         {comments.length > 0 ? comments.map((videoComment, index) => (
                             <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
+                                {/* Comment Content */}
                                 <div className='flex gap-3 items-center w-full'>
                                     <div className='h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
                                         <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
@@ -423,14 +424,12 @@ function Page() {
                                             <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
                                             <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                                         </div>
-
                                         {videoComment.owner._id == user._id && (
                                             <p onClick={() => {
-                                                setUniqueComment(index)
-                                                setCommentDeletePopup(true)
+                                                setUniqueComment(index);
+                                                setCommentDeletePopup(true);
                                             }}>{<RxDotsVertical />}</p>
                                         )}
-
                                     </div>
                                     {commentDeletePopup && uniqueComment == index && (
                                         <div
@@ -447,9 +446,7 @@ function Page() {
                                                 onClick={() => {
                                                     setEditingCommentId(videoComment._id);
                                                     setEditedContent(videoComment.content);
-                                                    setCurrentCommentContent(videoComment.content)
-
-
+                                                    setCurrentCommentContent(videoComment.content);
                                                 }}
                                                 className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
                                             >
@@ -458,34 +455,21 @@ function Page() {
                                         </div>
                                     )}
                                 </div>
-                                {/* Comment content */}
                                 <div className="mt-2">
                                     <h2 className="text-base text-gray-700">{videoComment.content}</h2>
                                 </div>
-
-
-
                                 <div className="flex mt-2 space-x-4 justify-between">
-                                    {/* Like and other buttons */}
                                     <div className='flex gap-1'>
-                                        <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">   {
-                                            commentLikes.includes(videoComment._id)
-                                                ? <AiFillLike />
-                                                : <AiOutlineLike />
-                                        } </button>
+                                        <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                                            {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
+                                        </button>
                                         <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-
                                         <button className="ml-2 text-blue-500 hover:underline">Reply</button>
                                     </div>
-
-
                                     <div>
-                                        <div>
-                                            <p className='text-sm text-gray-600 font-extralight'>
-                                                {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
-
-                                            </p>
-                                        </div>
+                                        <p className='text-sm text-gray-600 font-extralight'>
+                                            {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -495,76 +479,69 @@ function Page() {
                             </div>
                         )}
                     </div>
+                </div>
 
-                    <div className='border-2 border-yellow-700'>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(editingCommentId ? saveEditedComment : sendComment)} className="flex items-center rounded-lg shadow-sm border border-gray-300 p-2 bg-gray-100">
-                                <div className="flex-grow">
-                                    <FormField
-                                        control={form.control}
-                                        name="comment"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <Input
-                                                            type='text'
-                                                            placeholder='Add your comment...'
-                                                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
-                                                            {...field}
-                                                            value={editingCommentId ? editedContent : field.value}
-                                                            onChange={(e) => {
-
-                                                                field.onChange(e)
-
-                                                                if (editingCommentId) {
-                                                                    setEditedContent(e.target.value);
-                                                                }
-
-
-
-                                                            }}
-
-                                                        />
-                                                        {editingCommentId && (
-                                                            <p onClick={() => {
-                                                                setEditedContent("");
-                                                                setEditingCommentId(null);
-                                                                field.onChange('');
-                                                            }} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white px-2 py-1 rounded">
-                                                                <RxCross2 />
-                                                            </p>
-
-                                                        )}
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-                                <div className="ml-3">
-                                    {isLoading || editCommentLoading ? (
-                                        <Button
-                                            disabled
-                                            className="bg-gray-400 text-white hover:bg-gray-500 px-4 py-2 rounded-lg"
-                                        >
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Wait...
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="submit"
-                                            disabled={isLoading || editCommentLoading || currentCommentContent == editedContent}
-                                            className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
-                                        >
-                                            {editingCommentId ? 'Update' : 'Send'}
-                                        </Button>
+                <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(editingCommentId ? saveEditedComment : sendComment)} className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100">
+                            <div className="flex-grow">
+                                <FormField
+                                    control={form.control}
+                                    name="comment"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <Input
+                                                        type='text'
+                                                        placeholder='Add your comment...'
+                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
+                                                        {...field}
+                                                        value={editingCommentId ? editedContent : field.value}
+                                                        onChange={(e) => {
+                                                            field.onChange(e);
+                                                            if (editingCommentId) {
+                                                                setEditedContent(e.target.value);
+                                                            }
+                                                        }}
+                                                    />
+                                                    {editingCommentId && (
+                                                        <p onClick={() => {
+                                                            setEditedContent("");
+                                                            setEditingCommentId(null);
+                                                            field.onChange('');
+                                                        }} className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white px-2 py-1 rounded">
+                                                            <RxCross2 />
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
                                     )}
-                                </div>
-                            </form>
-                        </Form>
-                    </div>
+                                />
+                            </div>
+                            <div className="ml-3">
+                                {isLoading || editCommentLoading ? (
+                                    <Button
+                                        disabled
+                                        className="bg-gray-400 text-white hover:bg-gray-500 px-4 py-2 rounded-lg"
+                                    >
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Wait...
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="submit"
+                                        disabled={isLoading || editCommentLoading || currentCommentContent == editedContent}
+                                        className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
+                                    >
+                                        {editingCommentId ? 'Update' : 'Send'}
+                                    </Button>
+                                )}
+                            </div>
+                        </form>
+                    </Form>
                 </div>
             </div>
 
@@ -576,7 +553,7 @@ function Page() {
 
 
 
-            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-slate-600 p-2 z-50 absolute border-2 border-blue-700 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+            <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-slate-600 p-2 z-50 fixed border-2 border-blue-700 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                 <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
 
                     <h1 className='text-2xl'>Description</h1>

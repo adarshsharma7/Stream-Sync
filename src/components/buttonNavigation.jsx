@@ -12,7 +12,7 @@ function ButtonNavigation() {
     const { state } = useUser();
 
     return (
-        <div className='fixed bottom-0 left-0 right-0 h-14 bg-white shadow-md flex justify-around items-center text-gray-700 text-2xl z-50'>
+        <div className='fixed bottom-0 left-0 right-0 h-14 bg-white shadow-md flex justify-around items-center text-gray-700 text-2xl z-40'>
             <div className='relative group cursor-pointer' onClick={() => router.push('/dashboard')}>
                 <IoMdHome />
                 <div className='tooltip absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2'>
