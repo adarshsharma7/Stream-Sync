@@ -9,7 +9,7 @@ import fs from 'fs';
    secure: true,
  });
 
-const uploadOnCloudinary = async (base64Data) => {
+export const uploadOnCloudinary = async (base64Data) => {
   let tempFilePath;
   try {
     if ( !base64Data) return null;
