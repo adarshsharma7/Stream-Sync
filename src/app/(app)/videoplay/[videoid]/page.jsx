@@ -22,7 +22,7 @@ import { useUser } from '@/context/context'
 import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
-import { MdOutlineWatchLater, MdWatchLater } from "react-icons/md";
+import { MdOutlineWatchLater, MdWatchLater,MdOutlineInsertComment} from "react-icons/md";
 import CommentsDiv from "@/components/commentsdiv"
 
 
@@ -512,7 +512,7 @@ if(replyArray.length>0){
                                     <button onClick={() => {
                                         replyArray.push(videoComment)
                                         setReplyDiv(true)
-                                    }} className="ml-2 text-blue-500 hover:underline">Reply</button>
+                                    }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
                                 </div>
                                 <div>
                                     <p className='text-sm text-gray-600 font-extralight'>
