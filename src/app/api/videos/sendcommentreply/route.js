@@ -3,6 +3,8 @@ import { Videos } from "@/models/videos.models";
 import { Comment } from "@/models/comment.models"
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
+import { CommentReply } from "../../../../models/commentreply.models";
+
 
 
 
@@ -20,29 +22,29 @@ export async function POST(request) {
     }
 
     try {
-        const { content, videoId } = await request.json()
+        const { content, commentId } = await request.json()
 
 
-        let video = await Videos.findById(videoId)
-        if (!video) {
+        let comment = await Videos.findById(commentId)
+        if (!comment) {
             return Response.json({
                 success: false,
-                message: 'Video not found',
+                message: 'Comment not found',
             }, { status: 400 });
         }
-        let newComment = await Comment.create({
+        let newCommentReply = await CommentReply.create({
             content: content,
             likes: [],
             replies:[],
-            commentOnVideo: videoId,
+            replyOnComment: commentId,
             owner: user._id
         })
-        video.comments.push(newComment._id)
-        await video.save()
+        comment.replies.push(newCommentReply._id)
+        await comment.save()
         return Response.json({
             success: true,
-            message: 'Comment added',
-            data: newComment
+            message: 'Comment Reply added',
+            data: newCommentReply
         }, { status: 200 });
 
     } catch (error) {

@@ -11,8 +11,7 @@ import { IoClose } from "react-icons/io5";
 import { commentSchema } from '@/Schemas/commentSchema'
 import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
-import { useSession, signOut } from 'next-auth/react';
-import { MdDownloadForOffline } from "react-icons/md";
+import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { FaRegShareSquare } from "react-icons/fa";
 import { GoReport } from "react-icons/go";
@@ -23,7 +22,8 @@ import { useUser } from '@/context/context'
 import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
-import { MdOutlineWatchLater,MdWatchLater } from "react-icons/md";
+import { MdOutlineWatchLater, MdWatchLater } from "react-icons/md";
+import CommentsDiv from "@/components/commentsDiv"
 
 
 
@@ -49,6 +49,8 @@ function Page() {
     const [editCommentLoading, setEditCommentLoading] = useState(false);
     const [currentCommentContent, setCurrentCommentContent] = useState();
     const [isWatchLater, setIsWatchLater] = useState(false);
+    const [replyDiv, setReplyDiv] = useState(false);
+    const [replyArray, setReplyArray] = useState([]);
 
 
 
@@ -130,12 +132,12 @@ function Page() {
 
         }
 
-        const getWatchLaterVideos=async()=>{
-        let response=await axios.post("/api/videos/getwatchlatervideo",{videoId})
-        if(response.data.message=="Already added to watch later"){
-            setIsWatchLater(true)
-        } 
-        //not need else because initially setIsWatchLater is false
+        const getWatchLaterVideos = async () => {
+            let response = await axios.post("/api/videos/getwatchlatervideo", { videoId })
+            if (response.data.message == "Already added to watch later") {
+                setIsWatchLater(true)
+            }
+            //not need else because initially setIsWatchLater is false
         }
 
         findVideo()
@@ -196,6 +198,7 @@ function Page() {
             content: data.comment,
             edited: false,
             likes: [],
+            replies:[],
             commentOnVideo: videoId,
             createdAt: new Date(),
             owner: {
@@ -287,6 +290,16 @@ function Page() {
                 : comment // keep other comments unchanged
         )
         );
+
+        setReplyArray((prevArray) => [
+            { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
+        ]);
+//or if more than one objects in array
+        // setReplyArray((prevArray) =>
+        //     prevArray.map((item) =>
+        //       item._id === editingCommentId ? { ...item, content: editedContent, edited: true, updatedAt: new Date() } : item
+        //     )
+        //   );
         setEditCommentLoading(false)
         let response = await axios.post("/api/videos/updatecomment", { content: editedContent, commentId: editingCommentId })
         setEditingCommentId(null);
@@ -346,10 +359,10 @@ function Page() {
                     <div onClick={() => like()} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
                     <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
                     <div onClick={() => {
-                      setIsWatchLater(!isWatchLater)
-                      debouncedWatchLater()
+                        setIsWatchLater(!isWatchLater)
+                        debouncedWatchLater()
                     }
-                    } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater/> :<MdOutlineWatchLater/> }</div>
+                    } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}</div>
                     <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
 
                 </div>
@@ -423,7 +436,9 @@ function Page() {
 
             </div>
 
-            <div className={`${commentBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed bottom-0 left-0 right-0 border-t border-2 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+            <div className={`${commentBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed bottom-0 left-0 right-0 border-t border-2 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col realative`}>
+
+
                 <div className='flex justify-between items-center mb-4'>
                     <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
                     <div onClick={() => setCommentBox(false)} className="cursor-pointer">
@@ -489,7 +504,10 @@ function Page() {
                                         {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                                     </button>
                                     <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                                    <button className="ml-2 text-blue-500 hover:underline">Reply</button>
+                                    <button onClick={() => {
+                                        replyArray.push(videoComment)
+                                        setReplyDiv(true)
+                                    }} className="ml-2 text-blue-500 hover:underline">Reply</button>
                                 </div>
                                 <div>
                                     <p className='text-sm text-gray-600 font-extralight'>
@@ -577,6 +595,31 @@ function Page() {
                             </div>
                         </form>
                     </Form>
+                </div>
+
+
+
+
+                <div className={`${replyDiv ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 bottom-0 left-0 right-0 border-t border-2 w-full h-full transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col absolute`}>
+
+                    <div className='flex justify-between items-center mb-4'>
+                        <h1 className='text-xl font-semibold text-gray-900'>Replies</h1>
+                        <div onClick={() => {
+
+                            setReplyDiv(false)
+                            setReplyArray([])
+                        }} className="cursor-pointer">
+                            <IoClose className='text-2xl text-gray-500 hover:text-gray-700 transition' />
+                        </div>
+                    </div>
+                    <div>
+                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{editCommentLoading,setEditCommentLoading}} delComPopup={delComPopup}/>
+
+                    </div>
+
+                  
+
+
                 </div>
             </div>
 

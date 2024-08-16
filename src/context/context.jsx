@@ -13,7 +13,8 @@ const initialState = {
     currentUserAvatar:"",
     subscriberCount:0,
     userSubscribe:false,
-    isSubscribe:false
+    isSubscribe:false,
+    replyArray:[]
 }
 
 export const UserProvider = ({ children }) => {

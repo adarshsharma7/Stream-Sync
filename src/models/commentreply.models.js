@@ -13,6 +13,10 @@ const commentReplySchema = new mongoose.Schema({
        type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }],
+    replies: [{
+       type: mongoose.Schema.Types.ObjectId,
+        ref: "CommentReply"
+    }],
 
     replyOnComment: {
         type: mongoose.Schema.Types.ObjectId,

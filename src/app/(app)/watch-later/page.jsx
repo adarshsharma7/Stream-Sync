@@ -26,7 +26,9 @@ useEffect(() => {
     try {
       let response = await axios.post("/api/videos/addordeletevideotowatchlater", { videoId })
       // dispatch({ type: "UPDATE_WATCH_HISTORY", payload: response.data.data })
-      setVideos((prevVideos) => prevVideos.filter((video) => video._id !== videoId));
+    let updatedWatchLater= videos.filter((video) => video._id !== videoId)
+    setVideos(updatedWatchLater)
+      dispatch({ type: "UPDATE_WATCHLATER_VIDEOS", payload: updatedWatchLater })
 
     } catch (error) {
       console.error("Error deleting video from watch Later:", error);

@@ -60,6 +60,17 @@ const reducer = (state, action) => {
             ...state,profile:{...state.profile, uploadedVideos: action.payload,}
           
           };
+        case actionTypes.UPDATE_WATCHLATER_VIDEOS:
+          return {
+            ...state,profile:{...state.profile, watchLater: action.payload,}
+          
+          };
+        case actionTypes.REPLY_ARRAY:
+          return {
+            ...state,
+            replyArray:action.payload,
+          
+          };
       default:
         return state;
   }
