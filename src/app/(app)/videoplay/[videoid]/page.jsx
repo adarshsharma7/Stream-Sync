@@ -293,10 +293,12 @@ function Page() {
                 : comment // keep other comments unchanged
         )
         );
-
-        setReplyArray((prevArray) => [
+if(replyArray.length>0){
+    setReplyArray((prevArray) => [
             { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
         ]);
+}
+        
 //or if more than one objects in array
         // setReplyArray((prevArray) =>
         //     prevArray.map((item) =>
