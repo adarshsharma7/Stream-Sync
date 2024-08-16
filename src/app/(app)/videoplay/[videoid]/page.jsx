@@ -23,7 +23,7 @@ import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
 import { MdOutlineWatchLater, MdWatchLater } from "react-icons/md";
-import CommentsDiv from "@/components/commentsDiv"
+import CommentsDiv from "@/components/commentsdiv"
 
 
 
@@ -263,6 +263,7 @@ function Page() {
         try {
             setComments(prevComments => prevComments.filter(comment => !(comment.content == contentToDelete && comment.owner._id == user._id)));
             let response = await axios.post("/api/videos/deletecomment", { commentId, videoId })
+            setReplyDiv(false)
 
         } catch (error) {
 
