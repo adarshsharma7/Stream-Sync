@@ -43,7 +43,7 @@ function CommentsDiv({
     
     let response = await axios.post("/api/videos/sendcommentreply", {
       content: data.comment,  // Adjusted to match the schema
-      commentId: comments._id
+      commentId: comments[0]._id
     });
 
     let newCommentReply = {
