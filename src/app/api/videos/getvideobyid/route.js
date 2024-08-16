@@ -49,95 +49,144 @@ export async function POST(request) {
                         _id: new mongoose.Types.ObjectId(videoId)
                     }
                 },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "owner",
-                        foreignField: "_id",
-                        as: "owner"
-                    }
-                },
-                {
-                    $unwind: "$owner" // Unwind owner array as it's a one-to-one relation
-                },
-                {
-                    $lookup: {
-                        from: "comments",
-                        localField: "comments",
-                        foreignField: "_id",
-                        as: "comments"
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "comments.owner",
-                        foreignField: "_id",
-                        as: "commentOwners"
-                    }
-                },
-                {
-                    $addFields: {
-                        comments: {
-                            $map: {
-                                input: "$comments",
-                                as: "comment",
-                                in: {
-                                    $mergeObjects: [
-                                        "$$comment",
-                                        {
-                                            owner: {
-                                                $arrayElemAt: [
-                                                    {
-                                                        $filter: {
-                                                            input: "$commentOwners",
-                                                            as: "owner",
-                                                            cond: { $eq: ["$$owner._id", "$$comment.owner"] }
-                                                        }
-                                                    },
-                                                    0
-                                                ]
-                                            }
+           
+            {
+                $project: {
+                    videoFile: 1,
+                    thumbnail: 1,
+                    title: 1,
+                    description: 1,
+                    views: 1,
+                    likes: 1,
+                    comments: 1,
+                    owner: 1,
+                    createdAt: 1
+                }
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "comments",
+                    foreignField: "_id",
+                    as: "comments",
+                    pipeline: [
+                       
+                        {
+                            $lookup: {
+                                from: "commentreplies",
+                                localField: "replies",
+                                foreignField: "_id",
+                                as: "replies",
+                                pipeline: [
+                                    {
+                                        $lookup: {
+                                            from: "users",
+                                            localField: "likes",
+                                            foreignField: "_id",
+                                            as: "likes",
+                                            pipeline: [
+                                                {
+                                                    $project: {
+                                                        _id: 1,
+                                                        username: 1
+                                                    }
+                                                }
+                                            ]
                                         }
-                                    ]
-                                }
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "users",
+                                            localField: "owner",
+                                            foreignField: "_id",
+                                            as: "owner",
+                                            pipeline: [
+                                                {
+                                                    $project: {
+                                                        _id: 1,
+                                                        username: 1,
+                                                        avatar: 1
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        $addFields: {
+                                            owner: { $arrayElemAt: ["$owner", 0] }
+                                        }
+                                    },
+                                    {
+                                        $project: {
+                                            _id: 1,
+                                            content: 1,
+                                            edited: 1,
+                                            likes: 1,
+                                            owner: 1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "owner",
+                                foreignField: "_id",
+                                as: "owner",
+                                pipeline: [
+                                    {
+                                        $project: {
+                                            _id: 1,
+                                            username: 1,
+                                            avatar: 1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $addFields: {
+                                owner: { $arrayElemAt: ["$owner", 0] }
+                            }
+                        },
+                        {
+                            $project: {
+                                content: 1,
+                                edited: 1,
+                                likes: 1,
+                                replies: 1,
+                                owner: 1,
+                                createdAt: 1,
+                                updatedAt: 1
                             }
                         }
-                    }
-                },
-
-                {
-                    $sort: {
-                        createdAt: -1
-                    }
-                },
-
-                {
-                    $project: {
-                        videoFile: 1,
-                        title: 1,
-                        description: 1,
-                        views: 1,
-                        likes: 1,
-                        thumbnail: 1,
-                        createdAt: 1,
-                        comments: {
-                            _id: 1,
-                            content: 1,
-                            edited:1,
-                            createdAt: 1,
-                            updatedAt:1,
-                            likes:1,
-                            "owner._id": 1,
-                            "owner.username": 1,
-                            "owner.avatar": 1,
-                        },
-                        "owner._id": 1,
-                        "owner.username": 1,
-                        "owner.avatar": 1,
-                        "owner.subscribers": 1
-                    }
+                    ]
                 }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "owner",
+                    foreignField: "_id",
+                    as: "owner",
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                username: 1,
+                                avatar: 1,
+                                subscribers: 1
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $addFields: {
+                    owner: { $arrayElemAt: ["$owner", 0] }
+                }
+            }
             ]);
 
 

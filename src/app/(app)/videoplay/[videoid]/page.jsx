@@ -92,6 +92,8 @@ function Page() {
         const findVideo = async () => {
             try {
                 let videoResponse = await axios.post("/api/videos/getvideobyid", { videoId });
+                console.log(videoResponse.data.data);
+                
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })

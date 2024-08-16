@@ -27,4 +27,4 @@ const commentReplySchema = new mongoose.Schema({
         ref: "User"
     }
 }, { timestamps: true })
-export const CommentReply = mongoose.models.Comment || mongoose.model("CommentReply", commentReplySchema)
+export const CommentReply = mongoose.models.CommentReply || mongoose.model("CommentReply", commentReplySchema)

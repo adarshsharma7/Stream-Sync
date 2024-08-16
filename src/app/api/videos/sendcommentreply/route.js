@@ -23,9 +23,11 @@ export async function POST(request) {
 
     try {
         const { content, commentId } = await request.json()
+        console.log(commentId);
+        
 
 
-        let comment = await Videos.findById(commentId)
+        let comment = await Comment.findById(commentId)
         if (!comment) {
             return Response.json({
                 success: false,
@@ -39,6 +41,8 @@ export async function POST(request) {
             replyOnComment: commentId,
             owner: user._id
         })
+        console.log(newCommentReply);
+        
         comment.replies.push(newCommentReply._id)
         await comment.save()
         return Response.json({

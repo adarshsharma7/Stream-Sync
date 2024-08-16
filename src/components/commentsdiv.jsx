@@ -25,7 +25,9 @@ function CommentsDiv({
   loading,
   delComPopup
 }) {
-  const [commentsReply, setCommentsReply] = useState(comments.replies);
+  const [commentsReply, setCommentsReply] = useState(comments[0]?.replies || []);
+
+  
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: session } = useSession();
@@ -39,30 +41,37 @@ function CommentsDiv({
 //   });
 
   const sendReplyComment = async (data) => {
-    setIsLoading(true);
+   try {
+     setIsLoading(true);
+     
+     let response = await axios.post("/api/videos/sendcommentreply", {
+       content: data.comment,  // Adjusted to match the schema
+       commentId: comments[0]._id
+     });
+ 
+     let newCommentReply = {
+       _id: response.data.data._id,
+       content: data.comment,  // Adjusted to match the schema
+       edited: false,
+       likes: [],
+       replies: [],
+       replyOnComment: comments[0]._id,
+       createdAt: new Date(),
+       owner: {
+         _id: user._id,
+         username: user.username,
+         avatar: user.avatar
+       }
+     };
+ 
+     setCommentsReply((prevCommentsReply) => [...prevCommentsReply, newCommentReply]);
+     
+   } catch (error) {
+    console.log("something wrong",error);
     
-    let response = await axios.post("/api/videos/sendcommentreply", {
-      content: data.comment,  // Adjusted to match the schema
-      commentId: comments[0]._id
-    });
-
-    let newCommentReply = {
-      _id: response.data.data._id,
-      content: data.commentReply,  // Adjusted to match the schema
-      edited: false,
-      likes: [],
-      replies: [],
-      replyOnComment: comments[0]._id,
-      createdAt: new Date(),
-      owner: {
-        _id: user._id,
-        username: user.username,
-        avatar: user.avatar
-      }
-    };
-
-    setCommentsReply(prevComments => [...prevComments, newCommentReply]);
+   }finally{
     setIsLoading(false);
+   }
   };
 
   return (
