@@ -229,11 +229,17 @@ const [commentReply, setCommentsReply] = useState()
 
                           }}
                         />
-                        {commentContent.editingCommentId && (
+                        {commentContent.editingCommentId || replyContent.editingReplyCommentId && (
                           <p
                             onClick={() => {
-                              commentContent.setEditedContent("");
-                              commentContent.setEditingCommentId(null);
+                              if(replyContent.editingReplyCommentId){
+                                replyContent.setEditingReplyCommentId(null)
+                                replyContent.setEditedReplyContent('')
+                              }else{
+                                commentContent.setEditedContent("");
+                                commentContent.setEditingCommentId(null);
+                              }
+                             
                               field.onChange('');
                             }}
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
@@ -263,7 +269,7 @@ const [commentReply, setCommentsReply] = useState()
                   disabled={isLoading || loading.editCommentLoading || commentContent.currentCommentContent === commentContent.editedContent ||  replyContent.editedReplyContent === replyContent.currentReplyCommentContent }
                   className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
                 >
-                  {commentContent.editingCommentId ? 'Update' : 'Reply'}
+                  {commentContent.editingCommentId || replyContent.editingReplyCommentId ? 'Update' : 'Reply'}
                 </Button>
               )}
             </div>
