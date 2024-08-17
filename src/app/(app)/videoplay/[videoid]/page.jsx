@@ -53,7 +53,7 @@ function Page() {
     const [replyDiv, setReplyDiv] = useState(false);
     const [replyArray, setReplyArray] = useState([]);
 
-    const [currentReplyCommentContent, setCurrentReplyCommentContent] = useState('')
+    const [currentReplyCommentContent, setCurrentReplyCommentContent] = useState()
     const [editingReplyCommentId, setEditingReplyCommentId] = useState('')
     const [editedReplyContent, setEditedReplyContent] = useState('')
 
