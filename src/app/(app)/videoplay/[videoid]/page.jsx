@@ -22,7 +22,7 @@ import { useUser } from '@/context/context'
 import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
-import { MdOutlineWatchLater, MdWatchLater } from "react-icons/md";
+import { MdOutlineWatchLater, MdWatchLater,MdOutlineInsertComment} from "react-icons/md";
 import CommentsDiv from "@/components/commentsdiv"
 import CommentReplyDiv from "@/components/commentReplyDiv"
 
@@ -298,16 +298,16 @@ function Page() {
                 : comment // keep other comments unchanged
         )
         );
-
-        setReplyArray((prevArray) => [
+if(replyArray.length>0){
+    setReplyArray((prevArray) => [
             { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
         ]);
-        //or if more than one objects in array
-        // setReplyArray((prevArray) =>
-        //     prevArray.map((item) =>
-        //       item._id === editingCommentId ? { ...item, content: editedContent, edited: true, updatedAt: new Date() } : item
-        //     )
-        //   );
+
+       
+
+}
+        
+
         setEditCommentLoading(false)
         let response = await axios.post("/api/videos/updatecomment", { content: editedContent, commentId: editingCommentId })
         setEditingCommentId(null);
@@ -515,7 +515,7 @@ function Page() {
                                     <button onClick={() => {
                                         replyArray.push(videoComment)
                                         setReplyDiv(true)
-                                    }} className="ml-2 text-blue-500 hover:underline">Reply</button>
+                                    }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
                                 </div>
                                 <div>
                                     <p className='text-sm text-gray-600 font-extralight'>

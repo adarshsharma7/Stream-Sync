@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
+import { MdOutlineInsertComment } from "react-icons/md";
 import { formatDistanceToNow } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -173,7 +174,7 @@ const [commentReply, setCommentsReply] = useState()
                 <p>{likeComment.commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
                 <button onClick={() => {
                   // Handle reply button click
-                }} className="ml-2 text-blue-500 hover:underline">Reply</button>
+                }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
               </div>
               <div>
                 <p className='text-sm text-gray-600 font-extralight'>
