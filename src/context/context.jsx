@@ -14,7 +14,7 @@ const initialState = {
     subscriberCount:0,
     userSubscribe:false,
     isSubscribe:false,
-    replyArray:[]
+    commentArray:[]
 }
 
 export const UserProvider = ({ children }) => {

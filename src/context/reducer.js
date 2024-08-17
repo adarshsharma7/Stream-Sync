@@ -65,10 +65,10 @@ const reducer = (state, action) => {
             ...state,profile:{...state.profile, watchLater: action.payload,}
           
           };
-        case actionTypes.REPLY_ARRAY:
+        case actionTypes.UPDATE_COMMENT_REPLY:
           return {
             ...state,
-            replyArray:action.payload,
+            commentArray:action.payload,
           
           };
       default:

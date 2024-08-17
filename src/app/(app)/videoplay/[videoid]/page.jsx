@@ -24,6 +24,7 @@ import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
 import { MdOutlineWatchLater, MdWatchLater } from "react-icons/md";
 import CommentsDiv from "@/components/commentsdiv"
+import CommentReplyDiv from "@/components/commentReplyDiv"
 
 
 
@@ -51,6 +52,10 @@ function Page() {
     const [isWatchLater, setIsWatchLater] = useState(false);
     const [replyDiv, setReplyDiv] = useState(false);
     const [replyArray, setReplyArray] = useState([]);
+
+    const [currentReplyCommentContent, setCurrentReplyCommentContent] = useState('')
+    const [editingReplyCommentId, setEditingReplyCommentId] = useState('')
+    const [editedReplyContent, setEditedReplyContent] = useState('')
 
 
 
@@ -93,7 +98,7 @@ function Page() {
             try {
                 let videoResponse = await axios.post("/api/videos/getvideobyid", { videoId });
                 console.log(videoResponse.data.data);
-                
+
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
@@ -200,7 +205,7 @@ function Page() {
             content: data.comment,
             edited: false,
             likes: [],
-            replies:[],
+            replies: [],
             commentOnVideo: videoId,
             createdAt: new Date(),
             owner: {
@@ -297,7 +302,7 @@ function Page() {
         setReplyArray((prevArray) => [
             { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
         ]);
-//or if more than one objects in array
+        //or if more than one objects in array
         // setReplyArray((prevArray) =>
         //     prevArray.map((item) =>
         //       item._id === editingCommentId ? { ...item, content: editedContent, edited: true, updatedAt: new Date() } : item
@@ -616,11 +621,17 @@ function Page() {
                         </div>
                     </div>
                     <div>
-                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{editCommentLoading,setEditCommentLoading}} delComPopup={delComPopup}/>
+                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} delComPopup={delComPopup} replyContent={{  currentReplyCommentContent, editingReplyCommentId, editedReplyContent,setEditingReplyCommentId,setEditedReplyContent,setEditedReplyContent }}/>
 
                     </div>
 
-                  
+
+                    <div className='ml-8 mt-4 max-h-64 overflow-y-auto'>
+                        < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{  setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} />
+                    </div>
+
+
+
 
 
                 </div>

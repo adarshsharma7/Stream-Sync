@@ -78,22 +78,7 @@ export async function POST(request) {
                                 foreignField: "_id",
                                 as: "replies",
                                 pipeline: [
-                                    {
-                                        $lookup: {
-                                            from: "users",
-                                            localField: "likes",
-                                            foreignField: "_id",
-                                            as: "likes",
-                                            pipeline: [
-                                                {
-                                                    $project: {
-                                                        _id: 1,
-                                                        username: 1
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
+                                   
                                     {
                                         $lookup: {
                                             from: "users",
@@ -122,7 +107,9 @@ export async function POST(request) {
                                             content: 1,
                                             edited: 1,
                                             likes: 1,
-                                            owner: 1
+                                            owner: 1,
+                                            createdAt:1,
+                                            updatedAt:1
                                         }
                                     }
                                 ]

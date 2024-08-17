@@ -1,0 +1,48 @@
+import { dbConnect } from "@/dbConfig/dbConfig";
+import { CommentReply } from "@/models/commentreply.models";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/options";
+
+
+
+export async function POST(request){
+
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const user = session.user;
+
+    if (!user || !session) {
+        return NextResponse.json({
+            success: false,
+            message: 'Not Authenticated',
+        }, { status: 400 });
+    }
+
+    try {
+        const {content,commentreplyId}=await request.json()
+      
+        
+        let commentreply=await CommentReply.findById(commentreplyId)
+        if(!commentreply){
+            return Response.json({
+                success: false,
+                message: 'Comment Reply not found',
+            }, { status: 400 });
+        }
+       const updatedComment = await CommentReply.findByIdAndUpdate(commentreplyId,{$set:{content:content,edited:true} },{new:true})
+    //    console.log(updatedComment);
+       
+        return Response.json({
+            success: true,
+            message: 'Comment Reply edited',
+        }, { status: 200 });
+
+    } catch (error) {
+        console.log("kuch galt hua",error);
+        
+        return Response.json({
+            success: false,
+            message: 'something went wrong ',
+        }, { status: 500 });
+    }
+}
