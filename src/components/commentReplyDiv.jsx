@@ -113,22 +113,21 @@ useEffect(() => {
   };
 
   const handleCommentClick = (commentId) => {
-
-    // Find the comment that matches the provided commentId
     const clickedComment = state.commentArray.find(comment => comment._id === commentId);
- 
+  
     if (clickedComment && clickedComment.replies && clickedComment.replies.length > 0) {
-      // Get the first reply ID from the replies array (or any specific logic you need here)
-      const firstReplyId = clickedComment.replies[0];
-
-      setHighlightedCommentId(firstReplyId);
-      
-      // Optionally, you can scroll to the related comment if needed
-      document.getElementById(firstReplyId)?.scrollIntoView({ behavior: 'smooth' });
-
+      const firstReplyIndex = state.commentArray.findIndex(comment => comment._id === clickedComment.replies[0]);
+  
+      setHighlightedCommentId(`comment-${firstReplyIndex}`);
+  
+      // Scroll to the comment
+      document.getElementById(`comment-${firstReplyIndex}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+  
       // Remove the highlight after 3 seconds
       setTimeout(() => setHighlightedCommentId(null), 3000);
-
     }
   };
 
@@ -138,7 +137,7 @@ useEffect(() => {
       <div className={`${state.commentArray.length > 0 ? "border-black border-2" : ""} flex-grow h-full overflow-y-auto w-full p-2`}>
         {Array.isArray(state.commentArray) && state.commentArray.length > 0 ? state.commentArray.map((videoComment, index) => (
 
-          <div key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === videoComment._id ? 'bg-yellow-200' : ''}`}>
+          <div key={index} id={`comment-${index}`} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === `comment-${index}` ? 'bg-yellow-200' : ''}`}>
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
                 <div className='flex gap-1 items-center'>
