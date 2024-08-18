@@ -15,22 +15,22 @@ import { useUser } from '@/context/context';
 function CommentsDiv({
   comments,
   UniqueComment,
-  CommentDeletePopup,
   commentDelete,
   commentContent,
   likeComment,
   form,
   saveEditedComment,
   loading,
-  delComPopup,
   replyContent,
   replyToReplyConntent,
+  router={router}
 }) {
 
   const { state, dispatch } = useUser()
   const [commentReply, setCommentsReply] = useState()
   const [isLoading, setIsLoading] = useState(false);
-  const [focusComment,setFocusComment] = useState(false);
+  const [focusComment, setFocusComment] = useState(false);
+  const [commentDeletePopup, setCommentDeletePopup] = useState(false);
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -38,12 +38,30 @@ function CommentsDiv({
 
 
   const inputRef = useRef(null);
+  const delComPopup = useRef(null);
 
-  useEffect(() => {
-    if (focusComment && inputRef.current) {
-      inputRef.current.focus();
-      setFocusComment(false)
+  const handleClickOutside = (event) => {
+    if(delComPopup.current && !delComPopup.current.contains(event.target)){
+      setCommentDeletePopup(false)
     }
+    if (inputRef.current && !inputRef.current.contains(event.target) ) {
+      replyContent.setEditingReplyCommentId(null);
+      replyContent.setEditedReplyContent("");
+      replyContent.setCurrentReplyCommentContent();
+      commentContent.setEditingCommentId(null);
+      commentContent.setEditedContent("");
+      commentContent.setCurrentCommentContent();
+      replyToReplyConntent.setCommentReplytoReply({ Id: "", username: "" })
+     
+    }
+  };
+  useEffect(() => {
+
+
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+    };
   }, [focusComment]);
 
 
@@ -139,7 +157,7 @@ function CommentsDiv({
     <>
       <div className={`flex-grow h-full  overflow-y-auto w-full border-2`}>
         {comments.map((videoComment, index) => (
-          <div key={index} className={`${comments ? "bg-slate-400" : "bg-gray-50"} relative flex flex-col p-3 rounded-lg mb-3 shadow-sm`}>
+          <div key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm`}>
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
                 <div className='flex gap-1 items-center'>
@@ -154,11 +172,12 @@ function CommentsDiv({
                 {videoComment.owner._id == user._id && (
                   <p onClick={() => {
                     UniqueComment.setUniqueComment(index);
-                    CommentDeletePopup.setCommentDeletePopup(true);
+                    setCommentDeletePopup(true)
+                    
                   }}>{<RxDotsVertical />}</p>
                 )}
               </div>
-              {CommentDeletePopup.commentDeletePopup && UniqueComment.uniqueComment == index && (
+              {commentDeletePopup && UniqueComment.uniqueComment == index && (
                 <div
                   ref={delComPopup}
                   className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
@@ -199,7 +218,7 @@ function CommentsDiv({
                 </button>
                 <p>{likeComment.commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
                 <button onClick={() => setFocusComment(true)} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
-                <p>{ videoComment.replies?.length}</p>
+                <p>{videoComment.replies?.length}</p>
               </div>
               <div>
                 <p className='text-sm text-gray-600 font-extralight'>
@@ -212,7 +231,7 @@ function CommentsDiv({
         ))}
       </div>
 
-      <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
+      <div ref={inputRef} className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (data) => {
@@ -232,10 +251,10 @@ function CommentsDiv({
               } else if (replyContent.editingReplyCommentId) {
                 await saveEditedReplyComment()
               } else if (replyToReplyConntent.commentReplytoReply.Id) {
-                  await sendReplyComment(finalContent, replyToReplyConntent.commentReplytoReply.Id);
-                } else {
-                  await sendReplyComment(finalContent);
-                }
+                await sendReplyComment(finalContent, replyToReplyConntent.commentReplytoReply.Id);
+              } else {
+                await sendReplyComment(finalContent);
+              }
 
 
               form.reset();
@@ -252,9 +271,11 @@ function CommentsDiv({
                     <FormControl>
                       <div className="relative">
                         <Input
-                          ref={inputRef}
+
                           type='text'
-                          placeholder='Add your reply...'
+
+                          placeholder={replyContent.editingReplyCommentId ? 'Edit your reply...' :  replyToReplyConntent.commentReplytoReply.username ? 'Reply to this... ' : 'Add your reply...'}
+
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
                           {...field}
                           value={commentContent.editingCommentId ? commentContent.editedContent : replyContent.editingReplyCommentId ? replyContent.editedReplyContent : replyToReplyConntent.commentReplytoReply.username ? `@${replyToReplyConntent.commentReplytoReply.username} ${field.value}` : field.value}

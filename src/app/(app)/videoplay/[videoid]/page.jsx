@@ -365,10 +365,11 @@ function Page() {
 
                 </div>
                 <div className='buttonsBox flex gap-4 mb-2'>
-                    <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-evenly'>
-                        <div onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
+                    <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-between'>
+                        <div className='mr-2' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
                         </div>
-                        <p className='h-full flex items-center text-sm border-2 border-l-slate-400 px-2 '>{likeCount}</p>
+                        <div className='h-full border-2 border-slate-400'></div>
+                        <p className='text-[18px] ml-1'>{likeCount}</p>
                     </div>
 
                     <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
@@ -628,12 +629,13 @@ function Page() {
                         </div>
                     </div>
                     <div>
-                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} delComPopup={delComPopup} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} />
+
+                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} delComPopup={delComPopup} setCommentDeletePopup={setCommentDeletePopup} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
 
                     </div>
 
 
-                    <div className='ml-8 mt-4 max-h-64 overflow-y-auto'>
+                    <div className='ml-8 mt-4 max-h-70 overflow-y-auto'>
                         < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                     </div>
 

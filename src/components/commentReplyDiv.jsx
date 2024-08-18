@@ -33,6 +33,16 @@ function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, c
     }
   };
 
+useEffect(() => {
+  document.addEventListener('click', handleClickOutside, true);
+  return () => {
+    document.removeEventListener('click', handleClickOutside, true);
+  };
+
+}, [commentReplyDeletePopup,delComPopup])
+
+
+
   useEffect(() => {
     if (comments) {
 
@@ -52,15 +62,10 @@ function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, c
       }, []);
       setCommentReplyLikes(replyLikedComments);
 
-
+        
     }
+  
 
-
-
-    document.addEventListener('click', handleClickOutside, true);
-    return () => {
-      document.removeEventListener('click', handleClickOutside, true);
-    };
   }, [comments, state.commentArray])
 
 
@@ -130,10 +135,10 @@ function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, c
 
   return (
     <>
-      <div className={`flex-grow h-full overflow-y-auto w-full border-2 border-black p-2`}>
+      <div className={`${state.commentArray.length > 0 ? "border-black border-2" : ""} flex-grow h-full overflow-y-auto w-full p-2`}>
         {Array.isArray(state.commentArray) && state.commentArray.length > 0 ? state.commentArray.map((videoComment, index) => (
 
-          <div onClick={() => handleCommentClick(videoComment._id)} key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === videoComment._id ? 'bg-yellow-200' : ''}`}>
+          <div key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === videoComment._id ? 'bg-yellow-200' : ''}`}>
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
                 <div className='flex gap-1 items-center'>
@@ -183,7 +188,7 @@ function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, c
               )}
             </div>
             <div className="mt-2">
-              <h2 className="text-base text-gray-700 break-words">{videoComment.content}</h2>
+              <h2  onClick={() => handleCommentClick(videoComment._id)} className="text-base text-gray-700 break-words">{videoComment.content}</h2>
             </div>
             <div className="flex mt-2 space-x-4 justify-between">
               <div className='flex gap-1'>
