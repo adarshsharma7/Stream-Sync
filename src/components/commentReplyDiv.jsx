@@ -5,8 +5,9 @@ import { formatDistanceToNow } from 'date-fns';
 import axios from 'axios';
 import { useDebounceCallback } from '@react-hook/debounce';
 import { useUser } from '@/context/context';
+import { useRouter } from 'next/navigation';
 
-function CommentReplyDiv({ comments, user, replyContent }) {
+function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, commentContent }) {
 
   const { state, dispatch } = useUser()
 
@@ -15,10 +16,11 @@ function CommentReplyDiv({ comments, user, replyContent }) {
   const [commentReplyLikes, setCommentReplyLikes] = useState([])
   const [commentLikesCount, setCommentLikesCount] = useState({});
   const [commentReplyDeletePopup, setCommentReplyDeletePopup] = useState(false);
+  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
 
 
 
-
+  let router = useRouter()
 
   const delComPopup = useRef(null);
   const debouncedCommentReplyLike = useDebounceCallback(async (commentId) => {
@@ -105,48 +107,33 @@ function CommentReplyDiv({ comments, user, replyContent }) {
 
   };
 
+  const handleCommentClick = (commentId) => {
 
+    // Find the comment that matches the provided commentId
+    const clickedComment = state.commentArray.find(comment => comment._id === commentId);
+ 
+    if (clickedComment && clickedComment.replies && clickedComment.replies.length > 0) {
+      // Get the first reply ID from the replies array (or any specific logic you need here)
+      const firstReplyId = clickedComment.replies[0];
 
+      setHighlightedCommentId(firstReplyId);
+      
+      // Optionally, you can scroll to the related comment if needed
+      document.getElementById(firstReplyId)?.scrollIntoView({ behavior: 'smooth' });
 
-  const sendReplyComment = async (data) => {
-    try {
-      setIsLoading(true);
+      // Remove the highlight after 3 seconds
+      setTimeout(() => setHighlightedCommentId(null), 3000);
 
-      let response = await axios.post("/api/videos/sendcommentreply", {
-        content: data.comment,  // Adjusted to match the schema
-        commentId: comments._id
-      });
-
-      let newCommentReply = {
-        _id: response.data.data._id,
-        content: data.comment,  // Adjusted to match the schema
-        edited: false,
-        likes: [],
-        replies: [],
-        replyOnComment: comments._id,
-        createdAt: new Date(),
-        owner: {
-          _id: user._id,
-          username: user.username,
-          avatar: user.avatar
-        }
-      };
-
-      setCommentReply((prevCommentsReply) => [...prevCommentsReply, newCommentReply]);
-
-    } catch (error) {
-      console.log("something wrong", error);
-
-    } finally {
-      setIsLoading(false);
     }
   };
+
 
   return (
     <>
       <div className={`flex-grow h-full overflow-y-auto w-full border-2 border-black p-2`}>
         {Array.isArray(state.commentArray) && state.commentArray.length > 0 ? state.commentArray.map((videoComment, index) => (
-          <div key={index} className={`${comments ? "bg-slate-400" : "bg-gray-50"} relative flex flex-col p-3 rounded-lg mb-3 shadow-sm`}>
+
+          <div onClick={() => handleCommentClick(videoComment._id)} key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === videoComment._id ? 'bg-yellow-200' : ''}`}>
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
                 <div className='flex gap-1 items-center'>
@@ -178,6 +165,12 @@ function CommentReplyDiv({ comments, user, replyContent }) {
                   </button>
                   <button
                     onClick={() => {
+                      if (commentContent.editingCommentId) {
+                        commentContent.setEditingCommentId(null);
+                        commentContent.setEditedContent("");
+                        commentContent.setCurrentCommentContent();
+                      }
+
                       replyContent.setEditingReplyCommentId(videoComment._id);
                       replyContent.setEditedReplyContent(videoComment.content);
                       replyContent.setCurrentReplyCommentContent(videoComment.content);
@@ -199,6 +192,7 @@ function CommentReplyDiv({ comments, user, replyContent }) {
                 </button>
                 <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
                 <button onClick={() => {
+                  replyToReplyConntent.setCommentReplytoReply({ Id: videoComment._id, username: videoComment.owner.username })
                   // Handle reply button click
                 }} className="ml-2 text-blue-500 hover:underline">Reply</button>
               </div>

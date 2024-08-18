@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
@@ -23,15 +23,29 @@ function CommentsDiv({
   saveEditedComment,
   loading,
   delComPopup,
-  replyContent
+  replyContent,
+  replyToReplyConntent,
 }) {
 
-const {state,dispatch}=useUser()
-const [commentReply, setCommentsReply] = useState()
+  const { state, dispatch } = useUser()
+  const [commentReply, setCommentsReply] = useState()
   const [isLoading, setIsLoading] = useState(false);
+  const [focusComment,setFocusComment] = useState(false);
 
   const { data: session } = useSession();
   const user = session?.user;
+
+
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (focusComment && inputRef.current) {
+      inputRef.current.focus();
+      setFocusComment(false)
+    }
+  }, [focusComment]);
+
 
   //   const replyForm = useForm({
   //     resolver: zodResolver(commentReplySchema),
@@ -43,60 +57,64 @@ const [commentReply, setCommentsReply] = useState()
   useEffect(() => {
     setCommentsReply(state.commentArray)
   }, [state.commentArray])
-  
+
 
   const saveEditedReplyComment = async () => {
     try {
-        loading.setEditCommentLoading(true);
+      loading.setEditCommentLoading(true);
 
-        // Update the comment in state using dispatch
-        dispatch({
-            type: 'UPDATE_COMMENT_REPLY',
-            payload: state.commentArray.map(comment =>
-                comment._id === replyContent.editingReplyCommentId
-                    ? { 
-                        ...comment, 
-                        content: replyContent.editedReplyContent, 
-                        edited: true, 
-                        updatedAt: new Date() 
-                    } // Update the content
-                    : comment // Keep other comments unchanged
-            )
-        });
+      // Update the comment in state using dispatch
+      dispatch({
+        type: 'UPDATE_COMMENT_REPLY',
+        payload: state.commentArray.map(comment =>
+          comment._id === replyContent.editingReplyCommentId
+            ? {
+              ...comment,
+              content: replyContent.editedReplyContent,
+              edited: true,
+              updatedAt: new Date()
+            } // Update the content
+            : comment // Keep other comments unchanged
+        )
+      });
 
-        // Make the API call to update the comment on the server
-        await axios.post("/api/videos/updatereplycomment", {
-            content: replyContent.editedReplyContent,
-            commentreplyId: replyContent.editingReplyCommentId
-        });
+      // Make the API call to update the comment on the server
+      await axios.post("/api/videos/updatereplycomment", {
+        content: replyContent.editedReplyContent,
+        commentreplyId: replyContent.editingReplyCommentId
+      });
 
-        // Clear the editing state
-        replyContent.setEditingReplyCommentId(null);
-        replyContent.setEditedReplyContent("");
+      // Clear the editing state
+      replyContent.setEditingReplyCommentId(null);
+      replyContent.setEditedReplyContent("");
 
     } catch (error) {
-        console.error("Error updating the reply comment:", error);
+      console.error("Error updating the reply comment:", error);
     } finally {
-        loading.setEditCommentLoading(false);
+      loading.setEditCommentLoading(false);
     }
-};
+  };
 
 
-  const sendReplyComment = async (data) => {
+  const sendReplyComment = async (data, repliedId) => {
     try {
       setIsLoading(true);
 
+
+
+
       let response = await axios.post("/api/videos/sendcommentreply", {
-        content: data.comment,  // Adjusted to match the schema
-        commentId: comments[0]._id
+        content: data,
+        commentId: comments[0]._id,
+        repliedId: repliedId ? repliedId : undefined
       });
 
       let newCommentReply = {
         _id: response.data.data._id,
-        content: data.comment,  // Adjusted to match the schema
+        content: data,  // Adjusted to match the schema
         edited: false,
         likes: [],
-        replies: [],
+        replies: repliedId ? [repliedId] : [],
         replyOnComment: comments[0]._id,
         createdAt: new Date(),
         owner: {
@@ -116,10 +134,11 @@ const [commentReply, setCommentsReply] = useState()
     }
   };
 
+
   return (
     <>
       <div className={`flex-grow h-full  overflow-y-auto w-full border-2`}>
-        { comments.map((videoComment, index) => (
+        {comments.map((videoComment, index) => (
           <div key={index} className={`${comments ? "bg-slate-400" : "bg-gray-50"} relative flex flex-col p-3 rounded-lg mb-3 shadow-sm`}>
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
@@ -152,6 +171,13 @@ const [commentReply, setCommentsReply] = useState()
                   </button>
                   <button
                     onClick={() => {
+                      if (replyContent.setEditingReplyCommentId) {
+                        replyContent.setEditingReplyCommentId(null);
+                        replyContent.setEditedReplyContent("");
+                        replyContent.setCurrentReplyCommentContent();
+                      }
+
+
                       commentContent.setEditingCommentId(videoComment._id);
                       commentContent.setEditedContent(videoComment.content);
                       commentContent.setCurrentCommentContent(videoComment.content);
@@ -172,9 +198,8 @@ const [commentReply, setCommentsReply] = useState()
                   {likeComment.commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                 </button>
                 <p>{likeComment.commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                <button onClick={() => {
-                  // Handle reply button click
-                }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
+                <button onClick={() => setFocusComment(true)} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
+                <p>{ videoComment.replies?.length}</p>
               </div>
               <div>
                 <p className='text-sm text-gray-600 font-extralight'>
@@ -184,7 +209,7 @@ const [commentReply, setCommentsReply] = useState()
             </div>
 
           </div>
-        )) }
+        ))}
       </div>
 
       <div className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
@@ -192,13 +217,27 @@ const [commentReply, setCommentsReply] = useState()
           <form
             onSubmit={form.handleSubmit(async (data) => {
 
+              let finalContent;
+
+              // Concatenate the username if it's a reply to a reply
+              if (replyToReplyConntent.commentReplytoReply.username) {
+                finalContent = `@${replyToReplyConntent.commentReplytoReply.username} ${data.comment}`;
+              } else {
+                finalContent = data.comment;
+              }
+
+
               if (commentContent.editingCommentId) {
                 await saveEditedComment();
-              }else if(replyContent.editingReplyCommentId){
-              await saveEditedReplyComment()
-              } else {
-                await sendReplyComment(data);
-              }
+              } else if (replyContent.editingReplyCommentId) {
+                await saveEditedReplyComment()
+              } else if (replyToReplyConntent.commentReplytoReply.Id) {
+                  await sendReplyComment(finalContent, replyToReplyConntent.commentReplytoReply.Id);
+                } else {
+                  await sendReplyComment(finalContent);
+                }
+
+
               form.reset();
             })
             }
@@ -213,40 +252,54 @@ const [commentReply, setCommentsReply] = useState()
                     <FormControl>
                       <div className="relative">
                         <Input
+                          ref={inputRef}
                           type='text'
                           placeholder='Add your reply...'
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
                           {...field}
-                          value={commentContent.editingCommentId ? commentContent.editedContent : replyContent.editingReplyCommentId ? replyContent.editedReplyContent : field.value}
+                          value={commentContent.editingCommentId ? commentContent.editedContent : replyContent.editingReplyCommentId ? replyContent.editedReplyContent : replyToReplyConntent.commentReplytoReply.username ? `@${replyToReplyConntent.commentReplytoReply.username} ${field.value}` : field.value}
                           onChange={async (e) => {
                             field.onChange(e);
                             if (commentContent.editingCommentId) {
                               commentContent.setEditedContent(e.target.value);
-                            } 
-                            if(replyContent.editingReplyCommentId){
+                            }
+                            if (replyContent.editingReplyCommentId) {
                               replyContent.setEditedReplyContent(e.target.value)
+                            }
+                            // Prevent user from deleting the `@username` part
+                            if (replyToReplyConntent.commentReplytoReply.username) {
+                              const cursorPosition = e.target.selectionStart;
+                              const usernamePart = `@${replyToReplyConntent.commentReplytoReply.username} `;
+                              if (cursorPosition <= usernamePart.length) {
+                                e.target.value = usernamePart + e.target.value.slice(usernamePart.length);
+                                e.target.setSelectionRange(usernamePart.length, usernamePart.length);
+                              }
+                              field.onChange(e.target.value.slice(usernamePart.length));
+                            } else {
+                              field.onChange(e);
                             }
 
                           }}
                         />
-                        {commentContent.editingCommentId || replyContent.editingReplyCommentId && (
+
+                        {/* {commentContent.editingCommentId || replyContent.editingReplyCommentId && (
                           <p
                             onClick={() => {
-                              if(replyContent.editingReplyCommentId){
+                              if (replyContent.editingReplyCommentId) {
                                 replyContent.setEditingReplyCommentId(null)
                                 replyContent.setEditedReplyContent('')
-                              }else{
+                              }else {
                                 commentContent.setEditedContent("");
                                 commentContent.setEditingCommentId(null);
                               }
-                             
+
                               field.onChange('');
                             }}
                             className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
                           >
                             <RxCross2 />
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -266,7 +319,7 @@ const [commentReply, setCommentsReply] = useState()
               ) : (
                 <Button
                   type="submit"
-                  disabled={isLoading || loading.editCommentLoading || commentContent.currentCommentContent === commentContent.editedContent ||  replyContent.editedReplyContent === replyContent.currentReplyCommentContent }
+                  disabled={isLoading || loading.editCommentLoading || commentContent.currentCommentContent === commentContent.editedContent || replyContent.editedReplyContent === replyContent.currentReplyCommentContent}
                   className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
                 >
                   {commentContent.editingCommentId || replyContent.editingReplyCommentId ? 'Update' : 'Reply'}

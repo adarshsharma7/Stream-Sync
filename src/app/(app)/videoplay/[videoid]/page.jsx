@@ -22,7 +22,7 @@ import { useUser } from '@/context/context'
 import { checkSubscribed, subscribe } from "@/components/subscribefunc"
 import { useDebounceCallback } from "@react-hook/debounce";
 import { RxDotsVertical, RxCross2 } from "react-icons/rx";
-import { MdOutlineWatchLater, MdWatchLater,MdOutlineInsertComment} from "react-icons/md";
+import { MdOutlineWatchLater, MdWatchLater, MdOutlineInsertComment } from "react-icons/md";
 import CommentsDiv from "@/components/commentsdiv"
 import CommentReplyDiv from "@/components/commentReplyDiv"
 
@@ -56,6 +56,7 @@ function Page() {
     const [currentReplyCommentContent, setCurrentReplyCommentContent] = useState()
     const [editingReplyCommentId, setEditingReplyCommentId] = useState('')
     const [editedReplyContent, setEditedReplyContent] = useState('')
+    const [commentReplytoReply, setCommentReplytoReply] = useState({ Id: "", username: "" })
 
 
 
@@ -298,15 +299,15 @@ function Page() {
                 : comment // keep other comments unchanged
         )
         );
-if(replyArray.length>0){
-    setReplyArray((prevArray) => [
-            { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
-        ]);
+        if (replyArray.length > 0) {
+            setReplyArray((prevArray) => [
+                { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
+            ]);
 
-       
 
-}
-        
+
+        }
+
 
         setEditCommentLoading(false)
         let response = await axios.post("/api/videos/updatecomment", { content: editedContent, commentId: editingCommentId })
@@ -364,7 +365,12 @@ if(replyArray.length>0){
 
                 </div>
                 <div className='buttonsBox flex gap-4 mb-2'>
-                    <div onClick={() => like()} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
+                    <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-evenly'>
+                        <div onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
+                        </div>
+                        <p className='h-full flex items-center text-sm border-2 border-l-slate-400 px-2 '>{likeCount}</p>
+                    </div>
+
                     <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
                     <div onClick={() => {
                         setIsWatchLater(!isWatchLater)
@@ -472,7 +478,7 @@ if(replyArray.length>0){
 
                                         <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                                     </div>
-                                    {videoComment.owner._id == user._id && (
+                                    {videoComment.owner._id == user?._id && (
                                         <p onClick={() => {
                                             setUniqueComment(index);
                                             setCommentDeletePopup(true);
@@ -516,6 +522,7 @@ if(replyArray.length>0){
                                         replyArray.push(videoComment)
                                         setReplyDiv(true)
                                     }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
+                                    <p>{videoComment.replies?.length}</p>
                                 </div>
                                 <div>
                                     <p className='text-sm text-gray-600 font-extralight'>
@@ -621,13 +628,13 @@ if(replyArray.length>0){
                         </div>
                     </div>
                     <div>
-                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} delComPopup={delComPopup} replyContent={{  currentReplyCommentContent, editingReplyCommentId, editedReplyContent,setEditingReplyCommentId,setEditedReplyContent,setEditedReplyContent }}/>
+                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} delComPopup={delComPopup} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} />
 
                     </div>
 
 
                     <div className='ml-8 mt-4 max-h-64 overflow-y-auto'>
-                        < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{  setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} />
+                        < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                     </div>
 
 

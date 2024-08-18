@@ -22,11 +22,8 @@ export async function POST(request) {
     }
 
     try {
-        const { content, commentId } = await request.json()
-        console.log(commentId);
+        const { content, commentId,repliedId } = await request.json()
         
-
-
         let comment = await Comment.findById(commentId)
         if (!comment) {
             return Response.json({
@@ -34,14 +31,15 @@ export async function POST(request) {
                 message: 'Comment not found',
             }, { status: 400 });
         }
+        
         let newCommentReply = await CommentReply.create({
             content: content,
             likes: [],
-            replies:[],
+            replies:repliedId ? [repliedId] : [],
             replyOnComment: commentId,
             owner: user._id
         })
-        console.log(newCommentReply);
+    
         
         comment.replies.push(newCommentReply._id)
         await comment.save()

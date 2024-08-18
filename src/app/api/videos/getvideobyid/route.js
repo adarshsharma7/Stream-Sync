@@ -107,6 +107,7 @@ export async function POST(request) {
                                             content: 1,
                                             edited: 1,
                                             likes: 1,
+                                            replies:1,
                                             owner: 1,
                                             createdAt:1,
                                             updatedAt:1
