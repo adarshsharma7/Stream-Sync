@@ -127,7 +127,7 @@ useEffect(() => {
       });
   
       // Remove the highlight after 3 seconds
-      setTimeout(() => setHighlightedCommentId(null), 3000);
+      setTimeout(() => setHighlightedCommentId(null), 2000);
     }
   };
 

@@ -98,8 +98,7 @@ function Page() {
         const findVideo = async () => {
             try {
                 let videoResponse = await axios.post("/api/videos/getvideobyid", { videoId });
-                console.log(videoResponse.data.data);
-
+              
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
@@ -368,7 +367,7 @@ function Page() {
                     <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-between'>
                         <div className='mr-2' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
                         </div>
-                        <div className='h-full border-2 border-slate-400'></div>
+                        <div className='h-full outline-1 outline-double outline-slate-400 '></div>
                         <p className='text-[18px] ml-1'>{likeCount}</p>
                     </div>
 
@@ -635,7 +634,7 @@ function Page() {
                     </div>
 
 
-                    <div className='ml-8 mt-4 max-h-70 overflow-y-auto'>
+                    <div className='ml-8 mt-4 max-h-[281px] overflow-y-auto'>
                         < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                     </div>
 
