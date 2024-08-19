@@ -25,6 +25,7 @@ import { RxDotsVertical, RxCross2 } from "react-icons/rx";
 import { MdOutlineWatchLater, MdWatchLater, MdOutlineInsertComment } from "react-icons/md";
 import CommentsDiv from "@/components/commentsdiv"
 import CommentReplyDiv from "@/components/commentReplyDiv"
+import Notification from "@/components/notificationpopup"
 
 
 
@@ -57,6 +58,7 @@ function Page() {
     const [editingReplyCommentId, setEditingReplyCommentId] = useState('')
     const [editedReplyContent, setEditedReplyContent] = useState('')
     const [commentReplytoReply, setCommentReplytoReply] = useState({ Id: "", username: "" })
+    const [showNotification, setShowNotification] = useState({ addComment: false, editComment: false, savePlaylist:{isDel: false,isAdd:false }});
 
 
 
@@ -89,6 +91,12 @@ function Page() {
 
     const debouncedWatchLater = useDebounceCallback(async () => {
         const response = await axios.post("/api/videos/addordeletevideotowatchlater", { videoId })
+        if(response.data.message=="Video deleted from your Watch Later"){
+            setShowNotification({...showNotification,savePlaylist:{...showNotification.savePlaylist,isDel:true}})
+        }else{
+            setShowNotification({...showNotification,savePlaylist:{...showNotification.savePlaylist,isAdd:true}}) 
+        }
+        
     }, 2000);
 
 
@@ -98,7 +106,7 @@ function Page() {
         const findVideo = async () => {
             try {
                 let videoResponse = await axios.post("/api/videos/getvideobyid", { videoId });
-              
+
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
@@ -225,7 +233,7 @@ function Page() {
         // );
 
 
-
+        setShowNotification({ ...showNotification, addComment: true })
 
         setIsLoading(false)
 
@@ -376,7 +384,8 @@ function Page() {
                         setIsWatchLater(!isWatchLater)
                         debouncedWatchLater()
                     }
-                    } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}</div>
+                    } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
+                    </div>
                     <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
 
                 </div>
@@ -702,7 +711,27 @@ function Page() {
 
             </div>
 
+            {showNotification.addComment && (
+                <Notification message={"Comment added"} onClose={() => setShowNotification({
+                    ...showNotification, addComment
+                        : false
+                })} />
 
+            )}
+            {showNotification.savePlaylist.isAdd && (
+                <Notification message={"Video added to watch later"} onClose={() => setShowNotification({
+                    ...showNotification, savePlaylist:{...showNotification.savePlaylist,isAdd:false}
+                      
+                })} />
+
+            )}
+            {showNotification.savePlaylist.isDel && (
+                <Notification message={"Video removed from watch later"} onClose={() => setShowNotification({
+                    ...showNotification, savePlaylist:{...showNotification.savePlaylist,isDel:false}
+                      
+                })} />
+
+            )}
 
         </div>
     )
