@@ -97,7 +97,7 @@ function Page() {
             setShowNotification({...showNotification,savePlaylist:{...showNotification.savePlaylist,isAdd:true}}) 
         }
         
-    }, 2000);
+    }, 1000);
 
 
 
