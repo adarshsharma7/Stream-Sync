@@ -41,7 +41,7 @@ export default function SignUpForm() {
       email: '',
       password: '',
       fullName: '',
-      avatar:null
+      avatar: null
     },
   });
 
@@ -83,19 +83,26 @@ export default function SignUpForm() {
   }, [username]);
 
   const onSubmit = async (data) => {
-    setIsSubmitting(true);
-    const avatarBase64 = await fileToBase64(data.avatar[0]);
-      
-        const payload = {
-          username: data.username,
-          email: data.email,
-          password: data.password,
-          fullName: data.fullName,
-          avatar:avatarBase64
-        };
-
     try {
-      const response = await axios.post('/api/users/signup', payload,{headers: { 'Content-Type': 'application/json' } });
+
+
+      setIsSubmitting(true);
+      console.log(data.avatar[0]);
+
+      // const avatarBase64 = await fileToBase64(data.avatar[0]);
+
+      const formData = new FormData();
+      formData.append('username', data.username);
+      formData.append('email', data.email);
+      formData.append('password', data.password);
+      formData.append('fullName', data.fullName);
+      formData.append('avatar', data.avatar[0]);
+
+      const response = await fetch(`/api/users/signup?filename=${data.avatar[0].name}`, {
+        method: 'POST',
+        body: formData,
+      });
+      // const response = await axios.post('/api/users/signup', payload,{headers: { 'Content-Type': 'application/json' } });
 
       toast({
         title: 'Success',
@@ -103,6 +110,7 @@ export default function SignUpForm() {
       });
 
       router.replace(`/verify/${username}`);
+
     } catch (error) {
       console.error('Error during sign-up:', error);
 
@@ -123,136 +131,136 @@ export default function SignUpForm() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-white">
-    <div className="w-full max-w-sm p-8 space-y-6 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Create your account</h1>
-        <p className="text-gray-600 mb-6">Sign up to start your journey</p>
-      </div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            name="fullName"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-gray-700">Full Name</FormLabel>
-                <Input
-                  {...field}
-                  placeholder="Enter your full name"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-  
-          <FormField
-            name="username"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-gray-700">Username</FormLabel>
-                <Input
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    debounced(e.target.value);
-                  }}
-                  placeholder="Choose a username"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
-                />
-                {isCheckingUsername && <Loader2 className="animate-spin text-blue-500" />}
-                {!isCheckingUsername && usernameMessage && (
-                  <p
-                    className={`text-sm ${usernameMessage === 'Username is available'
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                    }`}
-                  >
-                    {usernameMessage}
-                  </p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-  
-          <FormField
-            name="email"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-gray-700">Email</FormLabel>
-                <Input
-                  {...field}
-                  placeholder="Enter your email"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">We will send you a verification code</p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-  
-          <FormField
-            control={form.control}
-            name="avatar"
-            render={() => (
-              <FormItem>
-                <FormLabel className="text-sm text-gray-700">Upload Profile Image</FormLabel>
-                <FormControl>
+      <div className="w-full max-w-sm p-8 space-y-6 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-gray-800 mb-2">Create your account</h1>
+          <p className="text-gray-600 mb-6">Sign up to start your journey</p>
+        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              name="fullName"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-700">Full Name</FormLabel>
                   <Input
-                    type="file"
-                    placeholder="Upload Video"
-                    {...form.register("avatar")}
+                    {...field}
+                    placeholder="Enter your full name"
                     className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
                   />
-                </FormControl>
-                <FormDescription className="text-xs text-gray-500 mt-1">This is your public video.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-  
-          <FormField
-            name="password"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-gray-700">Password</FormLabel>
-                <Input
-                  type="password"
-                  {...field}
-                  placeholder="Create a password"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-  
-          <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </>
-            ) : (
-              'Sign Up'
-            )}
-          </Button>
-        </form>
-      </Form>
-      <div className="text-center mt-4">
-        <p className="text-gray-600">
-          Already a member?{' '}
-          <Link href="/sign-in" className="text-blue-600 hover:text-blue-800">
-            Sign in
-          </Link>
-        </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="username"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-700">Username</FormLabel>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      debounced(e.target.value);
+                    }}
+                    placeholder="Choose a username"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                  />
+                  {isCheckingUsername && <Loader2 className="animate-spin text-blue-500" />}
+                  {!isCheckingUsername && usernameMessage && (
+                    <p
+                      className={`text-sm ${usernameMessage === 'Username is available'
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                        }`}
+                    >
+                      {usernameMessage}
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="email"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-700">Email</FormLabel>
+                  <Input
+                    {...field}
+                    placeholder="Enter your email"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">We will send you a verification code</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="avatar"
+              render={() => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-700">Upload Profile Image</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      placeholder="Upload Video"
+                      {...form.register("avatar")}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                    />
+                  </FormControl>
+                  <FormDescription className="text-xs text-gray-500 mt-1">This is your public video.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="password"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm text-gray-700">Password</FormLabel>
+                  <Input
+                    type="password"
+                    {...field}
+                    placeholder="Create a password"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait
+                </>
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
+          </form>
+        </Form>
+        <div className="text-center mt-4">
+          <p className="text-gray-600">
+            Already a member?{' '}
+            <Link href="/sign-in" className="text-blue-600 hover:text-blue-800">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-  
+
   );
 }

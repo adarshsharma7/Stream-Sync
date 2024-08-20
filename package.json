@@ -15,6 +15,7 @@
     "@radix-ui/react-toast": "^1.2.1",
     "@react-email/components": "^0.0.22",
     "@react-hook/debounce": "^4.0.0",
+    "@vercel/blob": "^0.23.4",
     "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
@@ -43,6 +44,7 @@
     "toast": "^0.5.4",
     "use-debounce": "^10.0.2",
     "usehooks-ts": "^3.1.0",
+    "vercel": "^36.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

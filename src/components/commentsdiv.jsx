@@ -13,6 +13,7 @@ import { useUser } from '@/context/context';
 
 
 function CommentsDiv({
+  allComments,
   comments,
   UniqueComment,
   commentDelete,
@@ -27,7 +28,6 @@ function CommentsDiv({
 }) {
 
   const { state, dispatch } = useUser()
-  const [commentReply, setCommentsReply] = useState()
   const [isLoading, setIsLoading] = useState(false);
   const [focusComment, setFocusComment] = useState(false);
   const [commentDeletePopup, setCommentDeletePopup] = useState(false);
@@ -72,9 +72,6 @@ function CommentsDiv({
   //     }
   //   });
 
-  useEffect(() => {
-    setCommentsReply(state.commentArray)
-  }, [state.commentArray])
 
 
   const saveEditedReplyComment = async () => {
@@ -118,9 +115,6 @@ function CommentsDiv({
     try {
       setIsLoading(true);
 
-
-
-
       let response = await axios.post("/api/videos/sendcommentreply", {
         content: data,
         commentId: comments[0]._id,
@@ -142,8 +136,22 @@ function CommentsDiv({
         }
       };
 
-      setCommentsReply((prevCommentsReply) => [...prevCommentsReply, newCommentReply]);
-      dispatch({ type: "UPDATE_COMMENT_REPLY", payload: [...commentReply, newCommentReply] });
+       //this is for updateing instantly the length of comments reply in main comment section
+      allComments.setComments((prevComments) =>
+        prevComments.map(comment => {
+          if (comment._id === comments[0]._id) {  // Replace comments[0]._id with the actual comment ID you're targeting
+            // Update the replies array
+            return {
+              ...comment,
+              replies: [...comment.replies, newCommentReply]
+            };
+          }
+          return comment;
+        })
+      );
+//this for adding new reply and showing instantly on a reply comment
+      dispatch({ type: "UPDATE_COMMENT_REPLY", payload: [...state.commentArray, newCommentReply] });
+      replyToReplyConntent?.setCommentReplytoReply({ Id: "", username: "" })
     } catch (error) {
       console.log("something wrong", error);
 

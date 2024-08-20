@@ -638,7 +638,7 @@ function Page() {
                     </div>
                     <div>
 
-                        <CommentsDiv comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
+                        <CommentsDiv allComments={{comments,setComments}} comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
 
                     </div>
 
@@ -653,14 +653,6 @@ function Page() {
 
                 </div>
             </div>
-
-
-
-
-
-
-
-
 
             <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                 <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
