@@ -50,9 +50,36 @@ useEffect(() => {
     }
   }, [comments]);
 
+  // useEffect(() => {
+  //   // Find the specific comment by its ID in allComments.comments
+  //   if(comments){
+  //     const matchedComment = allComments.comments.find(comment => comment._id === comments._id);
+  
+  //     if (matchedComment) {
+  //       // Calculate liked replies for the matched comment's replies
+  //       const replyLikedComments = matchedComment.replies.reduce((acc, reply) => {
+  //         if (reply.likes?.includes(user._id)) {
+  //           acc.push(reply._id);
+  //         }
+  //         return acc;
+  //       }, []);
+  //       setCommentReplyLikes(replyLikedComments);
+    
+  //       // Perform any additional updates or operations on matchedComment
+  //       // If necessary, update allComments state here (if you need to trigger a re-render)
+  //     }
+  //   }
+    
+  // }, [comments, allComments]);
+  
+
+
+
 
 
   useEffect(() => {
+
+    
     if (state.commentArray) {
       const replyLikedComments = state.commentArray.reduce((acc, comm) => {
         if (comm.likes?.includes(user._id)) {
@@ -108,14 +135,76 @@ useEffect(() => {
     try {
       const currentCount = commentLikesCount[commentId] || initialLikeCount;
       if (commentReplyLikes.includes(commentId)) {
+
+allComments.setComments((prevComments) =>
+  prevComments.map((comment) => {
+    if (comment._id === comments._id) {
+      // Iterate through the replies of the matched comment
+      const updatedReplies = comment.replies.map((reply) => {
+        if (reply._id === commentId) { // Assuming you're targeting a specific reply
+          // Create a new likes array by filtering out the user._id
+          const newLikes = reply.likes.filter(like => like !== user._id);
+          
+          // Return the updated reply with the new likes array
+          return {
+            ...reply,
+            likes: newLikes,
+          };
+        }
+        return reply; // Return other replies unchanged
+      });
+
+      // Return the updated comment with the new replies array
+      return {
+        ...comment,
+        replies: updatedReplies,
+      };
+    }
+    return comment; // Return other comments unchanged
+  })
+);
+
+
         const updatedCount = currentCount - 1;
         setCommentLikesCount(prevCounts => ({ ...prevCounts, [commentId]: updatedCount }));
+
         // If commentId is already in the array, remove it
         setCommentReplyLikes(prevLikes => prevLikes.filter(id => id !== commentId));
       } else {
         // If commentId is not in the array, add it
         const updatedCount = currentCount + 1;
         setCommentLikesCount(prevCounts => ({ ...prevCounts, [commentId]: updatedCount }));
+
+
+        allComments.setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment._id === comments._id) {
+              // Iterate through the replies of the matched comment
+              const updatedReplies = comment.replies.map((reply) => {
+                if (reply._id === commentId) { // Assuming you're targeting a specific reply
+                  // Create a new likes array and add the new like
+                  const newLikes = [...reply.likes, user._id];
+                  
+                  // Return the updated reply with the new likes array
+                  return {
+                    ...reply,
+                    likes: newLikes,
+                  };
+                }
+                return reply; // Return other replies unchanged
+              });
+        
+              // Return the updated comment with the new replies array
+              return {
+                ...comment,
+                replies: updatedReplies,
+              };
+            }
+            return comment; // Return other comments unchanged
+          })
+        );
+        
+
         setCommentReplyLikes(prevLikes => [...prevLikes, commentId]);
       }
       debouncedCommentReplyLike(commentId);
