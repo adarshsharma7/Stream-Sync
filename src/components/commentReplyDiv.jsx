@@ -7,7 +7,7 @@ import { useDebounceCallback } from '@react-hook/debounce';
 import { useUser } from '@/context/context';
 import { useRouter } from 'next/navigation';
 
-function CommentReplyDiv({ comments, user, replyContent, replyToReplyConntent, commentContent }) {
+function CommentReplyDiv({allComments, comments, user, replyContent, replyToReplyConntent, commentContent }) {
 
   const { state, dispatch } = useUser()
 
@@ -75,7 +75,23 @@ useEffect(() => {
       const updatedReplies = state.commentArray.filter(
         comment => !(comment.content === contentToDelete && comment.owner._id === user._id)
       );
+
       dispatch({ type: "UPDATE_COMMENT_REPLY", payload: updatedReplies });
+    
+      allComments.setComments((prevComments) =>
+        prevComments.map(comment => {
+          if (comment._id === comments._id) {  // Replace comments[0]._id with the actual comment ID you're targeting
+            return {
+              ...comment,
+              replies: comment.replies.filter(reply => reply._id !== commentReplyId)
+            };
+          }
+          return comment;
+        })
+      );
+      
+       
+   
       let response = await axios.post("/api/videos/deletecommentreply", { commentReplyId, commentId: comments._id })
 
 

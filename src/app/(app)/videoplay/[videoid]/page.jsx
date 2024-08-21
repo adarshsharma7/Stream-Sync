@@ -644,7 +644,7 @@ function Page() {
 
 
                     <div className='ml-8 mt-4 max-h-[281px] overflow-y-auto'>
-                        < CommentReplyDiv comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
+                        < CommentReplyDiv allComments={{comments,setComments}} comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                     </div>
 
 

@@ -77,38 +77,58 @@ function CommentsDiv({
   const saveEditedReplyComment = async () => {
     try {
       loading.setEditCommentLoading(true);
-
-      // Update the comment in state using dispatch
+  
+      // Update the comment in state using setComments
+      allComments.setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === comments[0]._id
+            ? {
+                ...comment,
+                replies: comment.replies.map((reply) =>
+                  reply._id === replyContent.editingReplyCommentId
+                    ? {
+                        ...reply,
+                        content: replyContent.editedReplyContent,
+                        edited: true,
+                        updatedAt: new Date(),
+                      }
+                    : reply
+                ),
+              }
+            : comment // Return the original comment if the ID doesn't match
+        )
+      );
+  
       dispatch({
-        type: 'UPDATE_COMMENT_REPLY',
-        payload: state.commentArray.map(comment =>
+        type: "UPDATE_COMMENT_REPLY",
+        payload: state.commentArray.map((comment) =>
           comment._id === replyContent.editingReplyCommentId
             ? {
-              ...comment,
-              content: replyContent.editedReplyContent,
-              edited: true,
-              updatedAt: new Date()
-            } // Update the content
-            : comment // Keep other comments unchanged
-        )
+                ...comment,
+                content: replyContent.editedReplyContent,
+                edited: true,
+                updatedAt: new Date(),
+              }
+            : comment
+        ),
       });
-
+  
       // Make the API call to update the comment on the server
       await axios.post("/api/videos/updatereplycomment", {
         content: replyContent.editedReplyContent,
-        commentreplyId: replyContent.editingReplyCommentId
+        commentreplyId: replyContent.editingReplyCommentId,
       });
-
+  
       // Clear the editing state
       replyContent.setEditingReplyCommentId(null);
       replyContent.setEditedReplyContent("");
-
     } catch (error) {
       console.error("Error updating the reply comment:", error);
     } finally {
       loading.setEditCommentLoading(false);
     }
   };
+  
 
 
   const sendReplyComment = async (data, repliedId) => {
