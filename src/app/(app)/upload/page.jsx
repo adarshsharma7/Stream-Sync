@@ -1,34 +1,30 @@
 "use client";
 
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { zodResolver } from '@hookform/resolvers/zod'
-import React, { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { uploadVideoSchema } from '@/Schemas/uploadVideoSchema'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from "@/components/ui/button"
-import axios from 'axios'
-import { Loader2 } from 'lucide-react'
-
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { uploadVideoSchema } from '@/Schemas/uploadVideoSchema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from '@/components/ui/form';
 
 function Page() {
-    const [isLoading, setIsLoading] = useState(false)
-    const [message, setMessage] = useState("")
-    const [messageType, setMessageType] = useState("")
-
-
-
-    const fileToBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = error => reject(error);
-        });
-      };
-      
-
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
+    const [thumbnailProgress, setThumbnailProgress] = useState(0);
+    const [videoProgress, setVideoProgress] = useState(0);
 
     const form = useForm({
         resolver: zodResolver(uploadVideoSchema),
@@ -38,48 +34,75 @@ function Page() {
             videoFile: null,
             thumbnail: null,
         }
-    })
+    });
 
+    const uploadToCloudinary = async (file, onProgress, resourceType = 'auto') => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "my_unsigned_preset"); // Replace with your unsigned upload preset
+        // formData.append("cloud_name", `${process.env.CLOUD_NAME}`); // Replace with your Cloudinary cloud name
 
+        const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/dmep4qjdi/${resourceType}/upload`, // Replace with your Cloudinary API URL
+            formData,
+            {
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    onProgress(percentCompleted);
+                },
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            }
+        );
+// console.log(response);
+
+        return response.data;
+    };
 
     const onSubmit = async (data) => {
-
-        setIsLoading(true)
-        setMessage("") // Clear previous messages
-
-// console.log("data hai",data);
-
-
-        const formData = new FormData();
-        formData.set('title', data.title);
-        formData.set('description', data.description);
-        formData.set('videoFile', data.videoFile[0]);
-        formData.set('thumbnail', data.thumbnail[0]);
-       
-        // const videoBase64 = await fileToBase64(data.videoFile[0]);
-        // const thumbnailBase64 = await fileToBase64(data.thumbnail[0]);
-      
-        // const payload = {
-        //   title: data.title,
-        //   description: data.description,
-        //   videoFile: videoBase64,
-        //   thumbnail: thumbnailBase64,
-        // };
+        setIsLoading(true);
+        setMessage(""); // Clear previous messages
 
         try {
-            let response = await axios.post("/api/videos/videoupload", formData , { headers: {  'Content-Type': 'multipart/form-data' } })
+            // Upload Thumbnail
+            // console.log("Image ho rahi hai upload");
+            const thumbnailResponse = await uploadToCloudinary(data.thumbnail[0], setThumbnailProgress, 'image');
+            const thumbnailUrl = thumbnailResponse.secure_url;
+            // console.log("Image hogai ye raha link bhai",thumbnailUrl);
+            
+
+            // Upload Video
+            // console.log("ab video hogi upload");
+            
+            const videoResponse = await uploadToCloudinary(data.videoFile[0], setVideoProgress, 'video');
+            const videoUrl = videoResponse.secure_url;
+            // console.log("video hogai ye raha link bhai",videoUrl);
+            
+             
+
+            const payload = {
+                   title: data.title,
+                   description: data.description,
+                   videoFile: videoUrl,
+                   thumbnail: thumbnailUrl,
+                 };
+
+                 let response = await axios.post("/api/videos/videoupload", payload, {
+                    headers: { 'Content-Type': 'multipart/application/json' }
+                })
+
+           
             setMessage(response.data.message)
-            if(response.data.success){
+            if (response.data.success) {
                 setMessageType("success") // Set message type for styling
             }
-          
+
         } catch (error) {
-            setMessage("An error occurred while uploading.")
-            setMessageType("error") // Set message type for styling
+            setMessage("An error occurred while uploading.");
+            setMessageType("error");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="w-full h-screen flex flex-col bg-gray-100">
@@ -88,7 +111,7 @@ function Page() {
                 <p className="text-gray-600">Share your latest video with the world.</p>
             </div>
             <div className="flex-grow flex justify-center items-center p-4">
-               
+
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-lg space-y-8">
 
@@ -108,6 +131,9 @@ function Page() {
                                     </FormControl>
                                     <FormDescription className="text-sm text-gray-600">This is your public video.</FormDescription>
                                     <FormMessage />
+                                    {videoProgress > 0 && (
+                                        <div className="mt-2 text-blue-600">{`Video Upload Progress: ${videoProgress}%`}</div>
+                                    )}
                                 </FormItem>
                             )}
                         />
@@ -119,10 +145,18 @@ function Page() {
                                 <FormItem>
                                     <FormLabel className="text-lg font-semibold">Upload Thumbnail</FormLabel>
                                     <FormControl>
-                                        <Input type='file'  placeholder="Upload thumbnail" {...form.register('thumbnail')} className="border border-gray-300 rounded-md shadow-sm" />
+                                        <Input
+                                            type="file"
+                                            placeholder="Upload Thumbnail"
+                                            {...form.register("thumbnail")}
+                                            className="border border-gray-300 rounded-md shadow-sm"
+                                        />
                                     </FormControl>
                                     <FormDescription className="text-sm text-gray-600">Upload the thumbnail image (Max 5 MB).</FormDescription>
                                     <FormMessage />
+                                    {thumbnailProgress > 0 && (
+                                        <div className="mt-2 text-blue-600">{`Thumbnail Upload Progress: ${thumbnailProgress}%`}</div>
+                                    )}
                                 </FormItem>
                             )}
                         />
@@ -178,11 +212,12 @@ function Page() {
                                 </Button>
                             )}
                         </div>
+
                     </form>
                 </Form>
             </div>
         </div>
-    )
+    );
 }
 
-export default Page
+export default Page;

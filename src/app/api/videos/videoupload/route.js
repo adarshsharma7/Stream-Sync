@@ -19,12 +19,12 @@ export async function POST(request) {
     }
 
     try {
-    let data = await request.formData();
-    let title = data.get("title");
-    let description = data.get("description");
-    let videoFile = data.get("videoFile");
-    let thumbnail = data.get("thumbnail");
-  
+    // let data = await request.formData();
+    // let title = data.get("title");
+    // let description = data.get("description");
+    // let videoFile = data.get("videoFile");
+    // let thumbnail = data.get("thumbnail");
+  let {title,description,videoFile,thumbnail}=await request.json()
 
     if ([title, description, videoFile, thumbnail].some(field => !field)) {
         return NextResponse.json({
@@ -33,28 +33,28 @@ export async function POST(request) {
         }, { status: 400 });
       }
     
-        const videoResponse = await uploadOnCloudinary(videoFile);
-        const thumbnailResponse = await uploadOnCloudinary(thumbnail);
+        // const videoResponse = await uploadOnCloudinary(videoFile);
+        // const thumbnailResponse = await uploadOnCloudinary(thumbnail);
 
-        if (!videoResponse || !videoResponse.url) {
-            return NextResponse.json({
-                success: false,
-                message: 'Error while uploading video',
-            }, { status: 500 });
-        }
+        // if (!videoResponse || !videoResponse.url) {
+        //     return NextResponse.json({
+        //         success: false,
+        //         message: 'Error while uploading video',
+        //     }, { status: 500 });
+        // }
 
-        if (!thumbnailResponse || !thumbnailResponse.url) {
-            return NextResponse.json({
-                success: false,
-                message: 'Error while uploading thumbnail',
-            }, { status: 500 });
-        }
+        // if (!thumbnailResponse || !thumbnailResponse.url) {
+        //     return NextResponse.json({
+        //         success: false,
+        //         message: 'Error while uploading thumbnail',
+        //     }, { status: 500 });
+        // }
 
         const video = await Videos.create({
             title,
             description,
-            videoFile: videoResponse?.url,
-            thumbnail: thumbnailResponse?.url,
+            videoFile:videoFile,
+            thumbnail: thumbnail,
             owner: _user._id,
         });
 
