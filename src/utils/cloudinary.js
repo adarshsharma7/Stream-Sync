@@ -83,7 +83,7 @@ cloudinary.v2.config({
 });
 
 // Function to upload a file to Cloudinary
-export const uploadToCloudinary = async (filePath) => {
+export const uploadOnCloudinary = async (filePath) => {
   try {
     const uploadResult = await cloudinary.v2.uploader.upload(filePath, {
       folder: 'user_avatars', // Optional folder to organize uploads
