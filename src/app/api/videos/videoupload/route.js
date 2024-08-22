@@ -36,7 +36,7 @@ export async function POST(request) {
         const videoResponse = await uploadOnCloudinary(videoFile);
         const thumbnailResponse = await uploadOnCloudinary(thumbnail);
 
-        if (!videoResponse || videoResponse.url) {
+        if (!videoResponse || !videoResponse.url) {
             return NextResponse.json({
                 success: false,
                 message: 'Error while uploading video',
