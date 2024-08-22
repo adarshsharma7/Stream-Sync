@@ -29,6 +29,8 @@ export default function SignUpForm() {
   const [usernameMessage, setUsernameMessage] = useState('');
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [file, setFile] = useState();
+
   const debounced = useDebounceCallback(setUsername, 300);
 
   const router = useRouter();
@@ -87,9 +89,9 @@ export default function SignUpForm() {
 
 
       setIsSubmitting(true);
-      console.log(data.avatar[0]);
+      console.log(data.avatar);
 
-      // const avatarBase64 = await fileToBase64(data.avatar[0]);
+      //  const avatarBase64 = await fileToBase64(data.avatar[0]);
 
       const formData = new FormData();
       formData.append('username', data.username);
@@ -98,18 +100,30 @@ export default function SignUpForm() {
       formData.append('fullName', data.fullName);
       formData.append('avatar', data.avatar[0]);
 
-      const response = await fetch(`/api/users/signup?filename=${data.avatar[0].name}`, {
-        method: 'POST',
-        body: formData,
+      const response = await axios.post('/api/users/signup', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Set the content type to 'multipart/form-data'
+        },
       });
       // const response = await axios.post('/api/users/signup', payload,{headers: { 'Content-Type': 'application/json' } });
-
-      toast({
+     
+      
+   
+    
+       if(response.data.success){
+          toast({
         title: 'Success',
-        description: response.data.message,
-      });
-
-      router.replace(`/verify/${username}`);
+        description: response.message,
+   });
+        router.replace(`/verify/${username}`);
+   
+       }else{
+        toast({
+          title: 'false',
+          description: response.data.message,
+        });
+       }
+    
 
     } catch (error) {
       console.error('Error during sign-up:', error);
@@ -212,6 +226,7 @@ export default function SignUpForm() {
                     <Input
                       type="file"
                       placeholder="Upload Video"
+                    
                       {...form.register("avatar")}
                       className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
                     />

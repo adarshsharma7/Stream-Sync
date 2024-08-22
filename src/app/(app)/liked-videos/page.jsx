@@ -23,7 +23,7 @@ function Page() {
       <div className='p-4'>
         {state.likedError ? (
           <div className="text-center text-red-700">
-            <h1>{videosFetchingMessage}</h1>
+            <h1>{state.likedError}</h1>
           </div>
         ) : (
           <div className='flex flex-col gap-4'>

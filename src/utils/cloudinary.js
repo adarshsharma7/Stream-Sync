@@ -1,44 +1,51 @@
-//  import { v2 as cloudinary } from 'cloudinary';
+// import { v2 as cloudinary } from 'cloudinary';
 // import fs from 'fs';
-//  import path from 'path';
+// import path from 'path';
 
-//  cloudinary.config({ 
-//    cloud_name: process.env.CLOUD_NAME,
-//    api_key: process.env.API_KEY,
-//    api_secret: process.env.API_SECRET,
-//    secure: true,
-//  });
+// cloudinary.config({
+//   cloud_name: process.env.CLOUD_NAME,
+//   api_key: process.env.API_KEY,
+//   api_secret: process.env.API_SECRET,
+//   secure: true,
+// });
 
 // export const uploadOnCloudinary = async (base64Data) => {
 //   let tempFilePath;
 //   try {
-//     if ( !base64Data) return null;
+//     if (!base64Data) return null;
 
-
-
-//     // Decode base64 and save to a file
+//     // Decode base64 and save to a temporary file
 //     const buffer = Buffer.from(base64Data.split(',')[1], 'base64'); // Split and remove the prefix
+//     tempFilePath = path.join(__dirname, '../../../../../../public/temp', `tempFile_${Date.now()}.tmp`);
 
-//     console.log("upload hone jaa raha hai clodinary pa");
+//     fs.writeFileSync(tempFilePath, buffer);
 
-//     let response = await cloudinary.uploader.upload(buffer, {
+//     console.log("Uploading to Cloudinary...");
+
+//     // Upload the file to Cloudinary
+//     let response = await cloudinary.uploader.upload(tempFilePath, {
 //       resource_type: 'auto',
 //     });
-//     console.log("upload hone k baad ka hisab h yuu");
-//     // Remove the temporary file
 
+//     console.log("Upload successful");
+
+//     // Remove the temporary file
+//     if (fs.existsSync(tempFilePath)) {
+//       fs.unlinkSync(tempFilePath);
+//     }
 
 //     return response;
 
 //   } catch (error) {
+//     // Ensure the temporary file is removed in case of error
 //     if (tempFilePath && fs.existsSync(tempFilePath)) {
-
+//       fs.unlinkSync(tempFilePath);
 //     }
 //     console.log("Error in Cloudinary upload:", error);
 //     return null;
 //   }
+// };
 
-// }
 
 
 
@@ -73,32 +80,34 @@
 // // }
 
 
-import cloudinary from 'cloudinary';
-
-// Configure Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+import {v2 as cloudinary} from 'cloudinary';
+import {writeFile} from "fs/promises"
+import fs from 'fs'
+   
+cloudinary.config({ 
+  cloud_name:`${process.env.CLOUD_NAME}`,
+  api_key:`${process.env.API_KEY}`,
+  api_secret:`${process.env.API_SECRET}`,
+  secure:true,
 });
+const uploadOnCloudinary=async(buffer,avatar)=>{
+  const path=`./public/temp/${avatar.name}`
+  await writeFile(path,buffer)
+ console.log("Upload hone jaa raha hai");
+ 
+try {
+     const avatarResponse = await cloudinary.uploader.upload(path, {
+  resource_type: 'auto',
+});
+console.log("Upload hogaya hai");
 
-// Function to upload a file to Cloudinary
-export const uploadOnCloudinary = async (filePath) => {
-  try {
-    const uploadResult = await cloudinary.v2.uploader.upload(filePath, {
-      folder: 'user_avatars', // Optional folder to organize uploads
-    });
-    return uploadResult;
-  } catch (error) {
-    console.error('File upload failed:', error.message); // More detailed error logging
-    throw new Error('File upload failed');
-  }
-};
-
-
-
-
-
-
-
-
+// Remove the temporary file
+fs.unlinkSync(path);
+return avatarResponse;
+        
+ } catch (error) {
+     fs.unlinkSync(path)
+     console.log( "ho ni paara ab bhi",error);
+ }
+ } 
+ export {uploadOnCloudinary}

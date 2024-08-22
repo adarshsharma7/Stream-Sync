@@ -187,6 +187,7 @@ export async function GET() {
         if (user[0].liked?.length == 0) {
             return Response.json({
                 success: true,
+                data: user[0],
                 message: "No Liked Videos"
             }, { status: 200 })
         }

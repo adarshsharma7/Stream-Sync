@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "formidable": "^3.5.1",
+    "formidable-serverless": "^1.1.1",
     "fuse.js": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.424.0",
