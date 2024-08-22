@@ -35,10 +35,10 @@ export async function POST(request) {
     let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Upload file to Cloudinary
-    const byteData = await avatar.arrayBuffer();
-    const buffer = Buffer.from(byteData);
     
-    const avatarResponse = await uploadOnCloudinary(buffer, avatar);
+    
+    const avatarResponse = await uploadOnCloudinary(avatar);
+    
     if (!avatarResponse || !avatarResponse.url) {
       return NextResponse.json({
         success: false,

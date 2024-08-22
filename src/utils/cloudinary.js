@@ -90,8 +90,11 @@ cloudinary.config({
   api_secret:`${process.env.API_SECRET}`,
   secure:true,
 });
-const uploadOnCloudinary=async(buffer,avatar)=>{
+const uploadOnCloudinary=async(avatar)=>{
+  const byteData = await avatar.arrayBuffer();
+    const buffer = Buffer.from(byteData);
   const path=`./public/temp/${avatar.name}`
+  
   await writeFile(path,buffer)
  console.log("Upload hone jaa raha hai");
  

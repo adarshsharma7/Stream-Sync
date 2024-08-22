@@ -50,24 +50,24 @@ function Page() {
 // console.log("data hai",data);
 
 
-        // const formData = new FormData();
-        // formData.append('title', data.title);
-        // formData.append('description', data.description);
-        // formData.append('videoFile', data.videoFile[0]);
-        // formData.append('thumbnail', data.thumbnail[0]);
+        const formData = new FormData();
+        formData.set('title', data.title);
+        formData.set('description', data.description);
+        formData.set('videoFile', data.videoFile[0]);
+        formData.set('thumbnail', data.thumbnail[0]);
        
-        const videoBase64 = await fileToBase64(data.videoFile[0]);
-        const thumbnailBase64 = await fileToBase64(data.thumbnail[0]);
+        // const videoBase64 = await fileToBase64(data.videoFile[0]);
+        // const thumbnailBase64 = await fileToBase64(data.thumbnail[0]);
       
-        const payload = {
-          title: data.title,
-          description: data.description,
-          videoFile: videoBase64,
-          thumbnail: thumbnailBase64,
-        };
+        // const payload = {
+        //   title: data.title,
+        //   description: data.description,
+        //   videoFile: videoBase64,
+        //   thumbnail: thumbnailBase64,
+        // };
 
         try {
-            let response = await axios.post("/api/videos/videoupload", payload , { headers: { 'Content-Type': 'application/json' } })
+            let response = await axios.post("/api/videos/videoupload", formData , { headers: {  'Content-Type': 'multipart/form-data' } })
             setMessage(response.data.message)
             setMessageType("success") // Set message type for styling
         } catch (error) {

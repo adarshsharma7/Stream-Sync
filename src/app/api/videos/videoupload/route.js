@@ -19,21 +19,31 @@ export async function POST(request) {
     }
 
     try {
-        const { title, description, videoFile, thumbnail } = await request.json();
+    let data = await request.formData();
+    let title = data.get("title");
+    let description = data.get("description");
+    let videoFile = data.get("videoFile");
+    let thumbnail = data.get("thumbnail");
+  
 
-        const videoFileName = `video_${Date.now()}.mp4`;
-        const thumbnailFileName = `thumbnail_${Date.now()}.jpg`;
-        const videoResponse = await uploadOnCloudinary(videoFile, videoFileName);
-        const thumbnailResponse = await uploadOnCloudinary(thumbnail, thumbnailFileName);
+    if ([title, description, videoFile, thumbnail].some(field => !field)) {
+        return NextResponse.json({
+          success: false,
+          message: "All fields are required"
+        }, { status: 400 });
+      }
+    
+        const videoResponse = await uploadOnCloudinary(videoFile);
+        const thumbnailResponse = await uploadOnCloudinary(thumbnail);
 
-        if (!videoResponse) {
+        if (!videoResponse || videoResponse.url) {
             return NextResponse.json({
                 success: false,
                 message: 'Error while uploading video',
             }, { status: 500 });
         }
 
-        if (!thumbnailResponse) {
+        if (!thumbnailResponse || !thumbnailResponse.url) {
             return NextResponse.json({
                 success: false,
                 message: 'Error while uploading thumbnail',
