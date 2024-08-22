@@ -69,7 +69,10 @@ function Page() {
         try {
             let response = await axios.post("/api/videos/videoupload", formData , { headers: {  'Content-Type': 'multipart/form-data' } })
             setMessage(response.data.message)
-            setMessageType("success") // Set message type for styling
+            if(response.data.success){
+                setMessageType("success") // Set message type for styling
+            }
+          
         } catch (error) {
             setMessage("An error occurred while uploading.")
             setMessageType("error") // Set message type for styling
