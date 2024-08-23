@@ -25,6 +25,7 @@ function Page() {
   const [editingVideoId, setEditingVideoId] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [editingContent, setEditingContent] = useState({title:"",description:""})
+  const [uniqueIndex, setUniqueId] = useState()
 
   const router = useRouter()
 
@@ -130,7 +131,7 @@ function Page() {
                     <img src={video.thumbnail} alt="Thumbnail" className='w-full h-full object-cover' />
                   </div>
                   <div className='p-3 flex flex-col justify-between w-full'>
-                    {editingVideoId ? (
+                    {editingVideoId && uniqueIndex==index ? (
                       <>
                         <Form {...form}>
                           <form onSubmit={form.handleSubmit(handleSaveEdit)} className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-lg space-y-8">
@@ -227,6 +228,7 @@ function Page() {
                   <div onClick={(e) => {
                     e.stopPropagation()
                     setEditingVideoId(video._id)
+                    setUniqueId(index)
                     setEditingContent({
                       title: video.title,
                       description: video.description
