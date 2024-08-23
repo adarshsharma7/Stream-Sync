@@ -349,7 +349,7 @@ function Page() {
                     <div className='md:flex md:justify-between'>
 
 
-                        <div className='no-select flex justify-between items-center md:gap-4'>
+                        <div className='no-select flex justify-between items-center md:gap-4 mb-2 md:mb-9'>
                             <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
                                 <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
                                     <img src={videoData.owner.avatar} alt="dp" />
@@ -692,7 +692,7 @@ function Page() {
 
             </div>
 
-            <div className='bottomBox h-full w-full grid grid-cols-1 overflow-y-auto p-2'>
+            <div className='bottomBox h-full w-full grid grid-cols-1  p-2 overflow-y-auto'>
                 <div className='mb-12 w-full hidden md:block'>
                     <h1 className='text-2xl font-bold text-gray-800 mb-2 border-b-2 border-gray-300 pb-1 fixed bg-slate-500'>
                         Other Videos
