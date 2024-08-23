@@ -53,7 +53,7 @@ function Page() {
             {/* Top Section: Subscribed Users */}
             <div  className='flex gap-6 w-full h-[120px] overflow-x-auto border-b-2 border-gray-300 pb-4'>
                 {subscriptionsUser.map((user) => user.subscriptions.map((user, index) => (
-                    <div onClick={()=>router.push(`/subscriptionprofile/${user.username}`)} key={index} className='flex flex-col items-center'>
+                    <div onClick={()=>router.push(`/subscriptionprofile/${user.username}`)} key={index} className='cursor-pointer flex flex-col items-center'>
                         <div className='w-12 h-12 rounded-full border-2 border-red-600 overflow-hidden flex justify-center items-center'>
                             <img src={user.avatar} alt="" className="w-full h-full object-cover"/>
                         </div>
@@ -65,8 +65,8 @@ function Page() {
             </div>
     
             {/* Bottom Section: Videos from Subscriptions */}
-            <div className='flex flex-col gap-4 mt-4 h-full overflow-y-scroll'>
-                <h1 className='text-xl font-semibold text-gray-800 mb-4'>All Videos from your Subscriptions</h1>
+            <div className='gap-4 mt-4 h-full overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+                <h1 className='md:flex md:justify-center md:items-center text-xl font-semibold text-gray-800 mb-4'>All Videos from your Subscriptions</h1>
     
                 {videosFetchingMessage ? (
                     <div className="w-full h-full text-red-700 flex justify-center items-center">
