@@ -259,7 +259,7 @@ function CommentsDiv({
         ))}
       </div>
 
-      <div ref={inputRef} className='fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
+      <div ref={inputRef} className='fixed bottom-0 md:bottom-11 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (data) => {
@@ -290,7 +290,7 @@ function CommentsDiv({
             }
             className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100"
           >
-            <div className="flex-grow">
+            <div className="flex-grow ">
               <FormField
                 control={form.control}
                 name="comment"
