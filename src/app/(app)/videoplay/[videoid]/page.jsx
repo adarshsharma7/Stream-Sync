@@ -326,9 +326,9 @@ function Page() {
 
     return (
         <div className='w-full h-screen grid grid-cols-1  md:grid-cols-2'>
-         
+
             <div className='w-full h-full border-2 relative flex flex-col '>
-            <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
+                <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
                     <video
                         src={videoData.videoFile}
                         controls
@@ -430,7 +430,7 @@ function Page() {
                         </div>
                     </div>
 
-                    <div className='flex-grow h-full pb-12 md:pb-[80px] overflow-y-auto w-full border-2'>
+                    <div className='flex-grow h-full pb-12 md:pb-[90px] overflow-y-auto w-full border-2'>
 
                         {comments.length > 0 ? comments.map((videoComment, index) => (
                             <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
@@ -689,7 +689,11 @@ function Page() {
             </div>
 
             <div className='bottomBox h-full w-full grid grid-cols-1 overflow-y-auto p-2'>
-
+                <div className='mb-12 w-full hidden md:block'>
+                    <h1 className='text-2xl font-bold text-gray-800 mb-2 border-b-2 border-gray-300 pb-1 fixed bg-slate-500'>
+                        Other Videos
+                    </h1>
+                </div>
                 {videosFetchingMessage ? (
                     <div className="w-full h-ful flex justify-center items-center">
                         <h1>{videosFetchingMessage}</h1>

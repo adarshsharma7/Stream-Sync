@@ -239,7 +239,7 @@ allComments.setComments((prevComments) =>
 
   return (
     <>
-      <div className={`${state.commentArray.length > 0 ? "border-black border-2" : ""} flex-grow h-full overflow-y-auto w-full p-2`}>
+      <div className={`${state.commentArray.length > 0 ? "border-black border-2" : ""} flex-grow h-full overflow-y-auto w-full p-2 md:pb-[90px]`}>
         {Array.isArray(state.commentArray) && state.commentArray.length > 0 ? state.commentArray.map((videoComment, index) => (
 
           <div key={index} id={`comment-${index}`} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm ${highlightedCommentId === `comment-${index}` ? 'bg-yellow-200' : ''}`}>
