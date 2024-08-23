@@ -325,10 +325,10 @@ function Page() {
     }
 
     return (
-        <div className='w-full h-screen grid grid-cols-1  md:grid-cols-2'>
+        <div className='w-full h-screen grid grid-cols-1 md:grid-cols-[70%_30%] md:px-8 md:pt-10'>
 
             <div className='w-full h-full border-2 relative flex flex-col '>
-                <div className='videPlayBox h-[300px] w-full rounded-lg border-'>
+                <div className={`videPlayBox h-[300px] ${commentBox || descriptionBox ? "md:h-[300px]" : "md:h-[550px]"}  w-full rounded-lg transition-all duration-300 ease-in-out`}>
                     <video
                         src={videoData.videoFile}
                         controls
@@ -346,55 +346,59 @@ function Page() {
                         {/* <p>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</p> */}
                         <p className='cursor-pointer' onClick={() => setDescriptionBox(true)}>more...</p>
                     </div>
-                    <div className='no-select flex justify-between items-center'>
-                        <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
-                            <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
-                                <img src={videoData.owner.avatar} alt="dp" />
-                            </div>
-                            <div className='flex flex-col'>
-                                <h3>{videoData.owner.username}</h3>
-                                <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
+                    <div className='md:flex md:justify-between'>
+
+
+                        <div className='no-select flex justify-between items-center md:gap-4'>
+                            <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
+                                <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
+                                    <img src={videoData.owner.avatar} alt="dp" />
+                                </div>
+                                <div className='flex flex-col'>
+                                    <h3>{videoData.owner.username}</h3>
+                                    <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
+
+                                </div>
 
                             </div>
+                            <div className='subscribeButtonBox  ' onClick={() => subscribe(videoData.owner._id, state, dispatch)}>
+                                <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
+                                    {state.isSubscribe ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Subscribing...
+                                        </>
+                                    ) : (
+                                        state.userSubscribe ? 'Subscribed' : 'Subscribe'
+                                    )}
+                                </Button>
+                            </div>
+
 
                         </div>
-                        <div className='subscribeButtonBox  ' onClick={() => subscribe(videoData.owner._id, state, dispatch)}>
-                            <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
-                                {state.isSubscribe ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Subscribing...
-                                    </>
-                                ) : (
-                                    state.userSubscribe ? 'Subscribed' : 'Subscribe'
-                                )}
-                            </Button>
+
+                        <div className='buttonsBox flex gap-4 mb-2'>
+                            <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-between'>
+                                <div className='mr-2' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
+                                </div>
+                                <div className='h-full outline-1 outline-double outline-slate-400 '></div>
+                                <p className='text-[18px] ml-1'>{likeCount}</p>
+                            </div>
+
+                            <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
+                            <div onClick={() => {
+                                setIsWatchLater(!isWatchLater)
+                                debouncedWatchLater()
+                            }
+                            } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
+                            </div>
+                            <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
+
                         </div>
 
-
+                        {showSharePopup && <SharePopup videoId={videoId} onClose={closeSharePopup} />}
+                        {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
                     </div>
-                    <div className='buttonsBox flex gap-4 mb-2'>
-                        <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-between'>
-                            <div className='mr-2' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
-                            </div>
-                            <div className='h-full outline-1 outline-double outline-slate-400 '></div>
-                            <p className='text-[18px] ml-1'>{likeCount}</p>
-                        </div>
-
-                        <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
-                        <div onClick={() => {
-                            setIsWatchLater(!isWatchLater)
-                            debouncedWatchLater()
-                        }
-                        } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
-                        </div>
-                        <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
-
-                    </div>
-
-                    {showSharePopup && <SharePopup videoId={videoId} onClose={closeSharePopup} />}
-                    {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
-
                     <div onClick={() => setCommentBox(true)} className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2 cursor-pointer'>
                         <div className='flex gap-2'>
                             <h3>Comments</h3>
@@ -420,7 +424,7 @@ function Page() {
 
 
 
-                <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-1/2 h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col realative`}>
+                <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-[67%] h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col realative`}>
 
 
                     <div className='flex justify-between items-center mb-4'>
@@ -509,7 +513,7 @@ function Page() {
 
                     </div>
 
-                    <div className='fixed bottom-0 md:mb-12 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
+                    <div className='fixed bottom-0 md:mb-[90px] left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(async (data) => {
 
@@ -615,7 +619,7 @@ function Page() {
                     </div>
                 </div>
 
-                <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full md:w-1/2 h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+                <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full md:w-[67%] h-[66%]  transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
                     <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
 
                         <h1 className='text-2xl'>Description</h1>

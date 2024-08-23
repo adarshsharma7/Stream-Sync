@@ -185,7 +185,7 @@ function CommentsDiv({
 
   return (
     <>
-      <div className={`flex-grow h-full  overflow-y-auto w-full border-2`}>
+      <div className={`flex-grow h-full md:h-[100px] overflow-y-auto w-full border-2`}>
         {comments.map((videoComment, index) => (
           <div key={index} className={`bg-slate-400 relative flex flex-col p-3 rounded-lg mb-3 shadow-sm`}>
             <div className='flex gap-3 items-center w-full'>
@@ -261,7 +261,7 @@ function CommentsDiv({
         ))}
       </div>
 
-      <div ref={inputRef} className='fixed bottom-0 md:bottom-11 left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
+      <div ref={inputRef} className='fixed bottom-0 md:bottom-[85px] left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (data) => {

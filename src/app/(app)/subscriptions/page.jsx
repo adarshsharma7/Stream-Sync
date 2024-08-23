@@ -65,7 +65,7 @@ function Page() {
             </div>
     
             {/* Bottom Section: Videos from Subscriptions */}
-            <div className='gap-4 mt-4 h-full overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+            <div className='gap-4 mt-4 h-full overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pb-8'>
                 <h1 className='md:flex md:justify-center md:items-center text-xl font-semibold text-gray-800 mb-4'>All Videos from your Subscriptions</h1>
     
                 {videosFetchingMessage ? (

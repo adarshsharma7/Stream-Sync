@@ -56,7 +56,7 @@ function Page() {
     
 
     return (
-        <div className="h-screen w-full flex flex-col p-4 bg-gray-100">
+        <div className="h-full w-full flex flex-col p-4 bg-gray-100 md:pb-16">
             {/* Profile Header */}
             <div className="flex items-center gap-4 my-4 relative">
                 <div className="w-24 h-24 rounded-full overflow-hidden flex justify-center items-center bg-gray-300">
