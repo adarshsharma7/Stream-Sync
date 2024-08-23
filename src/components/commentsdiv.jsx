@@ -17,7 +17,6 @@ function CommentsDiv({
   comments,
   UniqueComment,
   commentDelete,
-  commentContent,
   likeComment,
   form,
   saveEditedComment,
@@ -31,6 +30,9 @@ function CommentsDiv({
   const [isLoading, setIsLoading] = useState(false);
   const [focusComment, setFocusComment] = useState(false);
   const [commentDeletePopup, setCommentDeletePopup] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedContent, setEditedContent] = useState('');
+  const [currentCommentContent, setCurrentCommentContent] = useState();
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -48,9 +50,9 @@ function CommentsDiv({
       replyContent.setEditingReplyCommentId(null);
       replyContent.setEditedReplyContent("");
       replyContent.setCurrentReplyCommentContent();
-      commentContent.setEditingCommentId(null);
-      commentContent.setEditedContent("");
-      commentContent.setCurrentCommentContent();
+      setEditingCommentId(null);
+      setEditedContent("");
+      setCurrentCommentContent();
       replyToReplyConntent.setCommentReplytoReply({ Id: "", username: "" })
      
     }
@@ -225,9 +227,9 @@ function CommentsDiv({
                       }
 
 
-                      commentContent.setEditingCommentId(videoComment._id);
-                      commentContent.setEditedContent(videoComment.content);
-                      commentContent.setCurrentCommentContent(videoComment.content);
+                      setEditingCommentId(videoComment._id);
+                      setEditedContent(videoComment.content);
+                      setCurrentCommentContent(videoComment.content);
                     }}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
                   >
@@ -274,7 +276,7 @@ function CommentsDiv({
               }
 
 
-              if (commentContent.editingCommentId) {
+              if (editingCommentId) {
                 await saveEditedComment();
               } else if (replyContent.editingReplyCommentId) {
                 await saveEditedReplyComment()
@@ -306,11 +308,11 @@ function CommentsDiv({
 
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
                           {...field}
-                          value={commentContent.editingCommentId ? commentContent.editedContent : replyContent.editingReplyCommentId ? replyContent.editedReplyContent : replyToReplyConntent.commentReplytoReply.username ? `@${replyToReplyConntent.commentReplytoReply.username} ${field.value}` : field.value}
+                          value={editingCommentId ? editedContent : replyContent.editingReplyCommentId ? replyContent.editedReplyContent : replyToReplyConntent.commentReplytoReply.username ? `@${replyToReplyConntent.commentReplytoReply.username} ${field.value}` : field.value}
                           onChange={async (e) => {
                             field.onChange(e);
-                            if (commentContent.editingCommentId) {
-                              commentContent.setEditedContent(e.target.value);
+                            if (editingCommentId) {
+                              setEditedContent(e.target.value);
                             }
                             if (replyContent.editingReplyCommentId) {
                               replyContent.setEditedReplyContent(e.target.value)
@@ -368,10 +370,10 @@ function CommentsDiv({
               ) : (
                 <Button
                   type="submit"
-                  disabled={isLoading || loading.editCommentLoading || commentContent.currentCommentContent === commentContent.editedContent || replyContent.editedReplyContent === replyContent.currentReplyCommentContent}
+                  disabled={isLoading || loading.editCommentLoading || currentCommentContent === editedContent || replyContent.editedReplyContent === replyContent.currentReplyCommentContent}
                   className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
                 >
-                  {commentContent.editingCommentId || replyContent.editingReplyCommentId ? 'Update' : 'Reply'}
+                  {editingCommentId || replyContent.editingReplyCommentId ? 'Update' : 'Reply'}
                 </Button>
               )}
             </div>
