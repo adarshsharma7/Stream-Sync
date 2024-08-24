@@ -9,6 +9,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { useUser } from '@/context/context';
 import Fuse from 'fuse.js';
 import Image from 'next/image';
+import { IoIosAddCircle } from "react-icons/io";
+import { uploadToCloudinary } from "@/components/uploadtocloudinary"
+import Notification from '@/components/notificationpopup';
+import StoryPopup from '@/components/storyPopup';
 
 function Page() {
   const { state, dispatch } = useUser();
@@ -19,10 +23,15 @@ function Page() {
   const [micPopup, setMicPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [heading, setHeading] = useState("");
+  const [stories, setStories] = useState([]);
+  const [uniqueStoryPopup, setUniqueStoryPopup] = useState(undefined);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [storyMsg, setStoryMsg] = useState("");
 
   const searchRef = useRef(null);
   const router = useRouter();
   const recognitionRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window) {
@@ -78,6 +87,32 @@ function Page() {
     fetchAllVideos();
   }, [dispatch]);
 
+  useEffect(() => {
+    const fetchAllStories = async () => {
+      try {
+        const response = await axios.get("/api/users/stories");
+        console.log(response.data.data);
+
+        if (response.data.data?.subscriptions.length > 0) {
+          const filtered = response.data.data.subscriptions
+            .filter(sub => sub.stories.length > 0)
+            .map(sub => ({
+              username: sub.username,
+              avatar: sub.avatar,
+              stories: sub.stories
+            }));
+
+          setStories(filtered);
+          console.log(stories);
+
+        }
+      } catch (error) {
+        console.log("Error fetching stories:", error);
+      }
+    };
+
+    fetchAllStories();
+  }, []);
   // Initialize Fuse.js
   const fuse = new Fuse(state.fetchedAllVideos, {
     keys: ['title', 'owner.username', 'description'],
@@ -124,6 +159,34 @@ function Page() {
       document.removeEventListener('click', handleClickOutside, true);
     };
   }, []);
+
+
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const response = await uploadToCloudinary(event.target.files[0], setVideoProgress);
+      const Url = response.secure_url;
+
+      try {
+        let response = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } })
+        setStoryMsg(response.data.message)
+      } catch (error) {
+        console.log("kuch galt", error);
+
+      } finally {
+
+        setVideoProgress(0)
+      }
+      // You can now upload the file or handle it as needed
+    }
+  };
+
+
+  const handlePopupClose = () => {
+    setUniqueStoryPopup(undefined);
+  };
+
 
   return (
     <div className='h-screen w-full flex flex-col bg-gray-50'>
@@ -180,13 +243,59 @@ function Page() {
       )}
 
       {/* Video List */}
-      <div className='flex-1 overflow-y-auto p-4'>
+      <div className='flex-1 overflow-y-auto p-4 '>
+
+        <div className='storiesBox w-full h-[80px] border-2 border-red-600 flex gap-3 mb-2 items-center px-1 py-1'>
+
+          <div className='flex items-center justify-center'>
+            <div onClick={() => fileInputRef.current.click()} className='w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center cursor-pointer'>{videoProgress > 0 ? `${videoProgress}%` : <IoIosAddCircle size={32} />}</div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </div>
+          <div className='flex gap-3 w-full h-full'>
+            {
+              stories.length > 0 ? stories.map((story, index) => (
+                <div key={index} className='flex flex-col items-center'>
+
+
+                  <div  onClick={()=>setUniqueStoryPopup(index)} className=' w-12 h-12 rounded-full border-2 border-green-500 overflow-hidden'>
+
+                    <img src={story.avatar} alt="dp" />
+
+                  </div>
+                  <p>{story.username}</p>
+                  {uniqueStoryPopup === index && (
+                    <StoryPopup
+                      story={story}
+                      closePopup={handlePopupClose}
+                    />
+                  )}
+
+                </div>
+
+              )) : (
+                <h1>
+                  No Stories
+                </h1>
+              )
+            }
+          </div>
+
+
+        </div>
+
+
         {videosFetchingMessage ? (
           <div className="flex justify-center items-center h-full text-red-700">
             <h1>{videosFetchingMessage}</h1>
           </div>
         ) : (
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-10'>
+
             {filteredVideos.map((video, index) => (
               <div
                 key={index}
@@ -228,6 +337,12 @@ function Page() {
           </div>
         )}
       </div>
+      {storyMsg && (
+        <Notification message={storyMsg} onClose={() => setStoryMsg(false)} />
+      )
+
+      }
+
     </div>
   );
 }

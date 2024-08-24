@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide a password"],
   },
+  stories: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Stories"
+  }],
   subscribers: {
     type: Number,
     default: 0
