@@ -11,7 +11,7 @@ function CommentReplyDiv({allComments, comments, user, replyContent, replyToRepl
 
   const { state, dispatch } = useUser()
 
-  const [isLoading, setIsLoading] = useState(false)
+
   const [uniqueComment, setUniqueComment] = useState()
   const [commentReplyLikes, setCommentReplyLikes] = useState([])
   const [commentLikesCount, setCommentLikesCount] = useState({});

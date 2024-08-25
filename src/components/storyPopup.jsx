@@ -1,46 +1,57 @@
 import { useState, useEffect, useRef } from 'react';
 import { IoClose } from "react-icons/io5";
+import { FcNext, FcPrevious } from "react-icons/fc";
+import { RxDotsVertical } from "react-icons/rx";
 
-function StoryComponent({ story, closePopup }) {
+
+function StoryComponent({ story, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false); // To manage pause state
+  const [isPaused, setIsPaused] = useState(false);
+  const [deletePopup, setDeletePopup] = useState(false);
+
+  const intervalIdRef = useRef(null);
   const storyRef = useRef(null);
+  const videoRef = useRef(null); // Ref for the video element
+  const delRef = useRef(null); // Ref for the video element
 
   useEffect(() => {
-    // Skip progress handling for video files
-    if (story.stories[currentStoryIndex].file.endsWith('.mp4') ||
-        story.stories[currentStoryIndex].file.endsWith('.webm') ||
-        story.stories[currentStoryIndex].file.endsWith('.ogg')) {
-      setProgress(0); // Reset progress for video
-      return; // Skip progress for video files
+
+    // Check if the current story is a video, if yes, return to avoid setting an interval
+    if (
+      story.stories[currentStoryIndex].file.endsWith('.mp4') ||
+      story.stories[currentStoryIndex].file.endsWith('.webm') ||
+      story.stories[currentStoryIndex].file.endsWith('.ogg')
+    ) {
+      return;
     }
 
     const duration = 5000; // 5 seconds for images
-    const interval = 100; // Progress update interval
+    const interval = 100;
 
-    if (isPaused) return; // Skip progress update if paused
+    if (!isPaused) {
+      const id = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(id);
+            handleStoryEnd();
+            return 100;
+          }
+          return prev + (100 / (duration / interval));
+        });
+      }, interval);
 
-    setProgress(0); // Reset progress when a new story starts
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          handleStoryEnd(); // Move to the next story when progress completes
-          return 100;
-        }
-        return prev + (100 / (duration / interval));
-      });
-    }, interval);
+      intervalIdRef.current = id; // Store interval ID in ref
+    }
 
-    return () => clearInterval(timer);
+    return () => clearInterval(intervalIdRef.current);
   }, [currentStoryIndex, isPaused]);
 
   const handleStoryEnd = () => {
     if (currentStoryIndex < story.stories.length - 1) {
+      setProgress(0)
       setCurrentStoryIndex(currentStoryIndex + 1);
     } else {
-      // Optionally, handle when all stories have been viewed
       closePopup();
     }
   };
@@ -49,14 +60,18 @@ function StoryComponent({ story, closePopup }) {
     handleStoryEnd();
   };
 
-  const handleMouseDown = (e) => {
+
+  const handlePause = (e) => {
     e.preventDefault();
-    setIsPaused(true); // Pause the story
+    clearInterval(intervalIdRef.current);
+    setIsPaused(true);
   };
 
-  const handleMouseUp = () => {
-    setIsPaused(false); // Resume the story
+  const handleResume = () => {
+    setIsPaused(false);
   };
+
+
 
   const handleClick = (e) => {
     const { clientX } = e;
@@ -64,19 +79,44 @@ function StoryComponent({ story, closePopup }) {
     const clickPosition = clientX / offsetWidth;
 
     if (clickPosition < 0.3) {
-      // Click on the left side of the screen
       setCurrentStoryIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      setProgress(0);
     } else if (clickPosition > 0.7) {
-      // Click on the right side of the screen
       setCurrentStoryIndex((prev) => (prev < story.stories.length - 1 ? prev + 1 : prev));
+      setProgress(0);
     }
   };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const currentTime = videoRef.current.currentTime;
+      const duration = videoRef.current.duration;
+      const progress = (currentTime / duration) * 100;
+      setProgress(progress);
+    }
+  };
+
+
+  const handleClickOutside = (event) => {
+    if (delRef.current && !delRef.current.contains(event.target)) {
+      setDeletePopup(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+    };
+  }, []);
 
   return (
     <div
       className='fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50'
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+      onMouseDown={handlePause}
+      onMouseUp={handleResume}
+      onTouchStart={handlePause}
+      onTouchEnd={handleResume}
       onClick={handleClick}
       ref={storyRef}
     >
@@ -85,13 +125,14 @@ function StoryComponent({ story, closePopup }) {
           <h2 className="text-lg font-bold">{story.username}</h2>
           <IoClose className="cursor-pointer" onClick={closePopup} />
         </div>
-        <div className='flex gap-1 w-full px-2'>
+        <div className='flex gap-1 w-full px-2 mb-4 md:mb-0'>
+
           {story.stories.map((_, index) => (
             <div
               key={index}
               className='flex-1 h-1 rounded bg-gray-300 relative overflow-hidden'
             >
-              {index === currentStoryIndex && !story.stories[currentStoryIndex].file.endsWith('.mp4') && (
+              {index === currentStoryIndex && (
                 <div
                   className='absolute top-0 left-0 h-full bg-blue-500'
                   style={{ width: `${progress}%` }}
@@ -100,27 +141,53 @@ function StoryComponent({ story, closePopup }) {
             </div>
           ))}
         </div>
+        <div className='md:flex md:h-full md:w-full md:justify-evenly md:items-center relative'>
+          <div className='hidden md:block'><FcPrevious /></div>
+          {/* Story Content */}
+          {story.stories[currentStoryIndex].file.endsWith('.mp4') ||
+            story.stories[currentStoryIndex].file.endsWith('.webm') ||
+            story.stories[currentStoryIndex].file.endsWith('.ogg') ? (
+            <video
+              ref={videoRef}
+              className='max-w-full max-h-full'
+              controls
+              onEnded={handleVideoEnd}
+              onTimeUpdate={handleTimeUpdate} // Update progress as video plays
+              autoPlay
+              onLoad={() => setIsPaused(false)}
+            >
+              <source src={story.stories[currentStoryIndex].file} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <img
+              src={story.stories[currentStoryIndex].file}
+              alt="story content"
+              className='max-w-full max-h-full object-fill'
+              onLoad={() => setIsPaused(false)} // Start progress after image loads
+            />
+          )}
 
-        {/* Story Content */}
-        {story.stories[currentStoryIndex].file.endsWith('.mp4') ||
-          story.stories[currentStoryIndex].file.endsWith('.webm') ||
-          story.stories[currentStoryIndex].file.endsWith('.ogg') ? (
-          <video
-            className='max-w-full max-h-full'
-            controls
-            onEnded={handleVideoEnd}
-            autoPlay
-          >
-            <source src={story.stories[currentStoryIndex].file} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        ) : (
-          <img
-            src={story.stories[currentStoryIndex].file}
-            alt="story content"
-            className='max-w-full max-h-full object-contain'
-          />
-        )}
+          <div className='hidden md:block'><FcNext /></div>
+          {myStory && (
+            <div onClick={(e)=>{
+              e.stopPropagation();
+              clearInterval(intervalIdRef.current);
+              setIsPaused(true);
+              setDeletePopup(true)}} className='absolute right-2 top-2'> <RxDotsVertical /></div>
+          )
+
+          }
+          {deletePopup && (
+            <div ref={delRef} className='absolute right-6 top-7 h-3 w-5 border-black'>
+              <h1 >Delete</h1>
+            </div>
+          )
+
+          }
+
+        </div>
+
       </div>
     </div>
   );

@@ -25,7 +25,18 @@ export async function GET() {
                 $match: { _id: new mongoose.Types.ObjectId(user._id) }
             }, {
                 $project: {
+                    _id:0,
+                    username:1,
+                    avatar:1,
+                    stories:1,
                     subscriptions: 1
+                }
+            },{
+                $lookup: {
+                    from: "stories",
+                    localField: "stories",
+                    foreignField: "_id",
+                    as: "stories",
                 }
             },
             {

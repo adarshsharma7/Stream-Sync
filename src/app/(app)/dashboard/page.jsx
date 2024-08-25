@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
-import { FaYoutube } from "react-icons/fa";
+import { FaYoutube, FaHistory } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import { IoClose, IoMic } from "react-icons/io5";
 import axios from 'axios';
@@ -13,9 +13,12 @@ import { IoIosAddCircle } from "react-icons/io";
 import { uploadToCloudinary } from "@/components/uploadtocloudinary"
 import Notification from '@/components/notificationpopup';
 import StoryPopup from '@/components/storyPopup';
+import { useSession } from 'next-auth/react';
+
 
 function Page() {
   const { state, dispatch } = useUser();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [videosFetchingMessage, setVideosFetchingMessage] = useState("");
@@ -24,9 +27,14 @@ function Page() {
   const [errorMessage, setErrorMessage] = useState("");
   const [heading, setHeading] = useState("");
   const [stories, setStories] = useState([]);
+  const [showMyStory, setShowMyStory] = useState(false);
+  const [myStories, setMyStories] = useState([]);
   const [uniqueStoryPopup, setUniqueStoryPopup] = useState(undefined);
   const [videoProgress, setVideoProgress] = useState(0);
   const [storyMsg, setStoryMsg] = useState("");
+
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const searchRef = useRef(null);
   const router = useRouter();
@@ -91,7 +99,7 @@ function Page() {
     const fetchAllStories = async () => {
       try {
         const response = await axios.get("/api/users/stories");
-        console.log(response.data.data);
+        setMyStories(response.data.data)
 
         if (response.data.data?.subscriptions.length > 0) {
           const filtered = response.data.data.subscriptions
@@ -103,7 +111,7 @@ function Page() {
             }));
 
           setStories(filtered);
-          console.log(stories);
+
 
         }
       } catch (error) {
@@ -113,6 +121,7 @@ function Page() {
 
     fetchAllStories();
   }, []);
+
   // Initialize Fuse.js
   const fuse = new Fuse(state.fetchedAllVideos, {
     keys: ['title', 'owner.username', 'description'],
@@ -168,6 +177,9 @@ function Page() {
       const response = await uploadToCloudinary(event.target.files[0], setVideoProgress);
       const Url = response.secure_url;
 
+
+      setMyStories((prevState) => ({ ...prevState, stories: [...prevState.stories, { file: Url }], }));
+
       try {
         let response = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } })
         setStoryMsg(response.data.message)
@@ -184,6 +196,7 @@ function Page() {
 
 
   const handlePopupClose = () => {
+    setShowMyStory(false)
     setUniqueStoryPopup(undefined);
   };
 
@@ -247,27 +260,66 @@ function Page() {
 
         <div className='storiesBox w-full h-[80px] border-2 border-red-600 flex gap-3 mb-2 items-center px-1 py-1'>
 
-          <div className='flex items-center justify-center'>
-            <div onClick={() => fileInputRef.current.click()} className='w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center cursor-pointer'>{videoProgress > 0 ? `${videoProgress}%` : <IoIosAddCircle size={32} />}</div>
+          <div className='flex items-center justify-center relative'>
+            <div
+              onClick={() => {
+                if (myStories.stories?.length > 0) {
+                  setShowMyStory(true);
+                } else {
+                  fileInputRef.current.click();
+                }
+              }}
+              className='w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center cursor-pointer'
+            >
+              {videoProgress > 0 ? (
+                `${videoProgress}%`
+              ) : myStories.stories?.length > 0 ? (
+                <FaHistory />
+              ) : (
+                <IoIosAddCircle size={32} />
+              )}
+            </div>
+
+            {myStories.stories?.length > 0 && (
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className='absolute bottom-3 right-3 transform translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer border-2 border-white'
+              >
+                <IoIosAddCircle size={22} className="text-blue-500" />
+              </div>
+            )}
+
             <input
               type="file"
               ref={fileInputRef}
               style={{ display: 'none' }}
               onChange={handleFileChange}
             />
+
+            {showMyStory && (
+              <StoryPopup
+                story={myStories}
+                myStory={true}
+                closePopup={handlePopupClose}
+              />
+            )}
           </div>
+
           <div className='flex gap-3 w-full h-full'>
             {
               stories.length > 0 ? stories.map((story, index) => (
                 <div key={index} className='flex flex-col items-center'>
 
 
-                  <div  onClick={()=>setUniqueStoryPopup(index)} className=' w-12 h-12 rounded-full border-2 border-green-500 overflow-hidden'>
+                  <div onClick={() => setUniqueStoryPopup(index)} className='flex justify-center items-center w-12 h-12 rounded-full border-2 border-green-500 overflow-hidden'>
 
                     <img src={story.avatar} alt="dp" />
 
                   </div>
-                  <p>{story.username}</p>
+                  <div className='text-center text-sm mt-1'>
+                    <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{story.username}</p>
+                  </div>
+
                   {uniqueStoryPopup === index && (
                     <StoryPopup
                       story={story}
