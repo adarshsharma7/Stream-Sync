@@ -33,6 +33,7 @@ export async function POST(request){
         await user.save()
         return NextResponse.json({
             success:true,
+            currStoryId:currStories._id,
             message:"Story added"
         },{status:200})
         

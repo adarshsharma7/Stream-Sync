@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { IoClose } from "react-icons/io5";
 import { FcNext, FcPrevious } from "react-icons/fc";
 import { RxDotsVertical } from "react-icons/rx";
+import axios from 'axios';
 
-
-function StoryComponent({ story, closePopup, myStory = false }) {
+function StoryComponent({ story,setMyStories,setStoryMsg, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -110,14 +110,32 @@ function StoryComponent({ story, closePopup, myStory = false }) {
     };
   }, []);
 
+
+const deleteStory=async(storyId)=>{
+  try {
+  setMyStories((prevState) => ({
+    ...prevState,
+    stories: prevState.stories.filter((story) => story._id !== storyId),
+  }));
+
+    let response=await axios.post("/api/videos/deletestories",{Id:storyId})
+    setStoryMsg(response.data.message) 
+} catch (error) {
+  console.log("kuch galt",error);
+  
+}
+
+}
+
+
   return (
     <div
       className='fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50'
-      onMouseDown={handlePause}
-      onMouseUp={handleResume}
-      onTouchStart={handlePause}
-      onTouchEnd={handleResume}
-      onClick={handleClick}
+      onMouseDown={deletePopup ? null : handlePause}
+      onMouseUp={deletePopup ? null : handleResume}
+      onTouchStart={deletePopup ? null : handlePause}
+      onTouchEnd={deletePopup ? null : handleResume}
+      onClick={deletePopup ? null : handleClick}
       ref={storyRef}
     >
       <div className='h-[90%] w-[90%] bg-white flex flex-col gap-2 rounded-lg overflow-hidden p-2'>
@@ -170,17 +188,20 @@ function StoryComponent({ story, closePopup, myStory = false }) {
 
           <div className='hidden md:block'><FcNext /></div>
           {myStory && (
-            <div onClick={(e)=>{
+            <div onClick={(e) => {
               e.stopPropagation();
               clearInterval(intervalIdRef.current);
               setIsPaused(true);
-              setDeletePopup(true)}} className='absolute right-2 top-2'> <RxDotsVertical /></div>
+              setDeletePopup(true)
+            }} className='absolute right-2 top-2'> <RxDotsVertical /></div>
           )
 
           }
           {deletePopup && (
-            <div ref={delRef} className='absolute right-6 top-7 h-3 w-5 border-black'>
-              <h1 >Delete</h1>
+            <div ref={delRef} className='absolute right-6 top-7 h-3 w-5 border-2 border-black'>
+              <h1 onClick={(e)=>{
+                e.preventDefault()
+                deleteStory(story.stories[currentStoryIndex]._id)}} className='cursor-pointer'>Delete</h1>
             </div>
           )
 

@@ -178,10 +178,11 @@ function Page() {
       const Url = response.secure_url;
 
 
-      setMyStories((prevState) => ({ ...prevState, stories: [...prevState.stories, { file: Url }], }));
+      
 
       try {
         let response = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } })
+        setMyStories((prevState) => ({ ...prevState, stories: [...prevState.stories, { file: Url,_id:response.data.currStoryId }], }));
         setStoryMsg(response.data.message)
       } catch (error) {
         console.log("kuch galt", error);
@@ -299,6 +300,8 @@ function Page() {
             {showMyStory && (
               <StoryPopup
                 story={myStories}
+                setMyStories={setMyStories}
+                setStoryMsg={setStoryMsg}
                 myStory={true}
                 closePopup={handlePopupClose}
               />
