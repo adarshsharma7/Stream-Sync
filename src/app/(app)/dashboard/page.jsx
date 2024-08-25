@@ -213,11 +213,15 @@ function Page() {
           setLoading(false);
           setIsUploading(false);
           setVideoProgress(0);
-          setUploadQueue((prevQueue) => prevQueue.slice(1));  // Remove the processed file from the queue
-          if (uploadQueue.length == 0) {
-            setUploadProcessing(false)
-            setUploadProcessCount(0)
-          }
+          setUploadQueue((prevQueue) => {
+            const newQueue = prevQueue.slice(1);
+            if (newQueue.length === 0) {
+              setUploadProcessing(false);
+              setUploadProcessCount(0);
+            }
+            return newQueue;
+          }); // Remove the processed file from the queue
+       
          
         }
       }
