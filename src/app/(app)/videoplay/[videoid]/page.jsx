@@ -378,21 +378,21 @@ function Page() {
                         </div>
 
                         <div className='buttonsBox flex gap-4 mb-2'>
-                            <div className='flex gap-1 rounded-full border-2 px-3  text-2xl cursor-pointer items-center border-slate-400 justify-between'>
-                                <div className='mr-2' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
+                            <div className='flex gap-1 rounded-full border-2 px-3 md:h-12 text-2xl cursor-pointer items-center border-slate-400 justify-between'>
+                                <div className='mr-2 ' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
                                 </div>
                                 <div className='h-full outline-1 outline-double outline-slate-400 '></div>
                                 <p className='text-[18px] ml-1'>{likeCount}</p>
                             </div>
 
-                            <div onClick={() => setShowSharePopup(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
+                            <div onClick={() => setShowSharePopup(true)} className=' md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
                             <div onClick={() => {
                                 setIsWatchLater(!isWatchLater)
                                 debouncedWatchLater()
                             }
-                            } className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
+                            } className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
                             </div>
-                            <div onClick={() => setIsReportOpen(true)} className='rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
+                            <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
 
                         </div>
 

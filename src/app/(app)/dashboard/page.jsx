@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
-import { FaYoutube, FaHistory } from "react-icons/fa";
+import { FaYoutube } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import { IoClose, IoMic } from "react-icons/io5";
 import axios from 'axios';
@@ -10,10 +10,12 @@ import { useUser } from '@/context/context';
 import Fuse from 'fuse.js';
 import Image from 'next/image';
 import { IoIosAddCircle } from "react-icons/io";
+import { RiFolderHistoryFill } from "react-icons/ri";
 import { uploadToCloudinary } from "@/components/uploadtocloudinary"
 import Notification from '@/components/notificationpopup';
 import StoryPopup from '@/components/storyPopup';
 import { useSession } from 'next-auth/react';
+import { Loader2 } from 'lucide-react';
 
 
 function Page() {
@@ -32,6 +34,11 @@ function Page() {
   const [uniqueStoryPopup, setUniqueStoryPopup] = useState(undefined);
   const [videoProgress, setVideoProgress] = useState(0);
   const [storyMsg, setStoryMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProcessing, setUploadProcessing] = useState(false);
+  const [uploadProcessCount, setUploadProcessCount] = useState(0);
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -171,29 +178,53 @@ function Page() {
 
 
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const response = await uploadToCloudinary(event.target.files[0], setVideoProgress);
-      const Url = response.secure_url;
-
-
-      
-
-      try {
-        let response = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } })
-        setMyStories((prevState) => ({ ...prevState, stories: [...prevState.stories, { file: Url,_id:response.data.currStoryId }], }));
-        setStoryMsg(response.data.message)
-      } catch (error) {
-        console.log("kuch galt", error);
-
-      } finally {
-
-        setVideoProgress(0)
-      }
-      // You can now upload the file or handle it as needed
+    if (uploadQueue.length == 5) {
+      setStoryMsg("Atleast 10 Stories Should be upload at a time");
+    }
+    if (file && uploadQueue.length < 5) {
+      setUploadQueue((prevQueue) => [...prevQueue, file]);
     }
   };
+
+  useEffect(() => {
+    const uploadNextFile = async () => {
+      if (uploadQueue.length > 0 && !isUploading) {
+        setUploadProcessCount((prevCount) => prevCount + 1);
+        setUploadProcessing(true)
+        setIsUploading(true);
+        const file = uploadQueue[0];
+        setLoading(true);
+
+        try {
+          const response = await uploadToCloudinary(file, setVideoProgress, setLoading);
+          const Url = response.secure_url;
+          const postResponse = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } });
+          setMyStories((prevState) => ({
+            ...prevState,
+            stories: [...prevState.stories, { file: Url, _id: postResponse.data.currStoryId }],
+          }));
+          setStoryMsg(postResponse.data.message);
+
+        } catch (error) {
+          console.log("Error occurred", error);
+        } finally {
+          setLoading(false);
+          setIsUploading(false);
+          setVideoProgress(0);
+          setUploadQueue((prevQueue) => prevQueue.slice(1));  // Remove the processed file from the queue
+          if (uploadQueue.length == 0) {
+            setUploadProcessing(false)
+            setUploadProcessCount(0)
+          }
+         
+        }
+      }
+    };
+
+    uploadNextFile();
+  }, [uploadQueue, isUploading]);
 
 
   const handlePopupClose = () => {
@@ -209,13 +240,14 @@ function Page() {
         <div className='flex items-center'>
           <FaYoutube className='text-red-600 text-4xl' />
           <h1 className='text-2xl font-semibold text-gray-800 ml-2'>YouTube</h1>
+          <p className='ml-2'>{uploadProcessing ? `${uploadProcessCount}/${uploadQueue.length} Story Uploading...` : ""}</p>
         </div>
         <div className='flex items-center gap-3 h-full' ref={searchRef}>
           <div className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`} onClick={() => setSearchVisible(true)}>
             <CiSearch className='text-2xl text-gray-600 cursor-pointer' />
           </div>
           {searchVisible && (
-            <div className='absolute top-0 left-44 right-0 h-14 flex items-center bg-gray-100 px-4 py-2 rounded-full'>
+            <div className='absolute top-0 md:left-96 left-44 right-0 h-14 flex items-center bg-gray-100 px-4 py-2 rounded-full'>
               <CiSearch className='text-2xl text-gray-600' />
               <input
                 type="text"
@@ -272,16 +304,16 @@ function Page() {
               }}
               className='w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center cursor-pointer'
             >
-              {videoProgress > 0 ? (
+              {loading ? <Loader2 className="animate-spin text-blue-500" /> : videoProgress > 0 ? (
                 `${videoProgress}%`
               ) : myStories.stories?.length > 0 ? (
-                <FaHistory />
+                <RiFolderHistoryFill />
               ) : (
                 <IoIosAddCircle size={32} />
               )}
             </div>
 
-            {myStories.stories?.length > 0 && (
+            {videoProgress > 0 || myStories.stories?.length > 0 && (
               <div
                 onClick={() => fileInputRef.current.click()}
                 className='absolute bottom-3 right-3 transform translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer border-2 border-white'
@@ -302,16 +334,17 @@ function Page() {
                 story={myStories}
                 setMyStories={setMyStories}
                 setStoryMsg={setStoryMsg}
-                myStory={true}
                 closePopup={handlePopupClose}
+                myStory={true}
+               
               />
             )}
           </div>
 
-          <div className='flex gap-3 w-full h-full'>
+          <div className='flex gap-3 w-full h-full overflow-x-auto'>
             {
               stories.length > 0 ? stories.map((story, index) => (
-                <div key={index} className='flex flex-col items-center'>
+                <div key={index} className='flex flex-col items-center cursor-pointer'>
 
 
                   <div onClick={() => setUniqueStoryPopup(index)} className='flex justify-center items-center w-12 h-12 rounded-full border-2 border-green-500 overflow-hidden'>
@@ -393,7 +426,7 @@ function Page() {
         )}
       </div>
       {storyMsg && (
-        <Notification message={storyMsg} onClose={() => setStoryMsg(false)} />
+        <Notification message={storyMsg} onClose={() => setStoryMsg("")} />
       )
 
       }
