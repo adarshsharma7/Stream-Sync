@@ -346,6 +346,7 @@ function Page() {
             {showMyStory && (
               <StoryPopup
                 story={myStories}
+                myStories={myStories}
                 setMyStories={setMyStories}
                 setStoryMsg={setStoryMsg}
                 closePopup={handlePopupClose}

@@ -4,7 +4,7 @@ import { FcNext, FcPrevious } from "react-icons/fc";
 import { RxDotsVertical } from "react-icons/rx";
 import axios from 'axios';
 
-function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory = false }) {
+function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -15,6 +15,8 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
   const videoRef = useRef(null);
   const delRef = useRef(null);
 
+
+  
   useEffect(() => {
     // Clear any existing intervals
     clearInterval(intervalIdRef.current);
@@ -119,13 +121,23 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
 
   const deleteStory = async (storyId) => {
     try {
-      setMyStories((prevState) => ({
-        ...prevState,
-        stories: prevState.stories.filter((story) => story._id !== storyId),
-      }));
-
+      setMyStories((prevState) => {
+        const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
+   
+        if (updatedStories.length === 0) {
+          closePopup(); 
+        }
+        return {
+          ...prevState,
+          stories: updatedStories,
+        };
+      });
+      
+     setDeletePopup(false)
+     
       let response = await axios.post("/api/videos/deletestories", { Id: storyId });
       setStoryMsg(response.data.message);
+     
     } catch (error) {
       console.log("kuch galt", error);
     }
