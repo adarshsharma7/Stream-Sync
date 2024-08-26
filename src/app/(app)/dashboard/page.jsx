@@ -39,6 +39,7 @@ function Page() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [uploadProcessCount, setUploadProcessCount] = useState(0);
+  const [totalQueueFiles, setTotalQueueFiles] = useState(0);
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -184,6 +185,7 @@ function Page() {
       setStoryMsg("Atleast 10 Stories Should be upload at a time");
     }
     if (file && uploadQueue.length < 5) {
+      setTotalQueueFiles((prev) => prev + 1)
       setUploadQueue((prevQueue) => [...prevQueue, file]);
     }
   };
@@ -218,11 +220,12 @@ function Page() {
             if (newQueue.length === 0) {
               setUploadProcessing(false);
               setUploadProcessCount(0);
+              setTotalQueueFiles(0)
             }
             return newQueue;
           }); // Remove the processed file from the queue
-       
-         
+
+
         }
       }
     };
@@ -244,7 +247,11 @@ function Page() {
         <div className='flex items-center'>
           <FaYoutube className='text-red-600 text-4xl' />
           <h1 className='text-2xl font-semibold text-gray-800 ml-2'>YouTube</h1>
-          <p className='ml-2'>{uploadProcessing ? `${uploadProcessCount}/${uploadQueue.length} Story Uploading...` : ""}</p>
+          {uploadProcessing && (
+            <p className='ml-4 text-blue-600 font-medium bg-blue-100 rounded-full px-3 py-1 text-sm'>
+              {`${uploadProcessCount}/${totalQueueFiles} Story Uploading...`}
+            </p>
+          )}
         </div>
         <div className='flex items-center gap-3 h-full' ref={searchRef}>
           <div className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`} onClick={() => setSearchVisible(true)}>
@@ -273,6 +280,7 @@ function Page() {
         </div>
       </div>
 
+
       <div hidden={!micPopup} className='fixed inset-0 bg-black bg-opacity-50 justify-center items-center z-50'>
         <div className="bg-white p-4 rounded-lg w-1/3">
           <div className="flex justify-between mb-4">
@@ -295,7 +303,7 @@ function Page() {
       {/* Video List */}
       <div className='flex-1 overflow-y-auto p-4 '>
 
-        <div className='storiesBox w-full h-[80px] border-2 border-red-600 flex gap-3 mb-2 items-center px-1 py-1'>
+        <div className='storiesBox w-full h-[80px] border-2 border-gray-300 rounded-lg flex gap-4 mb-4 items-center px-2 py-2 bg-white shadow-md'>
 
           <div className='flex items-center justify-center relative'>
             <div
@@ -306,23 +314,25 @@ function Page() {
                   fileInputRef.current.click();
                 }
               }}
-              className='w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center cursor-pointer'
+              className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-blue-50 transition-colors duration-300 ease-in-out'
             >
-              {loading ? <Loader2 className="animate-spin text-blue-500" /> : videoProgress > 0 ? (
-                `${videoProgress}%`
+              {loading ? (
+                <Loader2 className="animate-spin text-blue-500" />
+              ) : videoProgress > 0 ? (
+                <span className="text-blue-500 font-semibold">{`${videoProgress}%`}</span>
               ) : myStories.stories?.length > 0 ? (
-                <RiFolderHistoryFill />
+                <RiFolderHistoryFill className="text-blue-500" size={28} />
               ) : (
-                <IoIosAddCircle size={32} />
+                <IoIosAddCircle size={32} className="text-blue-500" />
               )}
             </div>
 
-            {videoProgress > 0 || myStories.stories?.length > 0 && (
+            {(videoProgress > 0 || myStories.stories?.length > 0) && (
               <div
                 onClick={() => fileInputRef.current.click()}
-                className='absolute bottom-3 right-3 transform translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer border-2 border-white'
+                className='absolute bottom-2 right-2 transform translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center cursor-pointer border-2 border-white hover:bg-blue-600 transition-colors duration-300 ease-in-out'
               >
-                <IoIosAddCircle size={22} className="text-blue-500" />
+                <IoIosAddCircle size={22} className="text-white" />
               </div>
             )}
 
@@ -340,24 +350,19 @@ function Page() {
                 setStoryMsg={setStoryMsg}
                 closePopup={handlePopupClose}
                 myStory={true}
-               
               />
             )}
           </div>
 
-          <div className='flex gap-3 w-full h-full overflow-x-auto'>
-            {
-              stories.length > 0 ? stories.map((story, index) => (
+          <div className='flex gap-4 w-full h-full overflow-x-auto scrollbar-hide'>
+            {stories.length > 0 ? (
+              stories.map((story, index) => (
                 <div key={index} className='flex flex-col items-center cursor-pointer'>
-
-
-                  <div onClick={() => setUniqueStoryPopup(index)} className='flex justify-center items-center w-12 h-12 rounded-full border-2 border-green-500 overflow-hidden'>
-
-                    <img src={story.avatar} alt="dp" />
-
+                  <div onClick={() => setUniqueStoryPopup(index)} className='flex justify-center items-center w-12 h-12 rounded-full border-2 border-blue-500 overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 ease-in-out'>
+                    <img src={story.avatar} alt="dp" className="w-full h-full object-cover" />
                   </div>
-                  <div className='text-center text-sm mt-1'>
-                    <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{story.username}</p>
+                  <div className='text-center text-xs mt-1'>
+                    <p className='text-gray-800 font-medium text-ellipsis overflow-hidden whitespace-nowrap'>{story.username}</p>
                   </div>
 
                   {uniqueStoryPopup === index && (
@@ -366,19 +371,15 @@ function Page() {
                       closePopup={handlePopupClose}
                     />
                   )}
-
                 </div>
-
-              )) : (
-                <h1>
-                  No Stories
-                </h1>
-              )
-            }
+              ))
+            ) : (
+              <h1 className="text-gray-500 font-medium">No Stories</h1>
+            )}
           </div>
 
-
         </div>
+
 
 
         {videosFetchingMessage ? (

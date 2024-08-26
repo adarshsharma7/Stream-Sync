@@ -12,20 +12,26 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
 
   const intervalIdRef = useRef(null);
   const storyRef = useRef(null);
-  const videoRef = useRef(null); // Ref for the video element
-  const delRef = useRef(null); // Ref for the video element
+  const videoRef = useRef(null);
+  const delRef = useRef(null);
 
   useEffect(() => {
+    // Clear any existing intervals
+    clearInterval(intervalIdRef.current);
 
-    // Check if the current story is a video, if yes, return to avoid setting an interval
+    // If the current story is a video
     if (
       story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
       story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
       story.stories[currentStoryIndex]?.file.endsWith('.ogg')
     ) {
+      if (videoRef.current) {
+        videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
+      }
       return;
     }
 
+    // For image stories
     const duration = 5000; // 5 seconds for images
     const interval = 100;
 
@@ -41,7 +47,7 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
         });
       }, interval);
 
-      intervalIdRef.current = id; // Store interval ID in ref
+      intervalIdRef.current = id;
     }
 
     return () => clearInterval(intervalIdRef.current);
@@ -49,7 +55,7 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
 
   const handleStoryEnd = () => {
     if (currentStoryIndex < story.stories.length - 1) {
-      setProgress(0)
+      setProgress(0);
       setCurrentStoryIndex(currentStoryIndex + 1);
     } else {
       closePopup();
@@ -59,7 +65,6 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
   const handleVideoEnd = () => {
     handleStoryEnd();
   };
-
 
   const handlePause = (e) => {
     e.preventDefault();
@@ -71,19 +76,21 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
     setIsPaused(false);
   };
 
-
-
   const handleClick = (e) => {
     const { clientX } = e;
     const { offsetWidth } = storyRef.current;
     const clickPosition = clientX / offsetWidth;
 
     if (clickPosition < 0.3) {
-      setCurrentStoryIndex((prev) => (prev > 0 ? prev - 1 : prev));
-      setProgress(0);
+      if (currentStoryIndex > 0) {
+        setProgress(0);
+        setCurrentStoryIndex(currentStoryIndex - 1);
+      }
     } else if (clickPosition > 0.7) {
-      setCurrentStoryIndex((prev) => (prev < story.stories.length - 1 ? prev + 1 : prev));
-      setProgress(0);
+      if (currentStoryIndex < story.stories.length - 1) {
+        setProgress(0);
+        setCurrentStoryIndex(currentStoryIndex + 1);
+      }
     }
   };
 
@@ -95,7 +102,6 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
       setProgress(progress);
     }
   };
-
 
   const handleClickOutside = (event) => {
     if (delRef.current && !delRef.current.contains(event.target)) {
@@ -111,7 +117,6 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
     };
   }, []);
 
-
   const deleteStory = async (storyId) => {
     try {
       setMyStories((prevState) => ({
@@ -119,15 +124,12 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
         stories: prevState.stories.filter((story) => story._id !== storyId),
       }));
 
-      let response = await axios.post("/api/videos/deletestories", { Id: storyId })
-      setStoryMsg(response.data.message)
+      let response = await axios.post("/api/videos/deletestories", { Id: storyId });
+      setStoryMsg(response.data.message);
     } catch (error) {
       console.log("kuch galt", error);
-
     }
-
-  }
-
+  };
 
   return (
     <div
@@ -159,31 +161,34 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
             </div>
           ))}
         </div>
-        <div className="flex flex-col md:flex-row md:justify-between items-center relative md:h-full md:w-full">
+        <div className="flex flex-col md:flex-row md:justify-between items-center relative h-full md:h-[80%] md:w-full ">
           <FcPrevious className="hidden md:block text-3xl cursor-pointer hover:text-gray-600 transition duration-200" />
-          {/* Story Content */}
           {story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
             story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
             story.stories[currentStoryIndex]?.file.endsWith('.ogg') ? (
             <video
               ref={videoRef}
-              className="max-w-full max-h-full rounded-md shadow-lg"
+              className="max-w-full max-h-full object-contain object-center rounded-lg shadow-lg border border-gray-300"
               controls
               onEnded={handleVideoEnd}
               onTimeUpdate={handleTimeUpdate}
               autoPlay
               onLoad={() => setIsPaused(false)}
+              poster="loading-spinner.gif"
             >
               <source src={story.stories[currentStoryIndex]?.file} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
+
           ) : (
             <img
               src={story.stories[currentStoryIndex]?.file}
               alt="story content"
-              className="max-w-full max-h-full object-cover rounded-md shadow-lg"
+              className="max-w-full max-h-full object-contain object-center rounded-lg shadow-lg border border-gray-300"
               onLoad={() => setIsPaused(false)}
+              loading="lazy"
             />
+
           )}
           <FcNext className="hidden md:block text-3xl cursor-pointer hover:text-gray-600 transition duration-200" />
           {myStory && (
@@ -218,7 +223,6 @@ function StoryComponent({ story, setMyStories, setStoryMsg, closePopup, myStory 
         </div>
       </div>
     </div>
-
   );
 }
 
