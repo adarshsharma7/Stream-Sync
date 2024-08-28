@@ -474,12 +474,12 @@ function Page() {
 
 
                     <div className='flex justify-between items-center mb-4'>
-                        <h1 className='text-xl font-semibold text-gray-900'>All comments</h1>
+                        <h1 className='text-xl font-semibold text-gray-900'>{commentSerachHeading ? commentSerachHeading : "All comments"}</h1>
                         <div onClick={() => setCommentBox(false)} className="cursor-pointer">
                             <IoClose className='text-2xl text-gray-500 hover:text-gray-700 transition' />
                         </div>
                     </div>
-                    <div className={`${commentSerachHeading ? "mb-0" : "mb-1"} w-full h-[40px] border border-gray-300 flex items-center rounded-lg shadow-sm focus-within:shadow-md transition-shadow duration-300 ease-in-out`}>
+                    <div className={`mb-1 w-full h-[40px] border border-gray-300 flex items-center rounded-lg shadow-sm focus-within:shadow-md transition-shadow duration-300 ease-in-out`}>
                         <CiSearch className="text-xl text-gray-500 ml-3" />
                         <input
                             type="text"
@@ -490,12 +490,7 @@ function Page() {
                         />
                     </div>
 
-                    {commentSerachHeading && (
-                        <div className="p-4">
-                            <h2 className="text-lg font-medium text-gray-800">{commentSerachHeading}</h2>
-                        </div>
-                    )}
-
+                   
 
                     {commentFetchingMessage ? (
                         <div className="flex justify-center items-center h-full text-red-700">
