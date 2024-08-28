@@ -473,24 +473,28 @@ function Page() {
                 <div className={`${commentBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-[67%] h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col realative`}>
 
 
-                    <div className='flex justify-between items-center mb-4'>
-                        <h1 className='text-xl font-semibold text-gray-900'>{commentSerachHeading ? commentSerachHeading : "All comments"}</h1>
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-xl font-semibold text-gray-900 truncate max-w-[80%]">
+                            {commentSerachHeading ? commentSerachHeading : "All comments"}
+                        </h1>
                         <div onClick={() => setCommentBox(false)} className="cursor-pointer">
-                            <IoClose className='text-2xl text-gray-500 hover:text-gray-700 transition' />
+                            <IoClose className="text-2xl text-gray-500 hover:text-gray-700 transition" />
                         </div>
                     </div>
+
                     <div className={`mb-1 w-full h-[40px] border border-gray-300 flex items-center rounded-lg shadow-sm focus-within:shadow-md transition-shadow duration-300 ease-in-out`}>
                         <CiSearch className="text-xl text-gray-500 ml-3" />
                         <input
                             type="text"
                             placeholder="Search comments..."
+                            maxLength={30}
                             value={commentSearchTerm}
                             onChange={(e) => handleCommentSearch(e.target.value)}
                             className="bg-transparent outline-none ml-2 flex-grow h-full text-gray-700 placeholder-gray-400"
                         />
                     </div>
 
-                   
+
 
                     {commentFetchingMessage ? (
                         <div className="flex justify-center items-center h-full text-red-700">
