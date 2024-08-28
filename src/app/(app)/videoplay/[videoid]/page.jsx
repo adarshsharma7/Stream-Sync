@@ -27,6 +27,7 @@ import CommentsDiv from "@/components/commentsdiv"
 import CommentReplyDiv from "@/components/commentReplyDiv"
 import Notification from "@/components/notificationpopup"
 import Fuse from 'fuse.js';
+import { Skeleton } from "@/components/ui/skeleton"
 
 
 
@@ -198,9 +199,9 @@ function Page() {
 
 
 
-    if (!videoData) {
-        return <div>Loading...</div>;
-    }
+    // if (!videoData) {
+    //     return <div>Loading...</div>;
+    // }
 
 
     const sendComment = async (data) => {
@@ -374,97 +375,142 @@ function Page() {
         <div className='w-full h-screen grid grid-cols-1 md:grid-cols-[70%_30%] md:px-8 md:pt-10'>
 
             <div className='w-full h-full border-2 relative flex flex-col '>
-                <div className={`videPlayBox h-[300px] ${commentBox || descriptionBox ? "md:h-[300px]" : "md:h-[550px]"}  w-full rounded-lg transition-all duration-300 ease-in-out`}>
-                    <video
-                        src={videoData.videoFile}
-                        controls
-                        className='w-full h-full rounded-lg'
-                    >
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
+                {!videoData ? (
+                    <div className="flex flex-col space-y-3">
+                        <Skeleton className=" w-full rounded-lg  h-[300px] md:h-[550px] bg-slate-400" />
+
+                        <Skeleton className="h-2 w-[40px] bg-slate-300" />
+
+
+                    </div>
+                ) : (
+                    <div className={`videPlayBox h-[300px] ${commentBox || descriptionBox ? "md:h-[300px]" : "md:h-[550px]"}  w-full rounded-lg transition-all duration-300 ease-in-out`}>
+                        <video
+                            src={videoData.videoFile}
+                            controls
+                            className='w-full h-full rounded-lg'
+                        >
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                )
+                }
+
 
 
                 <div className='videPlayDetailBox flex flex-col h-[28%] w-full border-2 p-2 rounded-t-[10px] gap-1'>
-                    <div><h1 className='text-2xl font-bold'>{videoData.title}</h1></div>
-                    <div className='discriptionBox flex text-sm '>
-                        <p className='mr-2'>{videoData.views} views</p>
-                        {/* <p>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</p> */}
-                        <p className='cursor-pointer' onClick={() => setDescriptionBox(true)}>more...</p>
-                    </div>
-                    <div className='md:flex md:justify-between'>
+                    {!videoData ? (
+                        <div className="flex flex-col gap-3">
+                            {/* Title Skeleton */}
+                            <Skeleton className="h-6 w-[60%] bg-slate-300" />
 
+                            {/* Description Skeleton */}
+                            <Skeleton className="h-4 w-[40%] bg-slate-300" />
 
-                        <div className='no-select flex justify-between items-center md:gap-4 mb-2 md:mb-9'>
-                            <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
-                                <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
-                                    <img src={videoData.owner.avatar} alt="dp" />
+                            <div className='md:flex md:justify-between'>
+                                <div className='no-select flex justify-between items-center md:gap-4 mb-2 md:mb-9'>
+                                    {/* Profile Picture Skeleton */}
+                                    <div className='cursor-pointer flex gap-2 items-center'>
+                                        <div className='w-12 h-12 rounded-full bg-slate-400' />
+
+                                        {/* Username and Subscriber Count Skeleton */}
+                                        <div className='flex flex-col gap-1'>
+                                            <Skeleton className="h-4 w-[80px] bg-slate-300" />
+                                            <Skeleton className="h-3 w-[50px] bg-slate-300" />
+                                        </div>
+                                    </div>
+
+                                    {/* Subscribe Button Skeleton */}
+                                    <div className='subscribeButtonBox'>
+                                        <Skeleton className="w-24 h-8 rounded-full bg-slate-300" />
+                                    </div>
                                 </div>
-                                <div className='flex flex-col'>
-                                    <h3>{videoData.owner.username}</h3>
-                                    <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
 
+                                {/* Buttons Skeleton */}
+                                <div className='buttonsBox flex gap-4 mb-2'>
+                                    <Skeleton className='rounded-full border-2 px-3 md:h-12 w-[60px] bg-slate-300' />
+                                    <Skeleton className='rounded-full border-2 px-3 md:h-12 w-[60px] bg-slate-300' />
+                                    <Skeleton className='rounded-full border-2 px-3 md:h-12 w-[60px] bg-slate-300' />
+                                    <Skeleton className='rounded-full border-2 px-3 md:h-12 w-[60px] bg-slate-300' />
+                                </div>
+                            </div>
+
+                            {/* Comments Box Skeleton */}
+                            <div className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2'>
+                                <Skeleton className="h-4 w-[50px] bg-slate-300" />
+                                <Skeleton className="h-5 w-[100%] bg-slate-300" />
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div><h1 className='text-2xl font-bold'>{videoData.title}</h1></div>
+                            <div className='discriptionBox flex text-sm '>
+                                <p className='mr-2'>{videoData.views} views</p>
+                                <p className='cursor-pointer' onClick={() => setDescriptionBox(true)}>more...</p>
+                            </div>
+                            <div className='md:flex md:justify-between'>
+                                <div className='no-select flex justify-between items-center md:gap-4 mb-2 md:mb-9'>
+                                    <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
+                                        <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
+                                            <img src={videoData.owner.avatar} alt="dp" />
+                                        </div>
+                                        <div className='flex flex-col'>
+                                            <h3>{videoData.owner.username}</h3>
+                                            <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
+                                        </div>
+                                    </div>
+                                    <div className='subscribeButtonBox' onClick={() => subscribe(videoData.owner._id, state, dispatch)}>
+                                        <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
+                                            {state.isSubscribe ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Subscribing...
+                                                </>
+                                            ) : (
+                                                state.userSubscribe ? 'Subscribed' : 'Subscribe'
+                                            )}
+                                        </Button>
+                                    </div>
                                 </div>
 
-                            </div>
-                            <div className='subscribeButtonBox  ' onClick={() => subscribe(videoData.owner._id, state, dispatch)}>
-                                <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
-                                    {state.isSubscribe ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Subscribing...
-                                        </>
-                                    ) : (
-                                        state.userSubscribe ? 'Subscribed' : 'Subscribe'
-                                    )}
-                                </Button>
-                            </div>
-
-
-                        </div>
-
-                        <div className='buttonsBox flex gap-4 mb-2'>
-                            <div className='flex gap-1 rounded-full border-2 px-3 md:h-12 text-2xl cursor-pointer items-center border-slate-400 justify-between'>
-                                <div className='mr-2 ' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}
+                                <div className='buttonsBox flex gap-4 mb-2'>
+                                    <div className='flex gap-1 rounded-full border-2 px-3 md:h-12 text-2xl cursor-pointer items-center border-slate-400 justify-between'>
+                                        <div className='mr-2 ' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
+                                        <div className='h-full outline-1 outline-double outline-slate-400 '></div>
+                                        <p className='text-[18px] ml-1'>{likeCount}</p>
+                                    </div>
+                                    <div onClick={() => setShowSharePopup(true)} className=' md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
+                                    <div onClick={() => {
+                                        setIsWatchLater(!isWatchLater)
+                                        debouncedWatchLater()
+                                    }} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}</div>
+                                    <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
                                 </div>
-                                <div className='h-full outline-1 outline-double outline-slate-400 '></div>
-                                <p className='text-[18px] ml-1'>{likeCount}</p>
+
+                                {showSharePopup && <SharePopup videoId={videoId} onClose={closeSharePopup} />}
+                                {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
                             </div>
-
-                            <div onClick={() => setShowSharePopup(true)} className=' md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
-                            <div onClick={() => {
-                                setIsWatchLater(!isWatchLater)
-                                debouncedWatchLater()
-                            }
-                            } className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}
+                            <div onClick={() => setCommentBox(true)} className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2 cursor-pointer'>
+                                <div className='flex gap-2'>
+                                    <h3>Comments</h3>
+                                    <h4>{comments.length}</h4>
+                                </div>
+                                {comments.length > 0 ? (
+                                    <div className='flex gap-1 items-center '>
+                                        <div className='h-5 w-5 rounded-full border-2 overflow-hidden border-black'>
+                                            <img src={comments[0].owner.avatar} alt="" />
+                                        </div>
+                                        <div>@{comments[0].owner.username}</div>
+                                        <div className='text-ellipsis overflow-hidden whitespace-nowrap'>{comments[0].content}</div>
+                                    </div>
+                                ) : (
+                                    <div className='flex justify-center items-center'>
+                                        <p>No Comments</p>
+                                    </div>
+                                )}
                             </div>
-                            <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
-
-                        </div>
-
-                        {showSharePopup && <SharePopup videoId={videoId} onClose={closeSharePopup} />}
-                        {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
-                    </div>
-                    <div onClick={() => setCommentBox(true)} className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2 cursor-pointer'>
-                        <div className='flex gap-2'>
-                            <h3>Comments</h3>
-                            <h4>{comments.length}</h4>
-                        </div>
-                        {comments.length > 0 ? (<div className='flex gap-1 items-center '>
-                            <div className='h-5 w-5 rounded-full border-2 overflow-hidden border-black'>
-                                <img src={comments[0].owner.avatar} alt="" />
-
-                            </div>
-                            <div>@{comments[0].owner.username}</div>
-                            <div className='text-ellipsis overflow-hidden whitespace-nowrap'>{comments[0].content}</div>
-                        </div>) : (
-                            <div className='flex justify-center items-center'>
-                                <p>No Comments</p>
-                            </div>
-                        )}
-
-                    </div>
-
+                        </>
+                    )}
                 </div>
 
 
@@ -685,55 +731,59 @@ function Page() {
 
                     </div>
                 </div>
+                {videoData && (
+                    <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full md:w-[67%] h-[66%]  transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
+                        <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
 
-                <div className={`${descriptionBox ? "translate-y-[302px] opacity-100" : "translate-y-full opacity-0 pointer-events-none"} transform bg-white p-2 z-50 fixed border-2 w-full md:w-[67%] h-[66%]  transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-200 flex flex-col`}>
-                    <div className='flex justify-between mb-4 border-b-2 border-black p-4 sticky'>
+                            <h1 className='text-2xl'>Description</h1>
 
-                        <h1 className='text-2xl'>Description</h1>
+                            <div className=' cursor-pointer' onClick={() => setDescriptionBox(false)}>
+                                <IoClose className='text-2xl' />
+                            </div>
 
-                        <div className=' cursor-pointer' onClick={() => setDescriptionBox(false)}>
-                            <IoClose className='text-2xl' />
+
                         </div>
 
+                        <div className='flex flex-col gap-2 p-3 h-full overflow-y-auto'>
+                            <div className='h-full w-full flex flex-col gap-2 overflow-y-auto text-black'>
+                                <div className='p-3 border-2 border-slate-700'>
+                                    <h1 className='font-bold '>{videoData.title}</h1>
+                                </div>
 
-                    </div>
 
-                    <div className='flex flex-col gap-2 p-3 h-full overflow-y-auto'>
-                        <div className='h-full w-full flex flex-col gap-2 overflow-y-auto text-black'>
-                            <div className='p-3 border-2 border-slate-700'>
-                                <h1 className='font-bold '>{videoData.title}</h1>
+
+                                <div className='videoVeiwsLikesDetailBox flex justify-around'>
+                                    <div className='flex flex-col items-center'>
+                                        <h1 className='font-semibold'>Likes</h1>
+                                        <h1>{likeCount}</h1>
+                                    </div>
+                                    <div className='flex flex-col items-center'>
+                                        <h1 className='font-semibold'>Views</h1>
+                                        <h1>{videoData.views}</h1>
+                                    </div>
+                                    <div className='flex flex-col items-center'>
+                                        <h1 className='font-semibold'>Date</h1>
+                                        <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1>
+
+                                    </div>
+
+                                </div>
+
+                                <div className='bg-slate-200 h-full w-full'>
+                                    <h1>{videoData.description}</h1>
+                                </div>
                             </div>
 
 
 
-                            <div className='videoVeiwsLikesDetailBox flex justify-around'>
-                                <div className='flex flex-col items-center'>
-                                    <h1 className='font-semibold'>Likes</h1>
-                                    <h1>{likeCount}</h1>
-                                </div>
-                                <div className='flex flex-col items-center'>
-                                    <h1 className='font-semibold'>Views</h1>
-                                    <h1>{videoData.views}</h1>
-                                </div>
-                                <div className='flex flex-col items-center'>
-                                    <h1 className='font-semibold'>Date</h1>
-                                    <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1>
 
-                                </div>
-
-                            </div>
-
-                            <div className='bg-slate-200 h-full w-full'>
-                                <h1>{videoData.description}</h1>
-                            </div>
                         </div>
 
-
-
-
                     </div>
+                )
 
-                </div>
+                }
+
 
                 {showNotification.addComment && (
                     <Notification message={"Comment added"} onClose={() => setShowNotification({
@@ -765,6 +815,17 @@ function Page() {
                         Other Videos
                     </h1>
                 </div>
+                {state.fetchedAllVideos.filter(video => video._id !== videoId).length == 0 && !videosFetchingMessage && (
+                    Array.from({ length: 8 }).map((_, index) => ( // Adjust the length as per expected video slots
+                        <div key={index} className="flex flex-col space-y-3">
+                            <Skeleton className="h-[215px] w-[100%] rounded-xl bg-slate-400" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-[250px] bg-slate-300" />
+                                <Skeleton className="h-4 w-[200px] bg-slate-300" />
+                            </div>
+                        </div>
+                    ))
+                )}
                 {videosFetchingMessage ? (
                     <div className="w-full h-ful flex justify-center items-center">
                         <h1>{videosFetchingMessage}</h1>
