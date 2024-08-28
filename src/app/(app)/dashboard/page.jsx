@@ -16,6 +16,8 @@ import Notification from '@/components/notificationpopup';
 import StoryPopup from '@/components/storyPopup';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton"
+
 
 
 function Page() {
@@ -40,6 +42,7 @@ function Page() {
   const [uploadProcessing, setUploadProcessing] = useState(false);
   const [uploadProcessCount, setUploadProcessCount] = useState(0);
   const [totalQueueFiles, setTotalQueueFiles] = useState(0);
+  const [noStoryMsg, setNoStoryMsg] = useState('');
 
   const { data: session } = useSession();
   const user = session?.user;
@@ -117,7 +120,9 @@ function Page() {
               avatar: sub.avatar,
               stories: sub.stories
             }));
-
+          if (filtered.length == 0) {
+            setNoStoryMsg("No stories")
+          }
           setStories(filtered);
 
 
@@ -356,6 +361,17 @@ function Page() {
           </div>
 
           <div className='flex gap-4 w-full h-full overflow-x-auto scrollbar-hide'>
+            {stories.length == 0 && !noStoryMsg && (
+
+              <div className="flex flex-col space-y-3">
+                <Skeleton className="w-12 h-12 rounded-full bg-slate-400" />
+
+                <Skeleton className="h-2 w-[40px] bg-slate-300" />
+
+
+              </div>
+
+            )}
             {stories.length > 0 ? (
               stories.map((story, index) => (
                 <div key={index} className='flex flex-col items-center cursor-pointer'>
@@ -375,7 +391,7 @@ function Page() {
                 </div>
               ))
             ) : (
-              <h1 className="text-gray-500 font-medium">No Stories</h1>
+              <h1 className="text-gray-500 font-medium">{noStoryMsg}</h1>
             )}
           </div>
 
@@ -389,6 +405,17 @@ function Page() {
           </div>
         ) : (
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-10'>
+            {filteredVideos.length === 0 && !videosFetchingMessage && (
+              Array.from({ length: 8 }).map((_, index) => ( // Adjust the length as per expected video slots
+                <div key={index} className="flex flex-col space-y-3">
+                  <Skeleton className="h-[215px] w-[100%] rounded-xl bg-slate-400" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px] bg-slate-300" />
+                    <Skeleton className="h-4 w-[200px] bg-slate-300" />
+                  </div>
+                </div>
+              ))
+            )}
 
             {filteredVideos.map((video, index) => (
               <div
