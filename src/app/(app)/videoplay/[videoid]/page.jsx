@@ -15,7 +15,7 @@ import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { FaRegShareSquare } from "react-icons/fa";
 import { GoReport } from "react-icons/go";
-
+import { CiSearch } from "react-icons/ci";
 import { SharePopup } from '@/components/sharepopup'
 import { ReportPopup } from '@/components/reportpopup'
 import { useUser } from '@/context/context'
@@ -26,6 +26,7 @@ import { MdOutlineWatchLater, MdWatchLater, MdOutlineInsertComment } from "react
 import CommentsDiv from "@/components/commentsdiv"
 import CommentReplyDiv from "@/components/commentReplyDiv"
 import Notification from "@/components/notificationpopup"
+import Fuse from 'fuse.js';
 
 
 
@@ -59,6 +60,11 @@ function Page() {
     const [editedReplyContent, setEditedReplyContent] = useState('')
     const [commentReplytoReply, setCommentReplytoReply] = useState({ Id: "", username: "" })
     const [showNotification, setShowNotification] = useState({ addComment: false, editComment: false, savePlaylist: { isDel: false, isAdd: false } });
+    const [commentSearchTerm, setCommentSearchTerm] = useState("");
+    const [filteredComments, setFilteredComments] = useState([])
+    const [commentSerachHeading, setCommentSerachHeading] = useState("")
+    const [commentFetchingMessage, setCommentFetchingMessage] = useState("")
+
 
 
 
@@ -109,6 +115,7 @@ function Page() {
 
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
+                setFilteredComments(videoResponse.data.data.comments)
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
                 setLikeCount(videoResponse.data.data.likes);
             } catch (error) {
@@ -324,6 +331,45 @@ function Page() {
 
     }
 
+    // Initialize Fuse.js
+    const fuse = new Fuse(comments, {
+        keys: ['content', 'owner.username'],
+        includeScore: true,
+        threshold: 0.3, // Adjust the threshold for sensitivity (0.0 to 1.0)
+    });
+
+
+    const handleCommentSearch = (term) => {
+        setCommentSearchTerm(term);
+        setCommentFetchingMessage("");
+        setCommentSerachHeading(`Search for: ${term}`);
+
+        if (term.trim() === "") {
+            setFilteredComments(comments);
+            setCommentSerachHeading("")
+        } else {
+            // Perform fuzzy search
+            const results = fuse.search(term);
+
+
+            // Extract results and handle empty case
+            const filteredResults = results.map(result => result.item);
+
+
+            if (filteredResults.length === 0) {
+                setCommentFetchingMessage("No Comments Found");
+            } else {
+                setFilteredComments(filteredResults);
+            }
+
+        }
+    };
+
+
+
+
+
+
     return (
         <div className='w-full h-screen grid grid-cols-1 md:grid-cols-[70%_30%] md:px-8 md:pt-10'>
 
@@ -433,86 +479,108 @@ function Page() {
                             <IoClose className='text-2xl text-gray-500 hover:text-gray-700 transition' />
                         </div>
                     </div>
-
-                    <div className='flex-grow h-full pb-12 md:pb-[90px] overflow-y-auto w-full border-2'>
-
-                        {comments.length > 0 ? comments.map((videoComment, index) => (
-                            <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
-                                {/* Comment Content */}
-                                <div className='flex gap-3 items-center w-full'>
-
-                                    <div className='flex justify-between w-full'>
-                                        <div className='flex gap-1 items-center'>
-                                            <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner.username}`)} className='flex items-center cursor-pointer'>
-                                                <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
-                                                    <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
-                                                </div>
-                                                <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
-                                            </div>
-
-                                            <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
-                                        </div>
-                                        {videoComment.owner._id == user?._id && (
-                                            <p className='cursor-pointer' onClick={() => {
-                                                setUniqueComment(index);
-                                                setCommentDeletePopup(true);
-                                            }}>{<RxDotsVertical />}</p>
-                                        )}
-                                    </div>
-                                    {commentDeletePopup && uniqueComment == index && (
-                                        <div
-                                            ref={delComPopup}
-                                            className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
-                                        >
-                                            <button
-                                                onClick={() => commentDelete(videoComment._id, videoComment.content)}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
-                                            >
-                                                Delete
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setEditingCommentId(videoComment._id);
-                                                    setEditedContent(videoComment.content);
-                                                    setCurrentCommentContent(videoComment.content);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
-                                            >
-                                                Edit
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="mt-2">
-                                    <h2 className="text-base text-gray-700 break-words">{videoComment.content}</h2>
-                                </div>
-                                <div className="flex mt-2 space-x-4 justify-between">
-                                    <div className='flex gap-1'>
-                                        <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
-                                            {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
-                                        </button>
-                                        <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                                        <button onClick={() => {
-                                            replyArray.push(videoComment)
-                                            setReplyDiv(true)
-                                        }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
-                                        <p>{videoComment.replies?.length}</p>
-                                    </div>
-                                    <div>
-                                        <p className='text-sm text-gray-600 font-extralight'>
-                                            {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )) : (
-                            <div className='flex justify-center items-center'>
-                                <h1 className="text-lg text-gray-500">No Comments</h1>
-                            </div>
-                        )}
-
+                    <div className={`${commentSerachHeading ? "mb-0" : "mb-1"} w-full h-[40px] border border-gray-300 flex items-center rounded-lg shadow-sm focus-within:shadow-md transition-shadow duration-300 ease-in-out`}>
+                        <CiSearch className="text-xl text-gray-500 ml-3" />
+                        <input
+                            type="text"
+                            placeholder="Search comments..."
+                            value={commentSearchTerm}
+                            onChange={(e) => handleCommentSearch(e.target.value)}
+                            className="bg-transparent outline-none ml-2 flex-grow h-full text-gray-700 placeholder-gray-400"
+                        />
                     </div>
 
+                    {commentSerachHeading && (
+                        <div className="p-4">
+                            <h2 className="text-lg font-medium text-gray-800">{commentSerachHeading}</h2>
+                        </div>
+                    )}
+
+
+                    {commentFetchingMessage ? (
+                        <div className="flex justify-center items-center h-full text-red-700">
+                            <h1>{commentFetchingMessage}</h1>
+                        </div>
+                    ) : (
+                        <div className='flex-grow h-full pb-12 md:pb-[90px] overflow-y-auto w-full border-2'>
+
+                            {filteredComments.length > 0 ? filteredComments.map((videoComment, index) => (
+                                <div key={index} className='relative flex flex-col bg-gray-50 p-3 rounded-lg mb-3 shadow-sm'>
+                                    {/* Comment Content */}
+                                    <div className='flex gap-3 items-center w-full'>
+
+                                        <div className='flex justify-between w-full'>
+                                            <div className='flex gap-1 items-center'>
+                                                <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner.username}`)} className='flex items-center cursor-pointer'>
+                                                    <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
+                                                        <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
+                                                    </div>
+                                                    <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
+                                                </div>
+
+                                                <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
+                                            </div>
+                                            {videoComment.owner._id == user?._id && (
+                                                <p className='cursor-pointer' onClick={() => {
+                                                    setUniqueComment(index);
+                                                    setCommentDeletePopup(true);
+                                                }}>{<RxDotsVertical />}</p>
+                                            )}
+                                        </div>
+                                        {commentDeletePopup && uniqueComment == index && (
+                                            <div
+                                                ref={delComPopup}
+                                                className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
+                                            >
+                                                <button
+                                                    onClick={() => commentDelete(videoComment._id, videoComment.content)}
+                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
+                                                >
+                                                    Delete
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingCommentId(videoComment._id);
+                                                        setEditedContent(videoComment.content);
+                                                        setCurrentCommentContent(videoComment.content);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="mt-2">
+                                        <h2 className="text-base text-gray-700 break-words">{videoComment.content}</h2>
+                                    </div>
+                                    <div className="flex mt-2 space-x-4 justify-between">
+                                        <div className='flex gap-1'>
+                                            <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                                                {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
+                                            </button>
+                                            <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
+                                            <button onClick={() => {
+                                                replyArray.push(videoComment)
+                                                setReplyDiv(true)
+                                            }} className="ml-2 text-blue-500 hover:underline"><MdOutlineInsertComment /></button>
+                                            <p>{videoComment.replies?.length}</p>
+                                        </div>
+                                        <div>
+                                            <p className='text-sm text-gray-600 font-extralight'>
+                                                {videoComment.updatedAt ? "updated" : "added"} {formatDistanceToNow(new Date(videoComment.updatedAt ? videoComment.updatedAt : videoComment.createdAt), { addSuffix: true })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div className='flex justify-center items-center'>
+                                    <h1 className="text-lg text-gray-500">No Comments</h1>
+                                </div>
+                            )}
+
+                        </div>
+                    )}
                     <div className='fixed bottom-0 md:mb-[90px] left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(async (data) => {
