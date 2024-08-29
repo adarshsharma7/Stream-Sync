@@ -29,6 +29,8 @@ function Page() {
     const [fullName, setFullName] = useState("");
     const [username, setUsername] = useState("");
     const [avatar, setAvatar] = useState(null);
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
 
@@ -87,6 +89,7 @@ function Page() {
                     const response = await axios.get(
                         `/api/users/check-username?username=${username}`
                     );
+
                     setUsernameMessage(response.data.message);
                 } catch (error) {
                     const axiosError = error;
@@ -104,46 +107,76 @@ function Page() {
 
 
     const handleSubmit = async (e) => {
-        setIsSubmitting(true)
         e.preventDefault();
-        let formData = new FormData()
-        formData.append('username', username);
-        formData.append('fullName', fullName);
-        formData.append('avatar', avatar);
-        try {
-            let response = await axios.post("/api/users/editprofile", formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            })
-            if (response.data.success) {
-                dispatch({
-                    type: "UPDATED_PROFILE",
-                    payload: {
-                        username: response.data.updatedUser.username,
-                        fullName: response.data.updatedUser.fullName,
-                        avatar: response.data.updatedUser.avatar,
+        if(!username && !avatar && !fullName && !newPassword && !currentPassword){
+            toast({
+                title: 'Error',
+                description: "Feild required",
+            });
+        }else{
+            try {
+                setIsSubmitting(true);
+                let formData = new FormData();
+    
+                // Check if profile or password update
+                if ((username || avatar || fullName) && !currentPassword && !newPassword) {
+                    formData.append('username', username);
+                    formData.append('fullName', fullName);
+                    if (avatar) formData.append('avatar', avatar);
+                    formData.append('isProf', true);
+                } else if (currentPassword || newPassword) {
+    
+                    formData.append('currentPassword', currentPassword);
+                    formData.append('newPassword', newPassword);
+                    formData.append('isPass', true);
+                }
+    
+    
+    
+                let response = await axios.post("/api/users/editprofile", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
                     },
                 });
-                toast({
-                    title: 'Success',
-                    description: response.data.message,
-                })
-                setIsPopupVisible(false)
-
-            } else {
-                toast({
-                    title: 'false',
-                    description: response.data.message,
-                });
+    
+                if (response.data.success) {
+                    if (response.data.updatedUser) {
+                        dispatch({
+                            type: "UPDATED_PROFILE",
+                            payload: {
+                                username: response.data.updatedUser.username,
+                                fullName: response.data.updatedUser.fullName,
+                                avatar: response.data.updatedUser.avatar,
+                            },
+                        });
+                    }
+                    toast({
+                        title: 'Success',
+                        description: response.data.message,
+                    });
+                    setIsPopupVisible(false);
+                } else {
+                    toast({
+                        title: 'Error',
+                        description: response.data.message,
+                    });
+                }
+    
+            } catch (error) {
+                console.error('Error during updating profile', error);
+            } finally {
+                setIsSubmitting(false);
+                // Clear form fields
+                setUsername("");
+                setAvatar(null);  // Reset to null instead of empty string
+                setFullName("");
+                setCurrentPassword("");
+                setNewPassword("");
             }
-
-        } catch (error) {
-            console.error('Error during updating profile', error);
-        } finally {
-            setIsSubmitting(false)
         }
+       
     };
+
 
 
 
@@ -166,7 +199,7 @@ function Page() {
                     <RxDotsVertical />
                 </div>
                 {isPopupVisible && (
-                    <div ref={popupRef} style={{
+                    <div className='flex flex-col justify-center items-center' ref={popupRef} style={{
                         position: 'absolute',
                         top: '120%',
                         right: '0',
@@ -252,7 +285,65 @@ function Page() {
                             </DialogContent>
                         </Dialog>
 
-                        <button onClick={() => signOut()} style={{
+
+                        {/* Change Password */}
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline">Change password</Button>
+                            </DialogTrigger>
+                            <DialogContent ref={dialogContentRef} className="sm:max-w-[425px]">
+                                <form onSubmit={handleSubmit}>
+                                    <DialogHeader>
+                                        <DialogTitle>Change Your Password</DialogTitle>
+                                        <DialogDescription>
+                                            Make changes to your password here. Click save when you're done.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="name" className="text-right">
+                                                Current Password
+                                            </Label>
+                                            <Input
+                                                id="name"
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                className="col-span-3"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="username" className="text-right">
+                                                New Password
+                                            </Label>
+                                            <Input
+                                                id="username"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="col-span-3"
+                                            />
+
+                                        </div>
+
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                                            disabled={isSubmitting}>
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Please wait
+                                                </>
+                                            ) : (
+                                                'Change'
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
+
+
+                        <button className='flex justify-center' onClick={() => signOut()} style={{
                             padding: '10px 20px',
                             backgroundColor: 'transparent',
                             border: 'none',
@@ -262,6 +353,9 @@ function Page() {
                         }}>
                             Sign Out
                         </button>
+
+
+
                     </div>
                 )}
 

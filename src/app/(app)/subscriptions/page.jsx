@@ -76,14 +76,14 @@ function Page() {
                         </div>
                     </div>
                 ))) : (
-                    
-                        <div className='cursor-pointer flex flex-col items-center'>
-                            <div className='w-12 h-12 rounded-full border-2 overflow-hidden flex justify-center items-center'>
-                                <Skeleton className="w-full h-full bg-slate-400" />
-                            </div>
-                            <Skeleton className="w-20 h-4 mt-1 bg-slate-300" />
+
+                    <div className='cursor-pointer flex flex-col items-center'>
+                        <div className='w-12 h-12 rounded-full border-2 overflow-hidden flex justify-center items-center'>
+                            <Skeleton className="w-full h-full bg-slate-400" />
                         </div>
-                   
+                        <Skeleton className="w-20 h-4 mt-1 bg-slate-300" />
+                    </div>
+
                 )}
             </div>
 

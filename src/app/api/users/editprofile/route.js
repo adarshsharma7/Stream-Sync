@@ -1,23 +1,20 @@
 import { dbConnect } from '@/dbConfig/dbConfig';
 import User from '@/models/userModel';
-import { sendVerificationEmail } from '@/helper/sendVerificationCode';
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import { uploadOnCloudinary } from '@/utils/cloudinary';
-import { NextResponse } from 'next/server';
 
 
 export async function POST(request) {
-    const session = await getServerSession(authOptions)
-    const _user = session?.user
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
     if (!_user || !session) {
         return Response.json({
             success: false,
             message: "Not Authenticated"
-        }, { status: 400 })
+        }, { status: 400 });
     }
-
 
     try {
         await dbConnect();
@@ -26,64 +23,82 @@ export async function POST(request) {
         let username = data.get("username");
         let fullName = data.get("fullName");
         let avatar = data.get("avatar");
-      
+        let currentPassword = data.get("currentPassword");
+        let newPassword = data.get("newPassword");
+        let isPass = data.get("isPass");
+        let isProf = data.get("isProf");
+        console.log(data);
         
 
-        if (!username && !fullName && !avatar) {
-            return NextResponse.json({
-                success: false,
-                message: "One field required"
-            }, { status: 400 });
-        }
-        let payload = {}
+        let payload = {};
+        let updatedPassword = false;
 
-        if (avatar && typeof avatar === 'object' && avatar.size > 0) {
-            const avatarResponse = await uploadOnCloudinary(avatar);
-            if (!avatarResponse || !avatarResponse.url) {
-                return NextResponse.json({
+        if (isPass) {
+            if (!currentPassword || !newPassword || !(currentPassword && newPassword)) {
+                return Response.json({
                     success: false,
-                    message: "Upload failed"
-                }, { status: 500 });
+                    message: "Both fields are required"
+                }, { status: 200 });
             }
-            payload.avatar = avatarResponse.url
+           let user=await User.findById(_user._id)
+            let isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordCorrect) {
+                return Response.json({
+                    success: false,
+                    message: 'Current password is incorrect',
+                }, { status: 200 });
+            }
 
-        }
-        if (username) {
-            payload.username = username
-        }
-        if (fullName) {
-            payload.fullName = fullName
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            payload.password = hashedPassword;
+            updatedPassword = true;
         }
 
+        if (isProf) {
+            if (!username && !fullName && !avatar) {
+                return Response.json({
+                    success: false,
+                    message: "At least one field is required for profile update"
+                }, { status: 200 });
+            }
 
+            if (avatar && typeof avatar === 'object' && avatar.size > 0) {
+                const avatarResponse = await uploadOnCloudinary(avatar);
+                if (!avatarResponse || !avatarResponse.url) {
+                    return Response.json({
+                        success: false,
+                        message: "Upload failed"
+                    }, { status: 500 });
+                }
+                payload.avatar = avatarResponse.url;
+            }
+
+            if (username) payload.username = username;
+            if (fullName) payload.fullName = fullName;
+        }
 
         const updatedUser = await User.findOneAndUpdate(
-            { _id: _user._id }, // Assuming you're identifying the user by their ID
+            { _id: _user._id },
             payload,
             { new: true }
         );
-        if (updatedUser) {
-            console.log("User updated successfully!");
-            return NextResponse.json({
-                success: true,
-                message: 'User updated successfully!',
-                updatedUser: updatedUser,
-            }, { status: 201 });
-        } else {
-            console.log("User update failed or no changes were made.");
-            return NextResponse.json({
-                success: false,
-                message: 'User update failed or no changes were made.'
-            }, { status: 500 });
+
+        let response = {
+            success: true,
+            message: updatedPassword ? 'Password updated successfully!' : 'User updated successfully!'
+        };
+
+        if (!updatedPassword) {
+            response.updatedUser = updatedUser;
         }
 
-
+        return Response.json(response, { status: 201 });
 
     } catch (error) {
         console.log("Problem Updating:", error);
-        return NextResponse.json({
+        return Response.json({
             success: false,
-            message: 'Updation failed'
+            message: 'Update failed'
         }, { status: 500 });
     }
 }
