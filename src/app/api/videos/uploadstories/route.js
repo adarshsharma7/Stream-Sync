@@ -22,8 +22,7 @@ export async function POST(request){
     try {
         await dbConnect();
         let {Url}=await request.json()
-        console.log(Url);
-        
+       
         let user=await User.findById(_user._id)
         let currStories=await Stories.create({
             file:Url,

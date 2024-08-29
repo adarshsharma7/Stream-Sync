@@ -63,7 +63,8 @@ export async function GET() {
                                     {
                                         $project: {
                                             _id:1,
-                                            file: 1
+                                            file: 1,
+                                            createdAt:1
                                         }
                                     }
                                 ]

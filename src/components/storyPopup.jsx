@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5";
 import { FcNext, FcPrevious } from "react-icons/fc";
 import { RxDotsVertical } from "react-icons/rx";
 import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns'
 
 function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
@@ -155,7 +156,11 @@ function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup
     >
       <div className="h-[90%] w-[90%] bg-white flex flex-col gap-4 rounded-lg overflow-hidden shadow-lg p-4">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-semibold text-gray-800">{story.username}</h2>
+          <div className='flex gap-2'>
+             <h2 className="text-xl font-semibold text-gray-800">{story.username}</h2>
+             <p>{formatDistanceToNow(new Date(story.stories[currentStoryIndex].createdAt), { addSuffix: true })}</p>
+          </div>
+         
           <IoClose className="cursor-pointer text-gray-600 hover:text-gray-800 transition duration-200" onClick={closePopup} />
         </div>
         <div className="flex gap-2 w-full px-4 mb-6">
