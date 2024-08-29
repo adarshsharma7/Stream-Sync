@@ -71,6 +71,16 @@ const reducer = (state, action) => {
             commentArray:action.payload,
           
           };
+          case actionTypes.UPDATED_PROFILE:
+            return {
+                ...state,
+                profile: {
+                    ...state.profile,
+                    username: action.payload.username,
+                    fullName: action.payload.fullName,
+                    avatar: action.payload.avatar,
+                },
+            };
       default:
         return state;
   }

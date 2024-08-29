@@ -113,7 +113,7 @@ export default function SignUpForm() {
        if(response.data.success){
           toast({
         title: 'Success',
-        description: response.message,
+        description: response.data.message,
    });
         router.replace(`/verify/${username}`);
    

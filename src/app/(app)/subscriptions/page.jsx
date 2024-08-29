@@ -3,6 +3,7 @@ import axios from 'axios'
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
+import { Skeleton } from '@/components/ui/skeleton';
 
 function Page() {
     const [subscriptionsUser, setSubscriptionsUser] = useState([]);
@@ -50,56 +51,114 @@ function Page() {
 
     return (
         <div className='h-screen w-full flex flex-col p-4 bg-gray-100'>
+
             {/* Top Section: Subscribed Users */}
-            <div  className='flex gap-6 w-full h-[120px] overflow-x-auto border-b-2 border-gray-300 pb-4'>
-                {subscriptionsUser.map((user) => user.subscriptions.map((user, index) => (
-                    <div onClick={()=>router.push(`/subscriptionprofile/${user.username}`)} key={index} className='cursor-pointer flex flex-col items-center'>
+            <div className='flex gap-6 w-full h-[120px] overflow-x-auto border-b-2 border-gray-300 pb-4'>
+                {subscriptionsUser.length > 0 ? subscriptionsUser.map((user) => user.subscriptions.map((user, index) => (
+                    <div
+                        onClick={() => router.push(`/subscriptionprofile/${user.username}`)}
+                        key={index}
+                        className='cursor-pointer flex flex-col items-center'
+                    >
                         <div className='w-12 h-12 rounded-full border-2 border-red-600 overflow-hidden flex justify-center items-center'>
-                            <img src={user.avatar} alt="" className="w-full h-full object-cover"/>
+                            {user.avatar ? (
+                                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                <Skeleton className="w-full h-full bg-slate-400" />
+                            )}
                         </div>
                         <div className='text-center text-sm mt-1'>
-                            <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{user.username}</p>
+                            {user.username ? (
+                                <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{user.username}</p>
+                            ) : (
+                                <Skeleton className="w-20 h-4 bg-slate-300" />
+                            )}
                         </div>
                     </div>
-                )))}
+                ))) : (
+                    
+                        <div className='cursor-pointer flex flex-col items-center'>
+                            <div className='w-12 h-12 rounded-full border-2 overflow-hidden flex justify-center items-center'>
+                                <Skeleton className="w-full h-full bg-slate-400" />
+                            </div>
+                            <Skeleton className="w-20 h-4 mt-1 bg-slate-300" />
+                        </div>
+                   
+                )}
             </div>
-    
+
             {/* Bottom Section: Videos from Subscriptions */}
             <div className='gap-4 mt-4 h-full overflow-y-scroll grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 pb-8'>
-                <h1 className='md:flex md:justify-center md:items-center text-xl font-semibold text-gray-800 mb-4'>All Videos from your Subscriptions</h1>
-    
+                <h1 className='md:flex md:justify-center md:items-center text-xl font-semibold text-gray-800 mb-4'>
+                    All Videos from your Subscriptions
+                </h1>
+
                 {videosFetchingMessage ? (
                     <div className="w-full h-full text-red-700 flex justify-center items-center">
                         <h1>{videosFetchingMessage}</h1>
                     </div>
-                ) : subscriptionsVideos.map((video, index) => (
-                    <div 
-                        key={index} 
-                        onClick={() => router.push(`/videoplay/${video._id}`)} 
+                ) : subscriptionsVideos.length > 0 ? subscriptionsVideos.map((video, index) => (
+                    <div
+                        key={index}
+                        onClick={() => router.push(`/videoplay/${video._id}`)}
                         className='cursor-pointer h-[260px] bg-white shadow-lg border border-gray-300 rounded-lg flex flex-col gap-2 p-2 hover:shadow-xl transition-shadow duration-200'
                     >
                         <div className='thumbnailBox rounded-2xl w-full overflow-hidden h-[75%]'>
-                            <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
+                            {video.thumbnail ? (
+                                <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
+                            ) : (
+                                <Skeleton className="w-full h-full" />
+                            )}
                         </div>
                         <div className='userDetailsBox flex gap-2 items-center'>
                             <div className='w-8 h-8 rounded-full overflow-hidden'>
-                                <img src={video.owner[0].avatar} alt="dp" className='w-full h-full object-cover'/>
+                                {video.owner[0].avatar ? (
+                                    <img src={video.owner[0].avatar} alt="dp" className='w-full h-full object-cover' />
+                                ) : (
+                                    <Skeleton className="w-full h-full" />
+                                )}
                             </div>
-                            <div className='text-gray-900 font-semibold'>{video.title}</div>
+                            {video.title ? (
+                                <div className='text-gray-900 font-semibold'>{video.title}</div>
+                            ) : (
+                                <Skeleton className="w-32 h-4" />
+                            )}
                         </div>
                         <div className='text-gray-500 text-sm'>
-                            <p>{video.owner[0].username}</p>
+                            {video.owner[0].username ? (
+                                <p>{video.owner[0].username}</p>
+                            ) : (
+                                <Skeleton className="w-24 h-4" />
+                            )}
                         </div>
                         <div className='flex gap-4 text-gray-500 text-xs'>
-                            <div>{video.views} views</div>
-                            <div>{formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</div>
+                            {video.views ? (
+                                <div>{video.views} views</div>
+                            ) : (
+                                <Skeleton className="w-12 h-4" />
+                            )}
+                            {video.createdAt ? (
+                                <div>{formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</div>
+                            ) : (
+                                <Skeleton className="w-24 h-4" />
+                            )}
                         </div>
                     </div>
-                ))}
+                )) : (
+                    Array.from({ length: 6 }).map((_, index) => (
+                        <div key={index} className='cursor-pointer h-[260px] bg-white shadow-lg border border-gray-300 rounded-lg flex flex-col gap-2 p-2'>
+                            <Skeleton className="bg-slate-400 rounded-2xl w-full h-[75%]" />
+                            <Skeleton className="bg-slate-300 w-32 h-4 mt-2" />
+                            <Skeleton className="bg-slate-300 w-24 h-4 mt-1" />
+                            <Skeleton className="bg-slate-300 w-24 h-4 mt-1" />
+
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     )
-    
+
 }
 
 export default Page;
