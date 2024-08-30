@@ -7,19 +7,9 @@ import { useUser } from '@/context/context'
 import { RxDotsVertical } from "react-icons/rx";
 import { useDebounceCallback } from 'usehooks-ts';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { IoClose } from "react-icons/io5";
 function Page() {
 
     const { state, dispatch } = useUser()
@@ -32,6 +22,8 @@ function Page() {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editProfileDialogOpen, setEditProfileDialogOpen] = useState(false);
+    const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
 
 
     const popupRef = useRef(null);
@@ -108,16 +100,16 @@ function Page() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if(!username && !avatar && !fullName && !newPassword && !currentPassword){
+        if (!username && !avatar && !fullName && !newPassword && !currentPassword) {
             toast({
                 title: 'Error',
                 description: "Feild required",
             });
-        }else{
+        } else {
             try {
                 setIsSubmitting(true);
                 let formData = new FormData();
-    
+
                 // Check if profile or password update
                 if ((username || avatar || fullName) && !currentPassword && !newPassword) {
                     formData.append('username', username);
@@ -125,20 +117,20 @@ function Page() {
                     if (avatar) formData.append('avatar', avatar);
                     formData.append('isProf', true);
                 } else if (currentPassword || newPassword) {
-    
+
                     formData.append('currentPassword', currentPassword);
                     formData.append('newPassword', newPassword);
                     formData.append('isPass', true);
                 }
-    
-    
-    
+
+
+
                 let response = await axios.post("/api/users/editprofile", formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-    
+
                 if (response.data.success) {
                     if (response.data.updatedUser) {
                         dispatch({
@@ -161,7 +153,7 @@ function Page() {
                         description: response.data.message,
                     });
                 }
-    
+
             } catch (error) {
                 console.error('Error during updating profile', error);
             } finally {
@@ -174,7 +166,7 @@ function Page() {
                 setNewPassword("");
             }
         }
-       
+
     };
 
 
@@ -201,7 +193,7 @@ function Page() {
                 {isPopupVisible && (
                     <div className='flex flex-col justify-center items-center' ref={popupRef} style={{
                         position: 'absolute',
-                        top: '120%',
+                        top: '35%',
                         right: '0',
                         backgroundColor: 'white',
                         border: '1px solid #ccc',
@@ -209,138 +201,12 @@ function Page() {
                         boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
                         zIndex: 1000,
                     }}>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="outline">Edit Profile</Button>
-                            </DialogTrigger>
-                            <DialogContent ref={dialogContentRef} className="sm:max-w-[425px]">
-                                <form onSubmit={handleSubmit}>
-                                    <DialogHeader>
-                                        <DialogTitle>Edit profile</DialogTitle>
-                                        <DialogDescription>
-                                            Make changes to your profile here. Click save when you&apos;re done.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="name" className="text-right">
-                                                fullName
-                                            </Label>
-                                            <Input
-                                                id="name"
-                                                value={fullName}
-                                                onChange={(e) => setFullName(e.target.value)}
-                                                className="col-span-3"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="username" className="text-right">
-                                                Username
-                                            </Label>
-                                            <Input
-                                                id="username"
-                                                value={username}
-                                                onChange={(e) => debounced(e.target.value)}
-                                                className="col-span-3"
-                                            />
-                                            {isCheckingUsername && <Loader2 className="animate-spin text-blue-500" />}
-                                            {!isCheckingUsername && usernameMessage && (
-                                                <p
-                                                    className={`text-sm ${usernameMessage === 'Username is available'
-                                                        ? 'text-green-600'
-                                                        : 'text-red-600'
-                                                        }`}
-                                                >
-                                                    {usernameMessage}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="avatar" className="text-right">
-                                                Avatar
-                                            </Label>
-                                            <Input
-                                                id="avatar"
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => setAvatar(e.target.files[0])}
-                                                className="col-span-3"
-                                            />
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-                                            disabled={isSubmitting || usernameMessage === 'Username not available'}>
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Please wait
-                                                </>
-                                            ) : (
-                                                'Update'
-                                            )}
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-
-
-                        {/* Change Password */}
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="outline">Change password</Button>
-                            </DialogTrigger>
-                            <DialogContent ref={dialogContentRef} className="sm:max-w-[425px]">
-                                <form onSubmit={handleSubmit}>
-                                    <DialogHeader>
-                                        <DialogTitle>Change Your Password</DialogTitle>
-                                        <DialogDescription>
-                                            Make changes to your password here. Click save when you&apos;re done.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="name" className="text-right">
-                                                Current Password
-                                            </Label>
-                                            <Input
-                                                id="name"
-                                                value={currentPassword}
-                                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                                className="col-span-3"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="username" className="text-right">
-                                                New Password
-                                            </Label>
-                                            <Input
-                                                id="username"
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
-                                                className="col-span-3"
-                                            />
-
-                                        </div>
-
-                                    </div>
-                                    <DialogFooter>
-                                        <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-                                            disabled={isSubmitting}>
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Please wait
-                                                </>
-                                            ) : (
-                                                'Change'
-                                            )}
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                        <Button variant="outline" onClick={() => { setIsPopupVisible(false); setEditProfileDialogOpen(true); }}>
+                            Edit Profile
+                        </Button>
+                        <Button variant="outline" onClick={() => { setIsPopupVisible(false); setChangePasswordDialogOpen(true); }}>
+                            Change Password
+                        </Button>
 
 
                         <button className='flex justify-center' onClick={() => signOut()} style={{
@@ -358,6 +224,133 @@ function Page() {
 
                     </div>
                 )}
+                {editProfileDialogOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                            <div className="flex justify-between mb-4">
+                                <h1 className="text-lg font-semibold mb-2">Edit Profile</h1>
+                                <IoClose onClick={() => setEditProfileDialogOpen(false)} className="cursor-pointer text-xl" />
+                            </div>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Make changes to your profile here. Click save when you're done.
+                            </p>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                                        Full Name
+                                    </label>
+                                    <input
+                                        id="fullName"
+                                        type="text"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                                        Username
+                                    </label>
+                                    <input
+                                        id="username"
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                    {isCheckingUsername && <Loader2 className="animate-spin text-blue-500" />}
+                                    {!isCheckingUsername && usernameMessage && (
+                                        <p
+                                            className={`text-sm ${usernameMessage === 'Username is available'
+                                                ? 'text-green-600'
+                                                : 'text-red-600'
+                                                }`}
+                                        >
+                                            {usernameMessage}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="avatar" className="block text-sm font-medium text-gray-700">
+                                        Avatar
+                                    </label>
+                                    <input
+                                        id="avatar"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setAvatar(e.target.files[0])}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                </div>
+                                <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting || usernameMessage === 'Username is available'}>
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Please wait
+                                        </>
+                                    ) : (
+                                        'Update'
+                                    )}
+                                </Button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+
+                {/* Change Password */}
+                {changePasswordDialogOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                            <div className="flex justify-between mb-4">
+                                <h1 className="text-lg font-semibold mb-2">Change Your Password</h1>
+                                <IoClose onClick={() => setChangePasswordDialogOpen(false)} className="cursor-pointer text-xl" />
+                            </div>
+                            <p className="text-sm text-gray-600 mb-4">
+                                Make changes to your password here. Click save when you're done.
+                            </p>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+                                        Current Password
+                                    </label>
+                                    <input
+                                        id="currentPassword"
+                                        type="password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                                        New Password
+                                    </label>
+                                    <input
+                                        id="newPassword"
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    />
+                                </div>
+                                <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting}>
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Please wait
+                                        </>
+                                    ) : (
+                                        'Change'
+                                    )}
+                                </Button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+
 
 
             </div>

@@ -231,7 +231,7 @@ function Page() {
             }
 
         }
-        setComments(prevComments => [...prevComments, newComment])
+        setFilteredComments(prevComments => [...prevComments, newComment])
 
         // setComments(prevComments => prevComments.map(comment =>
         //     comment.content==data.comment && comment.owner._id==user._id
@@ -284,7 +284,7 @@ function Page() {
 
     const commentDelete = async (commentId, contentToDelete) => {
         try {
-            setComments(prevComments => prevComments.filter(comment => !(comment.content == contentToDelete && comment.owner._id == user._id)));
+            setFilteredComments(prevComments => prevComments.filter(comment => !(comment.content == contentToDelete && comment.owner._id == user._id)));
             let response = await axios.post("/api/videos/deletecomment", { commentId, videoId })
             setReplyDiv(false)
 
@@ -308,7 +308,7 @@ function Page() {
 
     const saveEditedComment = async () => {
         setEditCommentLoading(true)
-        setComments(prevComments => prevComments.map(comment =>
+        setFilteredComments(prevComments => prevComments.map(comment =>
             comment._id === editingCommentId
                 ? { ...comment, content: editedContent, edited: true, updatedAt: new Date() } // update the content
                 : comment // keep other comments unchanged

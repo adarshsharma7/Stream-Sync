@@ -27,7 +27,7 @@ export async function POST(request) {
         let newPassword = data.get("newPassword");
         let isPass = data.get("isPass");
         let isProf = data.get("isProf");
-        console.log(data);
+       
         
 
         let payload = {};
