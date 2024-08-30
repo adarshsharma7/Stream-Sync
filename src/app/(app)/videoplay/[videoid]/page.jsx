@@ -289,11 +289,14 @@ setComments(prevComments => [...prevComments, newComment])
     const commentDelete = async (commentId, contentToDelete) => {
         try {
             setFilteredComments(prevComments => prevComments.filter(comment => !(comment.content == contentToDelete && comment.owner._id == user._id)));
+
+setComments(prevComments => prevComments.filter(comment => !(comment.content == contentToDelete && comment.owner._id == user._id)));
+
             let response = await axios.post("/api/videos/deletecomment", { commentId, videoId })
             setReplyDiv(false)
-
+setCommentDeletePopup(false);
         } catch (error) {
-
+console.log("kuch galt hua comment delete karte samya",error)
         }
     }
 
@@ -318,6 +321,15 @@ setComments(prevComments => [...prevComments, newComment])
                 : comment // keep other comments unchanged
         )
         );
+
+setComments(prevComments => prevComments.map(comment =>
+            comment._id === editingCommentId
+                ? { ...comment, content: editedContent, edited: true, updatedAt: new Date() } // update the content
+                : comment // keep other comments unchanged
+        )
+        );
+
+
         if (replyArray.length > 0) {
             setReplyArray((prevArray) => [
                 { ...prevArray[0], content: editedContent, edited: true, updatedAt: new Date() }
