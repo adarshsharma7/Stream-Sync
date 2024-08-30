@@ -233,7 +233,7 @@ function Page() {
                                 <IoClose onClick={() => setEditProfileDialogOpen(false)} className="cursor-pointer text-xl" />
                             </div>
                             <p className="text-sm text-gray-600 mb-4">
-                                "Make changes to your profile here. Click save when you're done."
+                                Make changes to your profile here. Click save when you&apos;re done.
                             </p>
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
@@ -308,7 +308,7 @@ function Page() {
                                 <IoClose onClick={() => setChangePasswordDialogOpen(false)} className="cursor-pointer text-xl" />
                             </div>
                             <p className="text-sm text-gray-600 mb-4">
-                                "Make changes to your password here. Click save when you're done."
+                                Make changes to your password here. Click save when you&apos;re done.
                             </p>
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-4">
