@@ -233,6 +233,10 @@ function Page() {
         }
         setFilteredComments(prevComments => [...prevComments, newComment])
 
+setComments(prevComments => [...prevComments, newComment])
+
+
+
         // setComments(prevComments => prevComments.map(comment =>
         //     comment.content==data.comment && comment.owner._id==user._id
         //         ? { ...comment, _id: response.data.data._id } // update the content
