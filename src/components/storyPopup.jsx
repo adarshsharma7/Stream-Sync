@@ -5,7 +5,7 @@ import { RxDotsVertical } from "react-icons/rx";
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns'
 
-function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup, myStory = false }) {
+function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -15,9 +15,14 @@ function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup
   const storyRef = useRef(null);
   const videoRef = useRef(null);
   const delRef = useRef(null);
+  if (!story) {
+    console.error("Story not found");
+    // Show a message or redirect the user
+    return;
+  }
 
 
-  
+
   useEffect(() => {
     // Clear any existing intervals
     clearInterval(intervalIdRef.current);
@@ -70,7 +75,6 @@ function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup
   };
 
   const handlePause = (e) => {
-    e.preventDefault();
     clearInterval(intervalIdRef.current);
     setIsPaused(true);
   };
@@ -124,21 +128,23 @@ function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup
     try {
       setMyStories((prevState) => {
         const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
-   
+
         if (updatedStories.length === 0) {
-          closePopup(); 
+          closePopup();
         }
         return {
           ...prevState,
           stories: updatedStories,
         };
+
+
       });
-      
-     setDeletePopup(false)
-     
+
+      setDeletePopup(false)
+
       let response = await axios.post("/api/videos/deletestories", { Id: storyId });
       setStoryMsg(response.data.message);
-     
+
     } catch (error) {
       console.log("kuch galt", error);
     }
@@ -157,10 +163,10 @@ function StoryComponent({ story,myStories, setMyStories, setStoryMsg, closePopup
       <div className="h-[90%] w-[90%] bg-white flex flex-col gap-4 rounded-lg overflow-hidden shadow-lg p-4">
         <div className="flex justify-between items-center mb-2">
           <div className='flex gap-2'>
-             <h2 className="text-xl font-semibold text-gray-800">{story.username}</h2>
-             <p>{formatDistanceToNow(new Date(story.stories[currentStoryIndex].createdAt), { addSuffix: true })}</p>
+            <h2 className="text-xl font-semibold text-gray-800">{story.username}</h2>
+            <p>{formatDistanceToNow(new Date(story.stories[currentStoryIndex].createdAt), { addSuffix: true })}</p>
           </div>
-         
+
           <IoClose className="cursor-pointer text-gray-600 hover:text-gray-800 transition duration-200" onClick={closePopup} />
         </div>
         <div className="flex gap-2 w-full px-4 mb-6">

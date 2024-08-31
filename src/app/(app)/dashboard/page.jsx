@@ -17,11 +17,14 @@ import StoryPopup from '@/components/storyPopup';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
+import io from 'socket.io-client';
 
 
-
+let socket;
 function Page() {
+
   const { state, dispatch } = useUser();
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredVideos, setFilteredVideos] = useState([]);
@@ -107,25 +110,30 @@ function Page() {
   }, [dispatch]);
 
   useEffect(() => {
+    // Initialize Socket.IO client
+    socket = io()
+
+    // Fetch initial stories
     const fetchAllStories = async () => {
       try {
         const response = await axios.get("/api/users/stories");
-        setMyStories(response.data.data)
+        setMyStories(response.data.data);
+        console.log("ye hai respponsedatadata", response.data.data);
 
         if (response.data.data?.subscriptions.length > 0) {
           const filtered = response.data.data.subscriptions
             .filter(sub => sub.stories.length > 0)
             .map(sub => ({
+              _id: sub._id,
               username: sub.username,
               avatar: sub.avatar,
               stories: sub.stories
             }));
-          if (filtered.length == 0) {
-            setNoStoryMsg("No stories")
+          if (filtered.length === 0) {
+            setNoStoryMsg("No stories");
           }
           setStories(filtered);
-
-
+          console.log("ye hai filtered", filtered);
         }
       } catch (error) {
         console.log("Error fetching stories:", error);
@@ -133,7 +141,86 @@ function Page() {
     };
 
     fetchAllStories();
+
+    // Listen for new story updates
+    socket.on('new_story', (data) => {
+      const { story, userId } = data;
+      console.log("story aai kkk");
+
+      setMyStories((prevMyStories) => {
+        // Find the matching subscription
+        const matchingSub = prevMyStories.subscriptions.find(sub => sub._id === userId);
+
+        if (matchingSub) {
+          // Agar matching subscription milta hai, to `stories` state ko update karna
+          setStories((prevStories) => {
+            // Check if the user already exists in the `stories` array
+            const existingSub = prevStories.find(sub => sub._id === userId);
+
+            if (existingSub) {
+              // If the user exists, only add the story if it doesn't already exist
+              const storyExists = existingSub.stories.some(existingStory => existingStory._id === story._id);
+
+              if (!storyExists) {
+                return prevStories.map(sub => {
+                  if (sub._id === userId) {
+                    return {
+                      ...sub,
+                      stories: [...sub.stories, story] // New story add karna
+                    };
+                  }
+                  return sub;
+                });
+              }
+            } else {
+              // If the user doesn't exist, add a new entry for the user with the new story
+              return [
+                ...prevStories,
+                {
+                  _id: matchingSub._id,
+                  username: matchingSub.username,
+                  avatar: matchingSub.avatar,
+                  stories: [story] // New story add karna
+                }
+              ];
+            }
+
+            return prevStories; // Return the previous state if no updates
+          });
+        }
+
+        return prevMyStories; // `myStories` ko unchanged return karna
+      });
+    });
+
+    socket.on('delete-story', (storyId) => {
+      console.log("ya hai delete",storyId);
+      
+      setStories((prevStories) => {
+        return prevStories
+          .map(sub => {
+            // Filter out the story from the user's `stories` array
+            const updatedStories = sub.stories.filter(story => story._id !== storyId);
+
+            // Return the updated subscription object with filtered stories
+            return {
+              ...sub,
+              stories: updatedStories
+            };
+          })
+          .filter(sub => sub.stories.length > 0); // Remove users with empty stories arrays
+      });
+    });
+
+
+    // Clean up socket on component unmount
+    return () => {
+      socket.disconnect();
+    };
   }, []);
+
+
+
 
   // Initialize Fuse.js
   const fuse = new Fuse(state.fetchedAllVideos, {
@@ -210,7 +297,7 @@ function Page() {
           const postResponse = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } });
           setMyStories((prevState) => ({
             ...prevState,
-            stories: [...prevState.stories, { file: Url, _id: postResponse.data.currStoryId }],
+            stories: [...prevState.stories, { file: Url, _id: postResponse.data.currStoryId, createdAt: new Date() }],
           }));
           setStoryMsg(postResponse.data.message);
 

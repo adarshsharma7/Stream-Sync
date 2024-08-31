@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 
 
 
+
 export async function POST(request) {
 
 
@@ -22,8 +23,7 @@ export async function POST(request) {
     try {
         await dbConnect()
         const { Id } = await request.json()
-        console.log(Id);
-        
+         
         const stories = await Stories.findById(Id)
         if (!stories) {
             return NextResponse.json({
@@ -33,6 +33,16 @@ export async function POST(request) {
         }
         await User.updateOne({ _id: _user._id }, { $pull: { stories: Id } });
         await Stories.findByIdAndDelete(Id)
+   
+    //   await axios.post('http://localhost:4000/delete-story', {
+    //     userStoryId: Id
+    //   });
+  
+      
+      global.io.emit('delete-story',  Id);
+    
+         
+
         return NextResponse.json({
             success: true,
             message: 'Story Deleted',
