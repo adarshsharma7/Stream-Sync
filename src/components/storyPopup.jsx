@@ -15,11 +15,6 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
   const storyRef = useRef(null);
   const videoRef = useRef(null);
   const delRef = useRef(null);
-  if (!story) {
-    console.error("Story not found");
-    // Show a message or redirect the user
-    return;
-  }
 
 
 
