@@ -124,36 +124,39 @@ const handleStoryEnd = () => {
 
   const deleteStory = async (storyId) => {
     try {
+
+  // Update the stories state
+  setMyStories((prevState) => {
+    // Filter out the deleted story
+    const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
+
+    // Determine the new index after deletion
+    let newIndex = currentStoryIndex;
+    if (updatedStories.length > 0) {
+      // If stories still remain, set index to the previous one if possible
+      newIndex = Math.min(currentStoryIndex, updatedStories.length - 1);
+    }
+
+    // Close the popup if no stories are left
+    if (updatedStories.length === 0) {
+      closePopup();
+    } else {
+      // Update the current story index and progress
+      setCurrentStoryIndex(newIndex);
+      setProgress(0); // Reset progress for the new current story
+    }
+
+    return {
+      ...prevState,
+      stories: updatedStories,
+    };
+  });
+
+
       // Delete story from backend
       await axios.post("/api/videos/deletestories", { Id: storyId });
   
-      // Update the stories state
-      setMyStories((prevState) => {
-        // Filter out the deleted story
-        const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
-  
-        // Determine the new index after deletion
-        let newIndex = currentStoryIndex;
-        if (updatedStories.length > 0) {
-          // If stories still remain, set index to the previous one if possible
-          newIndex = Math.min(currentStoryIndex, updatedStories.length - 1);
-        }
-  
-        // Close the popup if no stories are left
-        if (updatedStories.length === 0) {
-          closePopup();
-        } else {
-          // Update the current story index and progress
-          setCurrentStoryIndex(newIndex);
-          setProgress(0); // Reset progress for the new current story
-        }
-  
-        return {
-          ...prevState,
-          stories: updatedStories,
-        };
-      });
-  
+    
       setDeletePopup(false);
     } catch (error) {
       console.log("Error deleting story:", error);
