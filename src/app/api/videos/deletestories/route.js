@@ -39,7 +39,7 @@ export async function POST(request) {
     //   });
   
       
-      io.emit('delete-story',  Id);
+       io.emit('delete-story',  Id);
     
          
 
