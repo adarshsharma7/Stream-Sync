@@ -4,7 +4,7 @@ import Stories from "@/models/stories.models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import { NextResponse } from "next/server";
-import io from "../../../../../server"
+import io from "@/server"
 
 
 
