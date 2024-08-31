@@ -11,7 +11,7 @@ const server = express();
 const httpServer = createServer(server);
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://youtube-clone-iota-ecru-26.vercel.app", // Update with your Vercel URL
+    origin: "https://youtube-clone-iota-ecru-26.vercel.app", // Ensure this URL is correct
     methods: ["GET", "POST"]
   }
 });
