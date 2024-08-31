@@ -19,42 +19,43 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
 
 
   useEffect(() => {
-    // Clear any existing intervals
-    clearInterval(intervalIdRef.current);
+  // Clear any existing intervals
+  clearInterval(intervalIdRef.current);
 
-    // If the current story is a video
-    if (
-      story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
-      story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
-      story.stories[currentStoryIndex]?.file.endsWith('.ogg')
-    ) {
-      if (videoRef.current) {
-        videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
-      }
-      return;
+  if (
+    story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
+    story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
+    story.stories[currentStoryIndex]?.file.endsWith('.ogg')
+  ) {
+    if (videoRef.current) {
+      videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
     }
+    // No interval needed for videos, so return early but without conditionally exiting the hook
+    return;
+  }
 
-    // For image stories
-    const duration = 5000; // 5 seconds for images
-    const interval = 100;
+  // For image stories
+  const duration = 5000; // 5 seconds for images
+  const interval = 100;
 
-    if (!isPaused) {
-      const id = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(id);
-            handleStoryEnd();
-            return 100;
-          }
-          return prev + (100 / (duration / interval));
-        });
-      }, interval);
+  if (!isPaused) {
+    const id = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(id);
+          handleStoryEnd();
+          return 100;
+        }
+        return prev + (100 / (duration / interval));
+      });
+    }, interval);
 
-      intervalIdRef.current = id;
-    }
+    intervalIdRef.current = id;
+  }
 
-    return () => clearInterval(intervalIdRef.current);
-  }, [currentStoryIndex, isPaused]);
+  // Cleanup function to clear the interval
+  return () => clearInterval(intervalIdRef.current);
+}, [currentStoryIndex, isPaused]);
 
   const handleStoryEnd = () => {
     if (currentStoryIndex < story.stories.length - 1) {
