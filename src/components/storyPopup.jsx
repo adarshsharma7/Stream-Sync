@@ -15,51 +15,41 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
   const storyRef = useRef(null);
   const videoRef = useRef(null);
   const delRef = useRef(null);
-  if (!story) {
-    console.error("Story not found");
-    // Show a message or redirect the user
-    return;
+
+
+
+  useEffect(() => { // Clear any existing intervals clearInterval(intervalIdRef.current);// If the current story is a video
+if (
+  story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
+  story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
+  story.stories[currentStoryIndex]?.file.endsWith('.ogg')
+) {
+  if (videoRef.current) {
+    videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
   }
+  return;
+}
 
+// For image stories
+const duration = 5000; // 5 seconds for images
+const interval = 100;
 
-
-  useEffect(() => {
-    // Clear any existing intervals
-    clearInterval(intervalIdRef.current);
-
-    // If the current story is a video
-    if (
-      story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
-      story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
-      story.stories[currentStoryIndex]?.file.endsWith('.ogg')
-    ) {
-      if (videoRef.current) {
-        videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
+if (!isPaused) {
+  const id = setInterval(() => {
+    setProgress((prev) => {
+      if (prev >= 100) {
+        clearInterval(id);
+        handleStoryEnd();
+        return 100;
       }
-      return;
-    }
+      return prev + (100 / (duration / interval));
+    });
+  }, interval);
 
-    // For image stories
-    const duration = 5000; // 5 seconds for images
-    const interval = 100;
+  intervalIdRef.current = id;
+}
 
-    if (!isPaused) {
-      const id = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(id);
-            handleStoryEnd();
-            return 100;
-          }
-          return prev + (100 / (duration / interval));
-        });
-      }, interval);
-
-      intervalIdRef.current = id;
-    }
-
-    return () => clearInterval(intervalIdRef.current);
-  }, [currentStoryIndex, isPaused]);
+return () => clearInterval(intervalIdRef.current);}, [currentStoryIndex, isPaused]);
 
   const handleStoryEnd = () => {
     if (currentStoryIndex < story.stories.length - 1) {
