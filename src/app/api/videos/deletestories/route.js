@@ -39,7 +39,7 @@ export async function POST(request) {
     //   });
   
       
-      global.io.emit('delete-story',  Id);
+    //   global.io.emit('delete-story',  Id);
     
          
 
