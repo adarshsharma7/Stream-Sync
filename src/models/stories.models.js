@@ -12,7 +12,7 @@ owner: {
  createdAt: {
     type: Date,
     default: Date.now,
-    expires: 86400 
+    expires: 864000
   }
 },{timestamps:true})
 let Stories=mongoose.models.Stories || mongoose.model("Stories",storiesSchema)
