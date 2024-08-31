@@ -14,7 +14,7 @@ app.prepare().then(() => {
   const httpServer = createServer(server);
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: "https://youtube-clone-iota-ecru-26.vercel.app",
       methods: ["GET", "POST"]
     }
   });
