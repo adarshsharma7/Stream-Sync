@@ -4,7 +4,16 @@ import Stories from "@/models/stories.models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import { NextResponse } from "next/server";
-import io from "@/server"
+import Pusher from 'pusher';
+
+// Initialize Pusher
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,  
+    key: process.env.PUSHER_KEY,        
+    secret: process.env.PUSHER_SECRET,  
+    cluster: process.env.PUSHER_CLUSTER, 
+  useTLS: true
+});
 
 
 
@@ -39,7 +48,12 @@ export async function POST(request) {
     //   });
   
       
-       io.emit('delete-story',  Id);
+    //    io.emit('delete-story',  Id);
+
+     // Emit delete event using Pusher
+     pusher.trigger('story-channel', 'delete-story', {
+        storyId: Id,
+    });
     
          
 

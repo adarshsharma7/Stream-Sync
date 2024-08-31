@@ -17,10 +17,10 @@ import StoryPopup from '@/components/storyPopup';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
-import io from 'socket.io-client';
+import Pusher from 'pusher-js';
 
 
-let socket;
+
 function Page() {
 
   const { state, dispatch } = useUser();
@@ -110,9 +110,13 @@ function Page() {
   }, [dispatch]);
 
   useEffect(() => {
-    // Initialize Socket.IO client
-    socket = io()
 
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER
+    });
+    const deleteStoryChannel = pusher.subscribe('story-channel');
+    const addStoryChannel = pusher.subscribe('stories-channel');
+   
     // Fetch initial stories
     const fetchAllStories = async () => {
       try {
@@ -143,7 +147,7 @@ function Page() {
     fetchAllStories();
 
     // Listen for new story updates
-    socket.on('new_story', (data) => {
+    addStoryChannel.bind("new-story", function (data) {
       const { story, userId } = data;
       console.log("story aai kkk");
 
@@ -193,14 +197,13 @@ function Page() {
       });
     });
 
-    socket.on('delete-story', (storyId) => {
-      console.log("ya hai delete",storyId);
-      
+    deleteStoryChannel.bind('delete-story', function(data) {
+     
       setStories((prevStories) => {
         return prevStories
           .map(sub => {
             // Filter out the story from the user's `stories` array
-            const updatedStories = sub.stories.filter(story => story._id !== storyId);
+            const updatedStories = sub.stories.filter(story => story._id !== data.storyId);
 
             // Return the updated subscription object with filtered stories
             return {
@@ -213,10 +216,13 @@ function Page() {
     });
 
 
-    // Clean up socket on component unmount
+    // Cleanup on unmount
     return () => {
-      socket.disconnect();
-    };
+      addStoryChannel.unbind_all();
+      addStoryChannel.unsubscribe();
+      deleteStoryChannel.unbind_all();
+      deleteStoryChannel.unsubscribe();
+  };
   }, []);
 
 

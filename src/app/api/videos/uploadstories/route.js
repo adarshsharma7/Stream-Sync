@@ -4,10 +4,16 @@ import Stories from "@/models/stories.models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import { NextResponse } from "next/server";
-import io from "@/server"
+import Pusher from 'pusher';
 
-
-
+// Initialize Pusher
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,  
+    key: process.env.PUSHER_KEY,        
+    secret: process.env.PUSHER_SECRET,  
+    cluster: process.env.PUSHER_CLUSTER, 
+  useTLS: true
+});
 
 export async function POST(request) {
     // if (!io) {
@@ -42,15 +48,15 @@ export async function POST(request) {
         console.log(currStories.createdAt);
 
 
-       io.emit('new_story', {
-            story: {
-              file: Url,
-              _id: currStories._id,
-              createdAt: currStories.createdAt,
-              owner: user._id
-            },
-            userId: user._id
-          });
+        //    io.emit('new_story', {
+        //         story: {
+        //           file: Url,
+        //           _id: currStories._id,
+        //           createdAt: currStories.createdAt,
+        //           owner: user._id
+        //         },
+        //         userId: user._id
+        //       });
 
         // Make a request to Socket.IO server to emit the new story
         // await axios.post('http://localhost:4000/emit-story', {
@@ -62,6 +68,18 @@ export async function POST(request) {
         //     },
         //     userId: user._id
         // });
+
+        // Trigger Pusher event to notify all connected clients
+        await pusher.trigger("stories-channel", "new-story", {
+            story: {
+                _id: currStories._id,
+                file: Url,
+                createdAt: currStories.createdAt,
+                owner: _user._id,
+            },
+            userId: _user._id,
+        });
+
 
         return NextResponse.json({
             success: true,
