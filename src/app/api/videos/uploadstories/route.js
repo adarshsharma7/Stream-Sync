@@ -4,7 +4,7 @@ import Stories from "@/models/stories.models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import { NextResponse } from "next/server";
-import axios from "axios";
+import io from "../../../../../server"
 
 
 
@@ -42,15 +42,15 @@ export async function POST(request) {
         console.log(currStories.createdAt);
 
 
-        // global.io.emit('new_story', {
-        //     story: {
-        //       file: Url,
-        //       _id: currStories._id,
-        //       createdAt: currStories.createdAt,
-        //       owner: user._id
-        //     },
-        //     userId: user._id
-        //   });
+       io.emit('new_story', {
+            story: {
+              file: Url,
+              _id: currStories._id,
+              createdAt: currStories.createdAt,
+              owner: user._id
+            },
+            userId: user._id
+          });
 
         // Make a request to Socket.IO server to emit the new story
         // await axios.post('http://localhost:4000/emit-story', {
