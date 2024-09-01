@@ -18,6 +18,7 @@ export async function POST(request) {
     }
 
     try {
+         
         await dbConnect();
 
         const { username, fullName, avatar, currentPassword, newPassword } = await request.json();
@@ -44,23 +45,17 @@ export async function POST(request) {
         // Handle Profile Update
         if (username || fullName || avatar) {
             if (avatar) {
+                const token = process.env.BLOB_READ_WRITE_TOKEN;
                 const jsonResponse = await handleUpload({
                     body: { avatar },
                     request,
-                    onBeforeGenerateToken: async (pathname) => {
-                        return {
-                            allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif'],
-                            tokenPayload: JSON.stringify({
-                                userId: _user._id,
-                            }),
-                        };
-                    },
+                    token
                     onUploadCompleted: async ({ blob }) => {
                         payload.avatar = blob.url;
                     },
                 });
             }
-
+            console.log("json response",jsonResponse)
             if (username) payload.username = username;
             if (fullName) payload.fullName = fullName;
         }
