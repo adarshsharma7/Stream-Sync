@@ -4,12 +4,14 @@ import { FcNext, FcPrevious } from "react-icons/fc";
 import { RxDotsVertical } from "react-icons/rx";
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns'
+import { Loader, Loader2 } from 'lucide-react';
 
 function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopup, myStory = false }) {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [deletePopup, setDeletePopup] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const intervalIdRef = useRef(null);
   const storyRef = useRef(null);
@@ -18,54 +20,59 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
 
 
 
-  useEffect(() => { // Clear any existing intervals clearInterval(intervalIdRef.current);// If the current story is a video
-if (
-  story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
-  story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
-  story.stories[currentStoryIndex]?.file.endsWith('.ogg')
-) {
-  if (videoRef.current) {
-    videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
-  }
-  return;
-}
+  useEffect(() => {
 
-// For image stories
-const duration = 5000; // 5 seconds for images
-const interval = 100;
-
-if (!isPaused) {
-  const id = setInterval(() => {
-    setProgress((prev) => {
-      if (prev >= 100) {
-        clearInterval(id);
-        handleStoryEnd();
-        return 100;
+    // Clear any existing intervals clearInterval(intervalIdRef.current);// If the current story is a video
+    if (
+      story.stories[currentStoryIndex]?.file.endsWith('.mp4') ||
+      story.stories[currentStoryIndex]?.file.endsWith('.webm') ||
+      story.stories[currentStoryIndex]?.file.endsWith('.ogg')
+    ) {
+      if (videoRef.current) {
+        videoRef.current.load(); // Reload the video element to ensure it starts from the beginning
       }
-      return prev + (100 / (duration / interval));
-    });
-  }, interval);
+      return;
+    }
 
-  intervalIdRef.current = id;
-}
+    // For image stories
+    const duration = 5000; // 5 seconds for images
+    const interval = 100;
 
-return () => clearInterval(intervalIdRef.current);}, [currentStoryIndex, isPaused]);
+    if (!isPaused) {
+      const id = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(id);
+            handleStoryEnd();
+            return 100;
+          }
+          return prev + (100 / (duration / interval));
+        });
+      }, interval);
 
-const handleStoryEnd = () => {
-  if (currentStoryIndex < story.stories.length - 1) {
-    setProgress(0);
-    setCurrentStoryIndex(currentStoryIndex + 1);
-  } else {
-    // Check if there are still stories left after deletion
-    if (story.stories.length > 1) {
-      // Go back to the previous story
+      intervalIdRef.current = id;
+    }
+
+    return () => clearInterval(intervalIdRef.current);
+  }, [currentStoryIndex, isPaused]);
+
+  useEffect(() => {
+
+    setIsPaused(true)
+    setIsImageLoading(true)
+
+  }, [currentStoryIndex])
+
+
+  const handleStoryEnd = () => {
+    if (currentStoryIndex < story.stories.length - 1) {
       setProgress(0);
-      setCurrentStoryIndex(currentStoryIndex - 1);
+      setCurrentStoryIndex(currentStoryIndex + 1);
     } else {
       closePopup();
     }
-  }
-};
+
+  };
 
 
   const handleVideoEnd = () => {
@@ -125,44 +132,44 @@ const handleStoryEnd = () => {
   const deleteStory = async (storyId) => {
     try {
 
-  // Update the stories state
-  setMyStories((prevState) => {
-    // Filter out the deleted story
-    const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
+      // Update the stories state
+      setMyStories((prevState) => {
+        // Filter out the deleted story
+        const updatedStories = prevState.stories.filter((story) => story._id !== storyId);
 
-    // Determine the new index after deletion
-    let newIndex = currentStoryIndex;
-    if (updatedStories.length > 0) {
-      // If stories still remain, set index to the previous one if possible
-      newIndex = Math.min(currentStoryIndex, updatedStories.length - 1);
-    }
+        // Determine the new index after deletion
+        let newIndex = currentStoryIndex;
+        if (updatedStories.length > 0) {
+          // If stories still remain, set index to the previous one if possible
+          newIndex = Math.min(currentStoryIndex, updatedStories.length - 1);
+        }
 
-    // Close the popup if no stories are left
-    if (updatedStories.length === 0) {
-      closePopup();
-    } else {
-      // Update the current story index and progress
-      setCurrentStoryIndex(newIndex);
-      setProgress(0); // Reset progress for the new current story
-    }
+        // Close the popup if no stories are left
+        if (updatedStories.length === 0) {
+          closePopup();
+        } else {
+          // Update the current story index and progress
+          setCurrentStoryIndex(newIndex);
+          setProgress(0); // Reset progress for the new current story
+        }
 
-    return {
-      ...prevState,
-      stories: updatedStories,
-    };
-  });
+        return {
+          ...prevState,
+          stories: updatedStories,
+        };
+      });
 
 
       // Delete story from backend
       await axios.post("/api/videos/deletestories", { Id: storyId });
-  
-    
+
+
       setDeletePopup(false);
     } catch (error) {
       console.log("Error deleting story:", error);
     }
   };
-  
+
 
   return (
     <div
@@ -218,15 +225,27 @@ const handleStoryEnd = () => {
             </video>
 
           ) : (
+
             <img
               src={story.stories[currentStoryIndex]?.file}
               alt="story content"
-              className="max-w-full max-h-full object-contain object-center rounded-lg shadow-lg border border-gray-300"
-              onLoad={() => setIsPaused(false)}
+              className={`max-w-full max-h-full object-contain object-center rounded-lg shadow-lg border border-gray-300 ${isImageLoading ? "invisible" : ""}`}
+              onLoad={() => {
+                setIsImageLoading(false);
+                setIsPaused(false);
+              }}
               loading="lazy"
             />
+          )
 
-          )}
+
+          }
+         
+          <div hidden={!isImageLoading} className='absolute top-3 right-10'>
+          <Loader2 className="animate-spin text-blue-500 w-7 h-7" />
+
+          </div>
+
           <FcNext className="hidden md:block text-3xl cursor-pointer hover:text-gray-600 transition duration-200" />
           {myStory && (
             <div
