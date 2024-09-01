@@ -3,7 +3,7 @@ import React from 'react';
 import { IoMdHome } from "react-icons/io";
 import { RiUserFollowFill } from "react-icons/ri";
 import { CiCirclePlus } from "react-icons/ci";
-import { MdOutlineHistory } from "react-icons/md";
+import { BsChatDots } from "react-icons/bs";
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/context/context';
 
@@ -31,10 +31,10 @@ function ButtonNavigation() {
                     Upload
                 </div>
             </div>
-            <div className='relative group cursor-pointer' onClick={() => router.push('/watch-history')}>
-                <MdOutlineHistory />
+            <div className='relative group cursor-pointer' onClick={() => router.push('/chat')}>
+                <BsChatDots />
                 <div className='tooltip absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2'>
-                    History
+                    Chat
                 </div>
             </div>
             <div className='relative group cursor-pointer' onClick={() => router.push('/profile')}>
