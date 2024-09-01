@@ -3,15 +3,14 @@ import User from '@/models/userModel';
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
-import { handleUpload } from '@vercel/blob/client';
-import { NextResponse } from 'next/server';
+import { uploadOnCloudinary } from '@/utils/cloudinary';
+
 
 export async function POST(request) {
     const session = await getServerSession(authOptions);
     const _user = session?.user;
-
     if (!_user || !session) {
-        return NextResponse.json({
+        return Response.json({
             success: false,
             message: "Not Authenticated"
         }, { status: 400 });
@@ -20,17 +19,31 @@ export async function POST(request) {
     try {
         await dbConnect();
 
-        const { username, fullName, avatar, currentPassword, newPassword } = await request.json();
+        let data = await request.formData();
+        let username = data.get("username");
+        let fullName = data.get("fullName");
+        let avatar = data.get("avatar");
+        let currentPassword = data.get("currentPassword");
+        let newPassword = data.get("newPassword");
+        let isPass = data.get("isPass");
+        let isProf = data.get("isProf");
+       
+        
+
         let payload = {};
         let updatedPassword = false;
 
-        // Handle Password Update
-        if (currentPassword && newPassword) {
-            let user = await User.findById(_user._id);
+        if (isPass) {
+            if (!currentPassword || !newPassword || !(currentPassword && newPassword)) {
+                return Response.json({
+                    success: false,
+                    message: "Both fields are required"
+                }, { status: 200 });
+            }
+           let user=await User.findById(_user._id)
             let isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
-
             if (!isPasswordCorrect) {
-                return NextResponse.json({
+                return Response.json({
                     success: false,
                     message: 'Current password is incorrect',
                 }, { status: 200 });
@@ -41,24 +54,23 @@ export async function POST(request) {
             updatedPassword = true;
         }
 
-        // Handle Profile Update
-        if (username || fullName || avatar) {
-            if (avatar) {
-                const jsonResponse = await handleUpload({
-                    body: { avatar },
-                    request,
-                    onBeforeGenerateToken: async (pathname) => {
-                        return {
-                            allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif'],
-                            tokenPayload: JSON.stringify({
-                                userId: _user._id,
-                            }),
-                        };
-                    },
-                    onUploadCompleted: async ({ blob }) => {
-                        payload.avatar = blob.url;
-                    },
-                });
+        if (isProf) {
+            if (!username && !fullName && !avatar) {
+                return Response.json({
+                    success: false,
+                    message: "At least one field is required for profile update"
+                }, { status: 200 });
+            }
+
+            if (avatar && typeof avatar === 'object' && avatar.size > 0) {
+                const avatarResponse = await uploadOnCloudinary(avatar);
+                if (!avatarResponse || !avatarResponse.url) {
+                    return Response.json({
+                        success: false,
+                        message: "Upload failed"
+                    }, { status: 500 });
+                }
+                payload.avatar = avatarResponse.url;
             }
 
             if (username) payload.username = username;
@@ -71,15 +83,20 @@ export async function POST(request) {
             { new: true }
         );
 
-        return NextResponse.json({
+        let response = {
             success: true,
-            message: updatedPassword ? 'Password updated successfully!' : 'User updated successfully!',
-            updatedUser,
-        }, { status: 201 });
+            message: updatedPassword ? 'Password updated successfully!' : 'User updated successfully!'
+        };
+
+        if (!updatedPassword) {
+            response.updatedUser = updatedUser;
+        }
+
+        return Response.json(response, { status: 201 });
 
     } catch (error) {
-        console.error("Problem Updating:", error);
-        return NextResponse.json({
+        console.log("Problem Updating:", error);
+        return Response.json({
             success: false,
             message: 'Update failed'
         }, { status: 500 });

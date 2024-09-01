@@ -100,50 +100,73 @@ function Page() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!username && !avatar && !fullName) {
-            alert("Please fill in at least one field");
-            return;
-        }
-
-        try {
-            let avatarUrl = null;
-
-            if (avatar) {
-                const file = avatar;
-                const newBlob = await upload(file.name, file, {
-                    access: 'public',
-                    handleUploadUrl: '/api/users/editprofile',
-                });
-                avatarUrl = newBlob.url;
-            }
-
-            const payload = {
-                username,
-                fullName,
-                avatar: avatarUrl,
-                currentPassword,
-                newPassword,
-            };
-
-            const response = await fetch('/api/users/editprofile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
+        if (!username && !avatar && !fullName && !newPassword && !currentPassword) {
+            toast({
+                title: 'Error',
+                description: "Feild required",
             });
+        } else {
+            try {
+                setIsSubmitting(true);
+                let formData = new FormData();
 
-            const data = await response.json();
+                // Check if profile or password update
+                if ((username || avatar || fullName) && !currentPassword && !newPassword) {
+                    formData.append('username', username);
+                    formData.append('fullName', fullName);
+                    if (avatar) formData.append('avatar', avatar);
+                    formData.append('isProf', true);
+                } else if (currentPassword || newPassword) {
 
-            if (data.success) {
-                alert("Profile updated successfully!");
-            } else {
-                alert(data.message);
+                    formData.append('currentPassword', currentPassword);
+                    formData.append('newPassword', newPassword);
+                    formData.append('isPass', true);
+                }
+
+
+
+                let response = await axios.post("/api/users/editprofile", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                if (response.data.success) {
+                    if (response.data.updatedUser) {
+                        dispatch({
+                            type: "UPDATED_PROFILE",
+                            payload: {
+                                username: response.data.updatedUser.username,
+                                fullName: response.data.updatedUser.fullName,
+                                avatar: response.data.updatedUser.avatar,
+                            },
+                        });
+                    }
+                    toast({
+                        title: 'Success',
+                        description: response.data.message,
+                    });
+                    setIsPopupVisible(false);
+                } else {
+                    toast({
+                        title: 'Error',
+                        description: response.data.message,
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error during updating profile', error);
+            } finally {
+                setIsSubmitting(false);
+                // Clear form fields
+                setUsername("");
+                setAvatar(null);  // Reset to null instead of empty string
+                setFullName("");
+                setCurrentPassword("");
+                setNewPassword("");
             }
-        } catch (error) {
-            console.error('Error during updating profile:', error);
         }
+
     };
 
 
