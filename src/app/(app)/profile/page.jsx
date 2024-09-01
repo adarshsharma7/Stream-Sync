@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { IoClose } from "react-icons/io5";
-import { upload } from '@vercel/blob/client';
 function Page() {
 
     const { state, dispatch } = useUser()
@@ -101,42 +100,51 @@ function Page() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-          setIsSubmitting(true);
-          let formData = new FormData();
-      
-          if ((username || avatar || fullName) && !currentPassword && !newPassword) {
-            formData.append('username', username);
-            formData.append('fullName', fullName);
-            if (avatar) {
-              const newBlob = await upload(avatar.name, avatar, {
-                access: 'public',
-                handleUploadUrl: '/api/users/editprofile',
-              });
-              formData.append('avatar', newBlob.url); // Appending the uploaded image URL
-            }
-            formData.append('isProf', true);
-          } else if (currentPassword || newPassword) {
-            formData.append('currentPassword', currentPassword);
-            formData.append('newPassword', newPassword);
-            formData.append('isPass', true);
-          }
-      
-          let response = await axios.post("/api/users/editprofile", formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-      
-          // Handle the response, etc.
-        } catch (error) {
-          console.error('Error during updating profile', error);
-        } finally {
-          setIsSubmitting(false);
-          // Clear form fields
+
+        if (!username && !avatar && !fullName) {
+            alert("Please fill in at least one field");
+            return;
         }
-      };
-      
+
+        try {
+            let avatarUrl = null;
+
+            if (avatar) {
+                const file = avatar;
+                const newBlob = await upload(file.name, file, {
+                    access: 'public',
+                    handleUploadUrl: '/api/users/editprofile',
+                });
+                avatarUrl = newBlob.url;
+            }
+
+            const payload = {
+                username,
+                fullName,
+                avatar: avatarUrl,
+                currentPassword,
+                newPassword,
+            };
+
+            const response = await fetch('/api/users/editprofile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert("Profile updated successfully!");
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error during updating profile:', error);
+        }
+    };
 
 
 
