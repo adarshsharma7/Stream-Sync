@@ -299,7 +299,7 @@ function Page() {
         setLoading(true);
 
         try {
-          const response = await uploadToCloudinary(file, setVideoProgress, setLoading);
+          const response = await uploadToCloudinary(file, setVideoProgress);
           const Url = response.secure_url;
           const postResponse = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } });
           setMyStories((prevState) => ({

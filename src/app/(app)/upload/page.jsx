@@ -18,6 +18,7 @@ import {
     FormLabel,
     FormMessage
 } from '@/components/ui/form';
+import {uploadToCloudinary} from "@/components/uploadtocloudinary"
 
 function Page() {
     const [isLoading, setIsLoading] = useState(false);
@@ -36,27 +37,6 @@ function Page() {
         }
     });
 
-    const uploadToCloudinary = async (file, onProgress, resourceType = 'auto') => {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "my_unsigned_preset"); // Replace with your unsigned upload preset
-        // formData.append("cloud_name", `${process.env.CLOUD_NAME}`); // Replace with your Cloudinary cloud name
-
-        const response = await axios.post(
-            `https://api.cloudinary.com/v1_1/dmep4qjdi/${resourceType}/upload`, // Replace with your Cloudinary API URL
-            formData,
-            {
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    onProgress(percentCompleted);
-                },
-                headers: { "X-Requested-With": "XMLHttpRequest" },
-            }
-        );
-// console.log(response);
-
-        return response.data;
-    };
 
     const onSubmit = async (data) => {
         setIsLoading(true);

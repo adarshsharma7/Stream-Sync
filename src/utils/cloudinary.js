@@ -81,8 +81,8 @@
 
 
 import {v2 as cloudinary} from 'cloudinary';
-import {writeFile} from "fs/promises"
-import fs from 'fs'
+// import {writeFile} from "fs/promises"
+// import fs from 'fs'
    
 cloudinary.config({ 
   cloud_name:`${process.env.CLOUD_NAME}`,
@@ -93,23 +93,26 @@ cloudinary.config({
 const uploadOnCloudinary=async(avatar)=>{
   const byteData = await avatar.arrayBuffer();
     const buffer = Buffer.from(byteData);
-  const path=`./public/temp/${avatar.name}`
+    const base64String = buffer.toString('base64');
+    const dataURI = `data:${avatar.type};base64,${base64String}`;
+
+  // const path=`./public/temp/${avatar.name}`
   
-  await writeFile(path,buffer)
+  // await writeFile(path,buffer)
  console.log("Upload hone jaa raha hai");
  
 try {
-     const avatarResponse = await cloudinary.uploader.upload(path, {
+     const avatarResponse = await cloudinary.uploader.upload(dataURI, {
   resource_type: 'auto',
 });
 console.log("Upload hogaya hai");
 
 // Remove the temporary file
-fs.unlinkSync(path);
+// fs.unlinkSync(path);
 return avatarResponse;
         
  } catch (error) {
-     fs.unlinkSync(path)
+    //  fs.unlinkSync(path)
      console.log( "ho ni paara ab bhi",error);
  }
  } 
