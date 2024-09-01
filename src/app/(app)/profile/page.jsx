@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { IoClose } from "react-icons/io5";
+import { upload } from '@vercel/blob/client';
 function Page() {
 
     const { state, dispatch } = useUser()
@@ -100,74 +101,42 @@ function Page() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!username && !avatar && !fullName && !newPassword && !currentPassword) {
-            toast({
-                title: 'Error',
-                description: "Feild required",
-            });
-        } else {
-            try {
-                setIsSubmitting(true);
-                let formData = new FormData();
-
-                // Check if profile or password update
-                if ((username || avatar || fullName) && !currentPassword && !newPassword) {
-                    formData.append('username', username);
-                    formData.append('fullName', fullName);
-                    if (avatar) formData.append('avatar', avatar);
-                    formData.append('isProf', true);
-                } else if (currentPassword || newPassword) {
-
-                    formData.append('currentPassword', currentPassword);
-                    formData.append('newPassword', newPassword);
-                    formData.append('isPass', true);
-                }
-
-
-
-                let response = await axios.post("/api/users/editprofile", formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-
-                if (response.data.success) {
-                    if (response.data.updatedUser) {
-                        dispatch({
-                            type: "UPDATED_PROFILE",
-                            payload: {
-                                username: response.data.updatedUser.username,
-                                fullName: response.data.updatedUser.fullName,
-                                avatar: response.data.updatedUser.avatar,
-                            },
-                        });
-                    }
-                    toast({
-                        title: 'Success',
-                        description: response.data.message,
-                    });
-                    setIsPopupVisible(false);
-                } else {
-                    toast({
-                        title: 'Error',
-                        description: response.data.message,
-                    });
-                }
-
-            } catch (error) {
-                console.error('Error during updating profile', error);
-            } finally {
-                setIsSubmitting(false);
-                // Clear form fields
-                setUsername("");
-                setAvatar(null);  // Reset to null instead of empty string
-                setFullName("");
-                setCurrentPassword("");
-                setNewPassword("");
+        try {
+          setIsSubmitting(true);
+          let formData = new FormData();
+      
+          if ((username || avatar || fullName) && !currentPassword && !newPassword) {
+            formData.append('username', username);
+            formData.append('fullName', fullName);
+            if (avatar) {
+              const newBlob = await upload(avatar.name, avatar, {
+                access: 'public',
+                handleUploadUrl: '/api/users/editprofile',
+              });
+              formData.append('avatar', newBlob.url); // Appending the uploaded image URL
             }
+            formData.append('isProf', true);
+          } else if (currentPassword || newPassword) {
+            formData.append('currentPassword', currentPassword);
+            formData.append('newPassword', newPassword);
+            formData.append('isPass', true);
+          }
+      
+          let response = await axios.post("/api/users/editprofile", formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+      
+          // Handle the response, etc.
+        } catch (error) {
+          console.error('Error during updating profile', error);
+        } finally {
+          setIsSubmitting(false);
+          // Clear form fields
         }
-
-    };
+      };
+      
 
 
 

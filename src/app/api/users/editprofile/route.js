@@ -1,104 +1,78 @@
+import { handleUpload } from '@vercel/blob/client';
 import { dbConnect } from '@/dbConfig/dbConfig';
 import User from '@/models/userModel';
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
-import { uploadOnCloudinary } from '@/utils/cloudinary';
-
 
 export async function POST(request) {
-    const session = await getServerSession(authOptions);
-    const _user = session?.user;
-    if (!_user || !session) {
-        return Response.json({
-            success: false,
-            message: "Not Authenticated"
-        }, { status: 400 });
+  const session = await getServerSession(authOptions);
+  const _user = session?.user;
+  if (!_user || !session) {
+    return Response.json({
+      success: false,
+      message: "Not Authenticated"
+    }, { status: 400 });
+  }
+
+  try {
+    await dbConnect();
+    const data = await request.formData();
+    const username = data.get("username");
+    const fullName = data.get("fullName");
+    const currentPassword = data.get("currentPassword");
+    const newPassword = data.get("newPassword");
+    const isPass = data.get("isPass");
+    const isProf = data.get("isProf");
+    let payload = {};
+    let updatedPassword = false;
+
+    if (isPass) {
+      // Password update logic
     }
 
-    try {
-        await dbConnect();
-
-        let data = await request.formData();
-        let username = data.get("username");
-        let fullName = data.get("fullName");
-        let avatar = data.get("avatar");
-        let currentPassword = data.get("currentPassword");
-        let newPassword = data.get("newPassword");
-        let isPass = data.get("isPass");
-        let isProf = data.get("isProf");
-       
-        
-
-        let payload = {};
-        let updatedPassword = false;
-
-        if (isPass) {
-            if (!currentPassword || !newPassword || !(currentPassword && newPassword)) {
-                return Response.json({
-                    success: false,
-                    message: "Both fields are required"
-                }, { status: 200 });
-            }
-           let user=await User.findById(_user._id)
-            let isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
-            if (!isPasswordCorrect) {
-                return Response.json({
-                    success: false,
-                    message: 'Current password is incorrect',
-                }, { status: 200 });
-            }
-
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
-            payload.password = hashedPassword;
-            updatedPassword = true;
-        }
-
-        if (isProf) {
-            if (!username && !fullName && !avatar) {
-                return Response.json({
-                    success: false,
-                    message: "At least one field is required for profile update"
-                }, { status: 200 });
-            }
-
-            if (avatar && typeof avatar === 'object' && avatar.size > 0) {
-                const avatarResponse = await uploadOnCloudinary(avatar);
-                if (!avatarResponse || !avatarResponse.url) {
-                    return Response.json({
-                        success: false,
-                        message: "Upload failed"
-                    }, { status: 500 });
-                }
-                payload.avatar = avatarResponse.url;
-            }
-
-            if (username) payload.username = username;
-            if (fullName) payload.fullName = fullName;
-        }
-
-        const updatedUser = await User.findOneAndUpdate(
-            { _id: _user._id },
-            payload,
-            { new: true }
-        );
-
-        let response = {
-            success: true,
-            message: updatedPassword ? 'Password updated successfully!' : 'User updated successfully!'
-        };
-
-        if (!updatedPassword) {
-            response.updatedUser = updatedUser;
-        }
-
-        return Response.json(response, { status: 201 });
-
-    } catch (error) {
-        console.log("Problem Updating:", error);
+    if (isProf) {
+      if (!username && !fullName) {
         return Response.json({
-            success: false,
-            message: 'Update failed'
-        }, { status: 500 });
+          success: false,
+          message: "At least one field is required for profile update"
+        }, { status: 200 });
+      }
+
+      const jsonResponse = await handleUpload({
+        body: data, 
+        request,
+        onBeforeGenerateToken: async (pathname) => {
+          return {
+            allowedContentTypes: ['image/jpeg', 'image/png', 'image/gif'],
+            tokenPayload: JSON.stringify({ /* custom payload if needed */ }),
+          };
+        },
+        onUploadCompleted: async ({ blob }) => {
+          if (blob && blob.url) {
+            payload.avatar = blob.url;  // Save blob URL to user data
+          }
+        },
+      });
+      console.log("jsonResponse" ,jsonResponse);
+      
+
+      if (username) payload.username = username;
+      if (fullName) payload.fullName = fullName;
     }
+
+    const updatedUser = await User.findOneAndUpdate({ _id: _user._id }, payload, { new: true });
+    return Response.json({
+      success: true,
+      message: updatedPassword ? 'Password updated successfully!' : 'User updated successfully!',
+      updatedUser,
+    }, { status: 201 });
+
+  } catch (error) {
+    console.error("Problem Updating:", error);
+    return Response.json({
+      success: false,
+      message: 'Update failed'
+    }, { status: 500 });
+  }
 }
