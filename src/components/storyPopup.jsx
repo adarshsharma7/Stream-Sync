@@ -159,7 +159,6 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
         };
       });
 
-
       // Delete story from backend
       await axios.post("/api/videos/deletestories", { Id: storyId });
 

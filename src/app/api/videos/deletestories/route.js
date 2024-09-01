@@ -51,10 +51,10 @@ export async function POST(request) {
     //    io.emit('delete-story',  Id);
 
      // Emit delete event using Pusher
-     pusher.trigger('story-channel', 'delete-story', {
+   let pusherResponse= await pusher.trigger('story-channel', 'delete-story', {
         storyId: Id,
     });
-    
+    console.log('Pusher Trigger Response:', pusherResponse);
          
 
         return NextResponse.json({

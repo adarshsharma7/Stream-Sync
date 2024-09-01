@@ -122,7 +122,7 @@ function Page() {
       try {
         const response = await axios.get("/api/users/stories");
         setMyStories(response.data.data);
-        console.log("ye hai respponsedatadata", response.data.data);
+       
 
         if (response.data.data?.subscriptions.length > 0) {
           const filtered = response.data.data.subscriptions
@@ -198,6 +198,7 @@ function Page() {
     });
 
     deleteStoryChannel.bind('delete-story', function(data) {
+      console.log("Received delete-story event:", data);
      
       setStories((prevStories) => {
         return prevStories
