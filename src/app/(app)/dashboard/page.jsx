@@ -198,7 +198,7 @@ function Page() {
     });
 
     deleteStoryChannel.bind('delete-story', function(data) {
-      console.log("Received delete-story event:", data);
+      
      
       setStories((prevStories) => {
         return prevStories
