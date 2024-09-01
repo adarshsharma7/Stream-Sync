@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { IoClose } from "react-icons/io5";
+import { upload } from '@vercel/blob/client';
+
 function Page() {
 
     const { state, dispatch } = useUser()
