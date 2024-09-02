@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -65,6 +66,18 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+
+  isNewNotification:[],
+
+  requests: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }
+
+  ],
+
+  myrequests: [],
+
   coverImage: {
     type: String,
   },
