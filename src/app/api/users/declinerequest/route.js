@@ -31,19 +31,17 @@ export async function POST(request) {
         let { username } = await request.json()
         let user = await User.findOne({ username })
         let iam = await User.findById(_user._id)
-
-        let notification = await Notifications.create({
-            msg: "wants frnd ",
-            owner: _user._id
+        let notifi = await Notifications.create({
+            msg: "declined",
+            owner: iam._id
         })
-
-        user.requests.push(_user._id)
-        user.notifications.push(notification._id)
+        user.notifications.push(notifi._id)
         await user.save()
-        iam.myrequests.push({username,notificationId:notification._id})
-        await iam.save()
 
-        await pusher.trigger(`private-${user._id}`, 'msgRequest', {
+        await User.updateOne({ _id: user._id }, { $pull: { myrequests: {username} } });
+        await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id } });
+
+        await pusher.trigger(`private-${user._id}`, 'declineRequest', {
             avatar: iam.avatar,
             username: iam.username
         });

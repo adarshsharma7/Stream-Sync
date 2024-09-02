@@ -61,7 +61,10 @@ function Page() {
                 setSearchLoading(true);
                 let response = await axios.get("/api/users/getmyrequest");
                 setRequestedUsername(response.data.data)
-                setNotifications(response.data.requests)
+
+                setNotifications(response.data.notifications)
+                console.log(response.data.notifications);
+
                 setNewNotificationDot(response.data.isNewNotification)
 
 
@@ -99,7 +102,7 @@ function Page() {
 
         requestChannel.bind("msgRequest", function (data) {
             const { avatar, username } = data
-            setNotifications((prevNotification) => [...prevNotification, { avatar, username }
+            setNotifications((prevNotification) => [...prevNotification, { msg: "want frnd", owner: { avatar, username } }
             ]);
 
             setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -108,10 +111,28 @@ function Page() {
             checkNewNotification(username)
 
         });
+
+        requestChannel.bind("declineRequest", function (data) {
+            const { avatar, username } = data
+            setRequestedUsername((prevRequest) =>
+                prevRequest.filter((requests) => requests.username !== username)
+            );
+            setNotifications((prevNotification) => [...prevNotification, { msg: "declined", owner: { avatar, username } }
+            ]);
+            if (!notificationBox) {
+                setNewNotificationDot((prevDots) => [...prevDots, username]);
+            }
+
+
+            checkNewNotification(username, true, false)
+
+
+        });
+
         requestChannel.bind("msgDelRequest", function (data) {
             const { username } = data
             setNotifications((prevNotification) =>
-                prevNotification.filter((notification) => notification.username !== username)
+                prevNotification.filter((notification) => notification.owner.username !== username)
             );
             if (newNotificationDot?.length > 0) {
                 setNewNotificationDot((prevDots) => prevDots.filter((dot) => dot !== username));
@@ -138,7 +159,7 @@ function Page() {
     const sendMessageReq = async (username) => {
         try {
             setSearchLoading(true)
-            setRequestedUsername((prevRequests) => [...prevRequests, username])
+            setRequestedUsername((prevRequests) => [...prevRequests, {username}])
 
             let response = await axios.post("/api/users/sendmsgreq", { username })
 
@@ -149,11 +170,18 @@ function Page() {
     const deleteMessageReq = async (username) => {
         try {
             setSearchLoading(true)
-            setRequestedUsername((prevRequests) => prevRequests.filter((user) => user !== username));
+            setRequestedUsername((prevRequests) => prevRequests.filter((user) => user.username !== username));
 
 
             let response = await axios.post("/api/users/deletemsgreq", { username })
 
+        } catch (error) {
+
+        }
+    }
+    const declineRequest = async (username) => {
+        try {
+            let response = await axios.post("/api/users/declinerequest", { username })
         } catch (error) {
 
         }
@@ -258,7 +286,7 @@ function Page() {
                                         </div>
                                         <h1 className='ml-2'>{user.username}</h1>
                                     </div>
-                                    {requestedUsername?.includes(user.username) ? (
+                                    { requestedUsername?.some(req => req.username === user.username) ? (
                                         <div onClick={() => deleteMessageReq(user.username)}>
                                             <RiUserUnfollowFill />
                                         </div>
@@ -297,19 +325,35 @@ function Page() {
                                 <div className='flex gap-2'>
                                     <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                                         <Image
-                                            src={notifi.avatar}
+                                            src={notifi?.owner?.avatar}
                                             alt="dp"
                                             fill
                                             sizes="40px" // Adjust according to your requirements
                                             style={{ objectFit: "cover" }}
                                         />
                                     </div>
-                                    <div>{notifi.username}</div>
+                                    <div>{notifi.owner?.username}</div>
+                                    {notifi.msg == "declined" ? (
+                                        <div><h1 className='text-red-700'>has decined your request</h1></div>
+                                    ) : notifi.msg == "accept" ? (<div><h1 className='text-green-600'>has accepted your request</h1></div>) : (
+                                        <div><h1 className='text-green-600'>wants your message friend</h1></div>
+                                    )}
                                 </div>
-                                <div className='flex gap-2 items-center'>
+                                {notifi.msg == "declined" || notifi.msg == "accept" ? (
+                                    <div>
+                                        delete
+                                    </div>
+                                ) : (<div className='flex gap-2 items-center'>
                                     <div>✓</div>
-                                    <div><IoCloseCircle /></div>
-                                </div>
+                                    <div onClick={() => {
+                                        setNotifications((prevNotification) =>
+                                            prevNotification.filter((notification) => notification.owner.username !== notifi.owner.username)
+                                        );
+                                        declineRequest(notifi.owner.username)
+
+                                    }} className='cursor-pointer '><IoCloseCircle /></div>
+                                </div>)}
+
                             </div>
                         ))
                     ) : (

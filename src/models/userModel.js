@@ -66,8 +66,11 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
-
-  isNewNotification:[],
+  notifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Notifications",
+  }],
+  isNewNotification: [],
 
   requests: [{
     type: mongoose.Schema.Types.ObjectId,

@@ -19,13 +19,48 @@ export async function GET() {
     try {
         await dbConnect();
         let user = await User.findById(_user._id)
-        let requests = await User.aggregate([
+        let notifications = await User.aggregate([
             {
                 $match: { _id: new mongoose.Types.ObjectId(_user._id) }
             },
             {
-                $project:{
-                    requests:1
+                $project: {
+                    notifications: 1,
+                    requests: 1
+                }
+            },
+            {
+                $lookup: {
+                    from: "notifications",
+                    localField: "notifications",
+                    foreignField: "_id",
+                    as: "notifications",
+                    pipeline: [
+                        {
+
+                            $lookup: {
+                                from: "users",
+                                localField: "owner",
+                                foreignField: "_id",
+                                as: "owner",
+                                pipeline: [
+                                    {
+                                        $project: {
+                                            username: 1,
+                                            avatar: 1
+                                        }
+                                    }
+                                   
+                                ]
+
+                            }
+                        },
+                        {
+                            $addFields: {
+                                owner: { $arrayElemAt: ["$owner", 0] }
+                            }
+                        }
+                    ]
                 }
             },
             {
@@ -47,11 +82,13 @@ export async function GET() {
 
         ]);
 
+
+
         return Response.json({
             success: true,
             data: user.myrequests,
-            requests: requests[0].requests,
-            isNewNotification:user.isNewNotification
+            notifications: notifications[0].notifications,
+            isNewNotification: user.isNewNotification
         }, { status: 200 });
 
     } catch (error) {
