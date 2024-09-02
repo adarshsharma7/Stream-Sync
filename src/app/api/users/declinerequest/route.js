@@ -37,13 +37,12 @@ export async function POST(request) {
         })
         user.notifications.push(notifi._id)
         await user.save()
-        const findedObjectequest = iam.myrequests.find(req => req.username === username);
+        const findedObjectequest = user.myrequests.find(req => req.username === iam.username);
 
         await Notifications.findByIdAndDelete(findedObjectequest.notificationId)
 
-
-        await User.updateOne({ _id: user._id }, { $pull: { myrequests: {username} ,notifications:findedObjectequest.notificationId} });
-        await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id } });
+        await User.updateOne({ _id: user._id }, { $pull: { myrequests: {iam.username}} });
+        await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id, notifications:findedObjectequest.notificationId} });
 
         await pusher.trigger(`private-${user._id}`, 'declineRequest', {
             Id:notifi._id,
