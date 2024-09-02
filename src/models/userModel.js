@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  chatfrnd:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
   notifications: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications",

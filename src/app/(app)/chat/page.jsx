@@ -26,6 +26,7 @@ function Page() {
     const [notificationBox, setNotificationBox] = useState(false);
     const [newNotificationDot, setNewNotificationDot] = useState([]);
     const [notifications, setNotifications] = useState([]);
+    const [chats, setChats] = useState([]);
 
 
     const searchRef = useRef(null);
@@ -74,8 +75,19 @@ function Page() {
                 // Handle error
             }
         };
+        const getAllChats = async () => {
+            try {
+                let response = await axios.get("/api/users/getallchats")
+                setChats(response.data.data)
+            } catch (error) {
+                console.log(error);
+
+            }
+
+        }
         findUsers();
         getMyRequests()
+        getAllChats()
 
     }, []);
 
@@ -101,8 +113,8 @@ function Page() {
         const requestChannel = pusher.subscribe(`private-${user._id}`);
 
         requestChannel.bind("msgRequest", function (data) {
-            const { Id,avatar, username } = data
-            setNotifications((prevNotification) => [...prevNotification, {_id:Id, msg: "want frnd", owner: { avatar, username } }
+            const { Id, avatar, username } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: { avatar, username } }
             ]);
 
             setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -113,11 +125,11 @@ function Page() {
         });
 
         requestChannel.bind("declineRequest", function (data) {
-            const { Id,avatar, username } = data
+            const { Id, avatar, username } = data
             setRequestedUsername((prevRequest) =>
                 prevRequest.filter((requests) => requests.username !== username)
             );
-            setNotifications((prevNotification) => [...prevNotification, { _id:Id,msg: "declined", owner: { avatar, username } }
+            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "declined", owner: { avatar, username } }
             ]);
             if (!notificationBox) {
                 setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -130,7 +142,7 @@ function Page() {
         });
 
         requestChannel.bind("msgDelRequest", function (data) {
-            const { Id,username } = data
+            const { Id, username } = data
             setNotifications((prevNotification) =>
                 prevNotification.filter((notification) => notification._id !== Id)
             );
@@ -138,6 +150,16 @@ function Page() {
                 setNewNotificationDot((prevDots) => prevDots.filter((dot) => dot !== username));
             }
             checkNewNotification(username, true, false)
+
+
+        });
+        requestChannel.bind("acceptRequest", function (data) {
+            const { Id, username, avatar } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "accept", owner: { avatar, username } }
+            ]);
+            setChats((prev) => [...prev, {avatar,username}])
+            setNewNotificationDot((prevDots) => [...prevDots, username]);
+            checkNewNotification(username, undefined, false)
 
 
         });
@@ -159,7 +181,7 @@ function Page() {
     const sendMessageReq = async (username) => {
         try {
             setSearchLoading(true)
-            setRequestedUsername((prevRequests) => [...prevRequests, {username}])
+            setRequestedUsername((prevRequests) => [...prevRequests, { username }])
 
             let response = await axios.post("/api/users/sendmsgreq", { username })
 
@@ -182,6 +204,14 @@ function Page() {
     const declineRequest = async (username) => {
         try {
             let response = await axios.post("/api/users/declinerequest", { username })
+        } catch (error) {
+
+        }
+    }
+    const acceptRequest = async (username) => {
+        try {
+            let response = await axios.post("/api/users/acceptrequest", { username })
+            setChats((prev) => [...prev, response.data.data])
         } catch (error) {
 
         }
@@ -262,7 +292,26 @@ function Page() {
 
             </div>
             <div className='w-full h-full border-2 border-green-500'>
-                {/* all chats users */}
+                {chats?.length > 0 ? chats.map((chat, index) => (
+                    <div key={index} className='h-20% w-full flex'>
+                        <div className='overflow-hidden h-10 w-10 rounded-full relative'>
+                            <Image
+                                src={chat.avatar}
+                                alt="dp"
+                                fill
+                                sizes="40px" // Adjust according to your requirements
+                                style={{ objectFit: "cover" }}
+                            />
+                        </div>
+                        <div>
+                            <h1>{chat.username}</h1>
+                        </div>
+                    </div>
+                )) : (
+                    <div className='h-full w-full flex justify-center items-center'>
+                        No Chats
+                    </div>
+                )}
             </div>
             {suggestions && (
                 <div ref={searchPopupef} className='top-8 absolute max-h-[300px] w-full gap-5 border-2 border-b-red-950 overflow-y-auto flex flex-col p-3 items-center bg-gray-100'>
@@ -286,7 +335,7 @@ function Page() {
                                         </div>
                                         <h1 className='ml-2'>{user.username}</h1>
                                     </div>
-                                    { requestedUsername?.some(req => req.username === user.username) ? (
+                                    {requestedUsername?.some(req => req.username === user.username) ? (
                                         <div onClick={() => deleteMessageReq(user.username)}>
                                             <RiUserUnfollowFill />
                                         </div>
@@ -309,7 +358,7 @@ function Page() {
             }
 
 
-            <div className={`${notificationBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-[67%] h-[66%] transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-300 flex flex-col realative`}>
+            <div className={`${notificationBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-[67%] h-full transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-300 flex flex-col realative`}>
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-xl font-semibold text-gray-900 truncate max-w-[80%]">
                         Notifications
@@ -344,7 +393,9 @@ function Page() {
                                         delete
                                     </div>
                                 ) : (<div className='flex gap-2 items-center'>
-                                    <div>✓</div>
+                                    <div className='cursor-pointer' onClick={() => {
+                                        acceptRequest(notifi.owner.username)
+                                    }}>✓</div>
                                     <div onClick={(e) => {
                                         e.preventDefault()
                                         setNotifications((prevNotification) =>
