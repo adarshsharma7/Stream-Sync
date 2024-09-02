@@ -88,7 +88,8 @@ export async function GET() {
             success: true,
             data: user.myrequests,
             notifications: notifications[0].notifications,
-            isNewNotification: user.isNewNotification
+            isNewNotification: user.isNewNotification,
+            frndId:user.chatfrnd
         }, { status: 200 });
 
     } catch (error) {

@@ -33,6 +33,7 @@ export async function GET() {
                     pipeline: [
                         {
                             $project: {
+                                _id:1,
                                 avatar: 1,
                                 username: 1,
                                 fullName: 1

@@ -10,6 +10,8 @@ import { IoIosNotificationsOutline } from "react-icons/io";
 import Pusher from 'pusher-js';
 import { useSession } from 'next-auth/react';
 import { IoClose, IoCloseCircle } from "react-icons/io5";
+import { FaUserShield } from "react-icons/fa";
+import { MdOutlineDeleteSweep } from "react-icons/md";
 import { GoIssueClosed } from "react-icons/go";
 
 
@@ -27,6 +29,7 @@ function Page() {
     const [newNotificationDot, setNewNotificationDot] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [chats, setChats] = useState([]);
+    const [chatFrndIds, setChatFrndIds] = useState([]);
 
 
     const searchRef = useRef(null);
@@ -62,7 +65,7 @@ function Page() {
                 setSearchLoading(true);
                 let response = await axios.get("/api/users/getmyrequest");
                 setRequestedUsername(response.data.data)
-
+                setChatFrndIds(response.data.frndId)
                 setNotifications(response.data.notifications)
                 console.log(response.data.notifications);
 
@@ -157,7 +160,7 @@ function Page() {
             const { Id, username, avatar } = data
             setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "accept", owner: { avatar, username } }
             ]);
-            setChats((prev) => [...prev, {avatar,username}])
+            setChats((prev) => [...prev, { avatar, username }])
             setNewNotificationDot((prevDots) => [...prevDots, username]);
             checkNewNotification(username, undefined, false)
 
@@ -212,6 +215,17 @@ function Page() {
         try {
             let response = await axios.post("/api/users/acceptrequest", { username })
             setChats((prev) => [...prev, response.data.data])
+        } catch (error) {
+
+        }
+    }
+    const deleteNotification = async (Id) => {
+        try {
+            setNotifications((prevNotification) =>
+                prevNotification.filter((notification) => notification._id !== Id)
+            );
+            let response = await axios.post("/api/users/deletenotification", { Id })
+
         } catch (error) {
 
         }
@@ -335,7 +349,11 @@ function Page() {
                                         </div>
                                         <h1 className='ml-2'>{user.username}</h1>
                                     </div>
-                                    {requestedUsername?.some(req => req.username === user.username) ? (
+                                    {chatFrndIds.includes(user._id) ? (
+                                        <div>
+                                            <FaUserShield />
+                                        </div>
+                                    ) : requestedUsername?.some(req => req.username === user.username) ? (
                                         <div onClick={() => deleteMessageReq(user.username)}>
                                             <RiUserUnfollowFill />
                                         </div>
@@ -386,25 +404,33 @@ function Page() {
                                         <div><h1 className='text-red-700'>has decined your request</h1></div>
                                     ) : notifi.msg == "accept" ? (<div><h1 className='text-green-600'>has accepted your request</h1></div>) : (
                                         <div><h1 className='text-green-600'>wants your message friend</h1></div>
+
                                     )}
                                 </div>
-                                {notifi.msg == "declined" || notifi.msg == "accept" ? (
-                                    <div>
-                                        delete
-                                    </div>
-                                ) : (<div className='flex gap-2 items-center'>
-                                    <div className='cursor-pointer' onClick={() => {
-                                        acceptRequest(notifi.owner.username)
-                                    }}>✓</div>
-                                    <div onClick={(e) => {
-                                        e.preventDefault()
-                                        setNotifications((prevNotification) =>
-                                            prevNotification.filter((notification) => notification._id !== notifi._id)
-                                        );
-                                        declineRequest(notifi.owner.username)
+                                {notifi.msg !== "declined" && notifi.msg !== "accept" && (
+                                    <div className='flex gap-2 items-center'>
+                                        <div className='cursor-pointer' onClick={() => {
+                                            acceptRequest(notifi.owner.username)
+                                        }}>✓</div>
+                                        <div onClick={(e) => {
+                                            e.preventDefault()
+                                            setNotifications((prevNotification) =>
+                                                prevNotification.filter((notification) => notification._id !== notifi._id)
+                                            );
+                                            declineRequest(notifi.owner.username)
 
-                                    }} className='cursor-pointer '><IoCloseCircle /></div>
-                                </div>)}
+                                        }} className='cursor-pointer '><IoCloseCircle /></div>
+                                        <div></div>
+                                    </div>
+                                )}
+                                <div className='cursor-pointer' onClick={() => {
+                                    deleteNotification(notifi._id)
+                                }
+
+                                }>
+                                    <MdOutlineDeleteSweep />
+                                </div>
+
 
                             </div>
                         ))
