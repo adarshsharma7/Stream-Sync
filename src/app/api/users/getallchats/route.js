@@ -2,6 +2,7 @@ import { dbConnect } from '@/dbConfig/dbConfig';
 import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
+import mongoose from 'mongoose';
 
 
 
