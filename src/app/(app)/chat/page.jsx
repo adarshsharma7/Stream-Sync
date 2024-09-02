@@ -101,8 +101,8 @@ function Page() {
         const requestChannel = pusher.subscribe(`private-${user._id}`);
 
         requestChannel.bind("msgRequest", function (data) {
-            const { avatar, username } = data
-            setNotifications((prevNotification) => [...prevNotification, { msg: "want frnd", owner: { avatar, username } }
+            const { Id,avatar, username } = data
+            setNotifications((prevNotification) => [...prevNotification, {_id:Id, msg: "want frnd", owner: { avatar, username } }
             ]);
 
             setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -113,11 +113,11 @@ function Page() {
         });
 
         requestChannel.bind("declineRequest", function (data) {
-            const { avatar, username } = data
+            const { Id,avatar, username } = data
             setRequestedUsername((prevRequest) =>
                 prevRequest.filter((requests) => requests.username !== username)
             );
-            setNotifications((prevNotification) => [...prevNotification, { msg: "declined", owner: { avatar, username } }
+            setNotifications((prevNotification) => [...prevNotification, { _id:Id,msg: "declined", owner: { avatar, username } }
             ]);
             if (!notificationBox) {
                 setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -130,9 +130,9 @@ function Page() {
         });
 
         requestChannel.bind("msgDelRequest", function (data) {
-            const { username } = data
+            const { Id,username } = data
             setNotifications((prevNotification) =>
-                prevNotification.filter((notification) => notification.owner.username !== username)
+                prevNotification.filter((notification) => notification._id !== Id)
             );
             if (newNotificationDot?.length > 0) {
                 setNewNotificationDot((prevDots) => prevDots.filter((dot) => dot !== username));
@@ -345,9 +345,10 @@ function Page() {
                                     </div>
                                 ) : (<div className='flex gap-2 items-center'>
                                     <div>✓</div>
-                                    <div onClick={() => {
+                                    <div onClick={(e) => {
+                                        e.preventDefault()
                                         setNotifications((prevNotification) =>
-                                            prevNotification.filter((notification) => notification.owner.username !== notifi.owner.username)
+                                            prevNotification.filter((notification) => notification._id !== notifi._id)
                                         );
                                         declineRequest(notifi.owner.username)
 

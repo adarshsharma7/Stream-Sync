@@ -44,6 +44,7 @@ export async function POST(request) {
         await iam.save()
 
         await pusher.trigger(`private-${user._id}`, 'msgRequest', {
+            Id:notification._id,
             avatar: iam.avatar,
             username: iam.username
         });

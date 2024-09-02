@@ -44,6 +44,7 @@ export async function POST(request) {
         await User.updateOne({ _id: _user._id }, { $pull: { myrequests: { username: findedObjectequest.username } } });
 
         await pusher.trigger(`private-${user._id}`, 'msgDelRequest', {
+            Id:findedObjectequest.notificationId,
             username: iam.username
         });
 
