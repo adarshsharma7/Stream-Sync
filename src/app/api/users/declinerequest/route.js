@@ -41,7 +41,7 @@ export async function POST(request) {
 
         await Notifications.findByIdAndDelete(findedObjectequest.notificationId)
 
-        await User.updateOne({ _id: user._id }, { $pull: { myrequests: {iam.username}} });
+        await User.updateOne({ _id: user._id }, { $pull: { myrequests: { username: iam.username } } });
         await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id, notifications:findedObjectequest.notificationId} });
 
         await pusher.trigger(`private-${user._id}`, 'declineRequest', {
