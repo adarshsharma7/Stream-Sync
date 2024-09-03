@@ -37,6 +37,7 @@ export async function GET() {
                     pipeline:[
                         {
                             $project:{
+                                _id:1,
                                 username:1,
                                 avatar:1
                             }
@@ -45,7 +46,7 @@ export async function GET() {
                 }
             }
         ])
-        console.log(frnd);
+      
         
         return Response.json({
             success: true,

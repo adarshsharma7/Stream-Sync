@@ -12,6 +12,7 @@ import { useSession } from 'next-auth/react';
 import { IoClose, IoCloseCircle } from "react-icons/io5";
 import { FaUserShield } from "react-icons/fa";
 import { MdOutlineDeleteSweep } from "react-icons/md";
+import ChatOpen from '@/components/chatOpen'
 import { GoIssueClosed } from "react-icons/go";
 
 
@@ -30,6 +31,8 @@ function Page() {
     const [notifications, setNotifications] = useState([]);
     const [chats, setChats] = useState([]);
     const [chatFrndIds, setChatFrndIds] = useState([]);
+    const [chatOpen, setChatOpen] = useState({});
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
 
     const searchRef = useRef(null);
@@ -37,10 +40,6 @@ function Page() {
 
     const { data: session } = useSession();
     const user = session?.user;
-
-useEffect(() => {
-    console.log("chatfrndid usestate ",chatFrndIds);
-}, [chatFrndIds])
 
 
 
@@ -70,9 +69,9 @@ useEffect(() => {
                 let response = await axios.get("/api/users/getmyrequest");
                 setRequestedUsername(response.data.data)
                 setChatFrndIds(response.data.frndId)
-               
+
                 setNotifications(response.data.notifications)
-                console.log(response.data.notifications);
+
 
                 setNewNotificationDot(response.data.isNewNotification)
 
@@ -121,8 +120,8 @@ useEffect(() => {
         const requestChannel = pusher.subscribe(`private-${user._id}`);
 
         requestChannel.bind("msgRequest", function (data) {
-            const { Id, ownerId,avatar, username } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: {_id:ownerId, avatar, username } }
+            const { Id, ownerId, avatar, username } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: { _id: ownerId, avatar, username } }
             ]);
 
             setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -220,12 +219,11 @@ useEffect(() => {
         try {
             let response = await axios.post("/api/users/acceptrequest", { username })
 
-         console.log("accept krne pr",response.data.chatfrndid);
-         
-            
+
+
             setChatFrndIds((prev) => [...prev, response.data.chatfrndid])
-        
-            
+
+
             setChats((prev) => [...prev, response.data.data])
         } catch (error) {
 
@@ -279,8 +277,8 @@ useEffect(() => {
     }, [users, searchTerm]);
 
     return (
-        <div className='w-full h-full flex flex-col relative'>
-            <div className='flex w-full h-[20%] border-2 border-red-500 justify-between items-center px-2'>
+        <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900'>
+            <div className='flex w-full h-[8%] border-2 border-red-500 justify-between items-center px-2'>
                 <h1>YouChat</h1>
                 <div className='flex gap-2'>
                     <div className='flex items-center gap-3 h-full' ref={searchRef}>
@@ -317,28 +315,43 @@ useEffect(() => {
                 </div>
 
             </div>
-            <div className='w-full h-full border-2 border-green-500'>
-                {chats?.length > 0 ? chats.map((chat, index) => (
-                    <div key={index} className='h-20% w-full flex'>
-                        <div className='overflow-hidden h-10 w-10 rounded-full relative'>
-                            <Image
-                                src={chat.avatar}
-                                alt="dp"
-                                fill
-                                sizes="40px" // Adjust according to your requirements
-                                style={{ objectFit: "cover" }}
-                            />
+            <div className='w-full h-full border-red-700 flex border-2'>
+                <div className='w-1/2 h-full border-2 border-green-500 flex flex-col gap-2 overflow-y-auto'>
+                    {chats?.length > 0 ? chats.map((chat, index) => (
+                        <div onClick={() => {
+                            setIsChatOpen(true)
+                            setChatOpen({avatar:chat.avatar,username:chat.username,_id:chat._id})}}
+                            key={index} className='border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer'>
+                            <div className='overflow-hidden h-10 w-10 rounded-full relative'>
+                                <Image
+                                    src={chat.avatar}
+                                    alt="dp"
+                                    fill
+                                    sizes="40px" // Adjust according to your requirements
+                                    style={{ objectFit: "cover" }}
+                                />
+                            </div>
+                            <div>
+                                <h1>{chat.username}</h1>
+                            </div>
+                           
                         </div>
-                        <div>
-                            <h1>{chat.username}</h1>
+                    )) : (
+                        <div className='h-full w-full flex justify-center items-center'>
+                            No Chats
                         </div>
-                    </div>
-                )) : (
-                    <div className='h-full w-full flex justify-center items-center'>
-                        No Chats
-                    </div>
-                )}
+                    )}
+                </div>
+                <div className='w-1/2 h-full border-2 border-green-600'>
+                
+                     {isChatOpen && (
+                                <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} />
+                            )}
+            
+                </div>
+               
             </div>
+
             {suggestions && (
                 <div ref={searchPopupef} className='top-8 absolute max-h-[300px] w-full gap-5 border-2 border-b-red-950 overflow-y-auto flex flex-col p-3 items-center bg-gray-100'>
 
