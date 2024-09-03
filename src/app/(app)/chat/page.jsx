@@ -38,6 +38,10 @@ function Page() {
     const { data: session } = useSession();
     const user = session?.user;
 
+useEffect(() => {
+    console.log("chatfrndid usestate ",chatFrndIds);
+}, [chatFrndIds])
+
 
 
     const handleClickOutside = (event) => {
@@ -66,6 +70,7 @@ function Page() {
                 let response = await axios.get("/api/users/getmyrequest");
                 setRequestedUsername(response.data.data)
                 setChatFrndIds(response.data.frndId)
+               
                 setNotifications(response.data.notifications)
                 console.log(response.data.notifications);
 
@@ -116,8 +121,8 @@ function Page() {
         const requestChannel = pusher.subscribe(`private-${user._id}`);
 
         requestChannel.bind("msgRequest", function (data) {
-            const { Id, avatar, username } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: { avatar, username } }
+            const { Id, ownerId,avatar, username } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: {_id:ownerId, avatar, username } }
             ]);
 
             setNewNotificationDot((prevDots) => [...prevDots, username]);
@@ -214,6 +219,13 @@ function Page() {
     const acceptRequest = async (username) => {
         try {
             let response = await axios.post("/api/users/acceptrequest", { username })
+
+         console.log("accept krne pr",response.data.chatfrndid);
+         
+            
+            setChatFrndIds((prev) => [...prev, response.data.chatfrndid])
+        
+            
             setChats((prev) => [...prev, response.data.data])
         } catch (error) {
 
@@ -407,7 +419,7 @@ function Page() {
 
                                     )}
                                 </div>
-                                {notifi.msg !== "declined" && notifi.msg !== "accept" && (
+                                {notifi.msg !== "declined" && notifi.msg !== "accept" && !chatFrndIds.includes(notifi.owner._id) ? (
                                     <div className='flex gap-2 items-center'>
                                         <div className='cursor-pointer' onClick={() => {
                                             acceptRequest(notifi.owner.username)
@@ -422,6 +434,8 @@ function Page() {
                                         }} className='cursor-pointer '><IoCloseCircle /></div>
                                         <div></div>
                                     </div>
+                                ) : chatFrndIds.includes(notifi.owner._id) && (
+                                    <FaUserShield />
                                 )}
                                 <div className='cursor-pointer' onClick={() => {
                                     deleteNotification(notifi._id)
