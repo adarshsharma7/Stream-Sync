@@ -28,6 +28,7 @@ function Page() {
     const [requestedUsername, setRequestedUsername] = useState([]);
     const [notificationBox, setNotificationBox] = useState(false);
     const [newNotificationDot, setNewNotificationDot] = useState([]);
+    const [newMsgNotificationDot, setNewMsgNotificationDot] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [chats, setChats] = useState([]);
     const [chatFrndIds, setChatFrndIds] = useState([]);
@@ -40,6 +41,10 @@ function Page() {
 
     const { data: session } = useSession();
     const user = session?.user;
+    useEffect(() => {
+        console.log("useEffect me chatOpenId", chatOpen._id);
+
+    }, [chatOpen, setChatOpen])
 
 
 
@@ -69,7 +74,7 @@ function Page() {
                 let response = await axios.get("/api/users/getmyrequest");
                 setRequestedUsername(response.data.data)
                 setChatFrndIds(response.data.frndId)
-
+                setNewMsgNotificationDot(response.data.isNewMsgNotification)
                 setNotifications(response.data.notifications)
 
 
@@ -171,6 +176,25 @@ function Page() {
 
         });
 
+
+        requestChannel.bind("newMsgNotificationDot", function (data) {
+
+            setNewMsgNotificationDot((prev) => {
+                const existingNotification = prev.find(noti => noti.Id === data.Id);
+
+                if (existingNotification) {
+                    // If notification for this sender already exists, update the count
+                    return prev.map(noti =>
+                        noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
+                    );
+                } else {
+                    // Otherwise, add a new notification object
+                    return [...prev, { Id: data.Id, count: 1 }];
+                }
+            });
+
+        });
+
         return () => {
             requestChannel.unbind_all();
             requestChannel.unsubscribe();
@@ -218,8 +242,6 @@ function Page() {
     const acceptRequest = async (username) => {
         try {
             let response = await axios.post("/api/users/acceptrequest", { username })
-
-
 
             setChatFrndIds((prev) => [...prev, response.data.chatfrndid])
 
@@ -320,8 +342,9 @@ function Page() {
                     {chats?.length > 0 ? chats.map((chat, index) => (
                         <div onClick={() => {
                             setIsChatOpen(true)
-                            setChatOpen({avatar:chat.avatar,username:chat.username,_id:chat._id})}}
-                            key={index} className='border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer'>
+                            setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id })
+                        }}
+                            key={index} className={`${chatOpen._id == chat._id ? "bg-slate-400" : ""} border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer`}>
                             <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                                 <Image
                                     src={chat.avatar}
@@ -334,7 +357,17 @@ function Page() {
                             <div>
                                 <h1>{chat.username}</h1>
                             </div>
-                           
+                            <div>
+
+                                {newMsgNotificationDot.length > 0 &&
+                                    newMsgNotificationDot.map((noti, index) => (
+                                        noti.Id === chat._id && (
+                                            <p key={index}>{noti.count}</p>
+                                        )
+                                    ))
+                                }
+                            </div>
+
                         </div>
                     )) : (
                         <div className='h-full w-full flex justify-center items-center'>
@@ -343,13 +376,13 @@ function Page() {
                     )}
                 </div>
                 <div className='w-1/2 h-full border-2 border-green-600'>
-                
-                     {isChatOpen && (
-                                <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} />
-                            )}
-            
+
+                    {isChatOpen && (
+                        <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} />
+                    )}
+
                 </div>
-               
+
             </div>
 
             {suggestions && (

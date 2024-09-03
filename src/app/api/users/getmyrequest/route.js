@@ -90,6 +90,7 @@ export async function GET() {
             data: user.myrequests,
             notifications: notifications[0].notifications,
             isNewNotification: user.isNewNotification,
+            isNewMsgNotification:user.newMsgNotificationDot,
             frndId:user.chatfrnd
         }, { status: 200 });
 
