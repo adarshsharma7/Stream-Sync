@@ -41,10 +41,6 @@ function Page() {
 
     const { data: session } = useSession();
     const user = session?.user;
-    useEffect(() => {
-        console.log("useEffect me chatOpenId", chatOpen._id);
-
-    }, [chatOpen, setChatOpen])
 
 
 
@@ -178,21 +174,26 @@ function Page() {
 
 
         requestChannel.bind("newMsgNotificationDot", function (data) {
-
-            setNewMsgNotificationDot((prev) => {
-                const existingNotification = prev.find(noti => noti.Id === data.Id);
-
-                if (existingNotification) {
-                    // If notification for this sender already exists, update the count
-                    return prev.map(noti =>
-                        noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
-                    );
-                } else {
-                    // Otherwise, add a new notification object
-                    return [...prev, { Id: data.Id, count: 1 }];
-                }
-            });
-
+           
+            if(chatOpen._id !==data.Id ){
+                console.log("hii");
+                
+                setNewMsgNotificationDot((prev) => {
+                    const existingNotification = prev.find(noti => noti.Id === data.Id);
+    
+                    if (existingNotification) {
+                        // If notification for this sender already exists, update the count
+                        return prev.map(noti =>
+                            noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
+                        );
+                    } else {
+                        // Otherwise, add a new notification object
+                        return [...prev, { Id: data.Id, count: 1 }];
+                    }
+                });
+                console.log("hello");
+            }
+           
         });
 
         return () => {

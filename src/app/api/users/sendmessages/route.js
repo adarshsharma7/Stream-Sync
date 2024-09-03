@@ -41,12 +41,13 @@ export async function POST(request) {
         const notificationIndex = recipient.newMsgNotificationDot.findIndex(
             (notification) => notification.Id.toString() === sender._id.toString()
         );
-
+        console.log(notificationIndex);
+        
         if (notificationIndex !== -1) {
-           
+            // Update the count if notification exists
             recipient.newMsgNotificationDot[notificationIndex].count += 1;
         } else {
-           
+            // Add a new notification object if it doesn't exist
             recipient.newMsgNotificationDot.push({
                 Id: sender._id,
                 count: 1
@@ -54,6 +55,7 @@ export async function POST(request) {
         }
 
         await recipient.save();
+        
 
         chat.messages.push({ sender: sender._id, content: message });
         await chat.save();
