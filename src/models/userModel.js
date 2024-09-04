@@ -66,6 +66,7 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  status: { type: String, enum: ['online', 'offline'], default: 'offline' },
   chatfrnd:[{
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -74,6 +75,7 @@ const userSchema = new mongoose.Schema({
     Id: mongoose.Schema.Types.ObjectId,
     count: { type: Number, default: 0 }
 }],
+isMyChatOpen:{type:String},
   notifications: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications",

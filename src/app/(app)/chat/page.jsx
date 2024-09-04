@@ -36,6 +36,7 @@ function Page() {
     const [isChatOpen, setIsChatOpen] = useState(false);
 
 
+
     const searchRef = useRef(null);
     const searchPopupef = useRef(null);
 
@@ -50,6 +51,33 @@ function Page() {
             setSearchVisible(false);
         }
     };
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+
+                axios.post('/api/users/set-status', { status: 'online' });
+            } else {
+
+                axios.post('/api/users/set-status', { status: 'offline' });
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Mark the user as online when the component mounts
+
+        axios.post('/api/users/set-status', { status: 'online' });
+
+        // Clean up the event listener and mark the user as offline when the component unmounts
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+            axios.post('/api/users/set-status', { status: 'offline' });
+        };
+    }, []);
+
+
 
     useEffect(() => {
         const findUsers = async () => {
@@ -174,26 +202,23 @@ function Page() {
 
 
         requestChannel.bind("newMsgNotificationDot", function (data) {
-           
-            if(chatOpen._id !==data.Id ){
-                console.log("hii");
-                
-                setNewMsgNotificationDot((prev) => {
-                    const existingNotification = prev.find(noti => noti.Id === data.Id);
-    
-                    if (existingNotification) {
-                        // If notification for this sender already exists, update the count
-                        return prev.map(noti =>
-                            noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
-                        );
-                    } else {
-                        // Otherwise, add a new notification object
-                        return [...prev, { Id: data.Id, count: 1 }];
-                    }
-                });
-                console.log("hello");
-            }
-           
+
+
+            setNewMsgNotificationDot((prev) => {
+                const existingNotification = prev.find(noti => noti.Id === data.Id);
+
+                if (existingNotification) {
+                    // If notification for this sender already exists, update the count
+                    return prev.map(noti =>
+                        noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
+                    );
+                } else {
+                    // Otherwise, add a new notification object
+                    return [...prev, { Id: data.Id, count: 1 }];
+                }
+            });
+
+
         });
 
         return () => {
@@ -263,7 +288,14 @@ function Page() {
 
         }
     }
+    const isMyChatOpen = async (Id) => {
+        try {
+            let response = await axios.post("/api/users/mychatopen", { chatId: Id })
+            setNewMsgNotificationDot(response.data.isNewMsgNotification)
+        } catch (error) {
 
+        }
+    }
 
     useEffect(() => {
         // Initialize Fuse after users have been set
@@ -338,36 +370,41 @@ function Page() {
                 </div>
 
             </div>
-            <div className='w-full h-full border-red-700 flex border-2'>
-                <div className='w-1/2 h-full border-2 border-green-500 flex flex-col gap-2 overflow-y-auto'>
+            <div className='w-full h-full border-red-700 md:flex border-2'>
+                <div className='md:w-1/2 h-full border-2 border-green-500 flex flex-col gap-2 overflow-y-auto'>
                     {chats?.length > 0 ? chats.map((chat, index) => (
                         <div onClick={() => {
                             setIsChatOpen(true)
-                            setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id })
+                            isMyChatOpen(chat._id)
+                            setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id, status: chat.status })
                         }}
-                            key={index} className={`${chatOpen._id == chat._id ? "bg-slate-400" : ""} border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer`}>
-                            <div className='overflow-hidden h-10 w-10 rounded-full relative'>
-                                <Image
-                                    src={chat.avatar}
-                                    alt="dp"
-                                    fill
-                                    sizes="40px" // Adjust according to your requirements
-                                    style={{ objectFit: "cover" }}
-                                />
-                            </div>
-                            <div>
-                                <h1>{chat.username}</h1>
-                            </div>
-                            <div>
+                            key={index} className={`${chatOpen._id == chat._id ? "bg-slate-400" : "bg-blue-600"} border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer justify-between`}
+                        >
+                            <div className='flex gap-2 items-center '>
+                                <div className='overflow-hidden h-10 w-10 rounded-full relative'>
+                                    <Image
+                                        src={chat.avatar}
+                                        alt="dp"
+                                        fill
+                                        sizes="40px" // Adjust according to your requirements
+                                        style={{ objectFit: "cover" }}
+                                    />
+                                </div>
+                                <div>
+                                    <h1>{chat.username}</h1>
+                                </div>
 
-                                {newMsgNotificationDot.length > 0 &&
-                                    newMsgNotificationDot.map((noti, index) => (
-                                        noti.Id === chat._id && (
-                                            <p key={index}>{noti.count}</p>
-                                        )
-                                    ))
-                                }
                             </div>
+                            {newMsgNotificationDot.length > 0 &&
+                                newMsgNotificationDot.map((noti, index) => (
+                                    noti.Id === chat._id && (
+                                        <div className='w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center bg-green-600 '>
+                                            <p className='text-sm text-white' key={index}>{noti.count}</p>
+                                        </div>
+
+                                    )
+                                ))
+                            }
 
                         </div>
                     )) : (
@@ -376,10 +413,20 @@ function Page() {
                         </div>
                     )}
                 </div>
-                <div className='w-1/2 h-full border-2 border-green-600'>
+                {isChatOpen && (
+                    <div className='mt-16 w-full h-full fixed inset-0 bg-black flex justify-center items-center z-50 border-green-600 md:hidden '>
+
+                        {isChatOpen && (
+                            <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} status={chatOpen.status} setIsChatOpen={setIsChatOpen}/>
+                        )}
+
+                    </div>
+                )}
+
+                <div className='w-1/2 h-full border-2 border-green-600 hidden md:block'>
 
                     {isChatOpen && (
-                        <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} />
+                        <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} status={chatOpen.status} />
                     )}
 
                 </div>

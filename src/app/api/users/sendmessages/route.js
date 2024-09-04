@@ -36,25 +36,33 @@ export async function POST(request) {
         if (!chat) {
             chat = new Chat({ participants: [sender._id, recipient._id] });
         }
-
-       
-        const notificationIndex = recipient.newMsgNotificationDot.findIndex(
-            (notification) => notification.Id.toString() === sender._id.toString()
-        );
-        console.log(notificationIndex);
-        
-        if (notificationIndex !== -1) {
-            // Update the count if notification exists
-            recipient.newMsgNotificationDot[notificationIndex].count += 1;
-        } else {
-            // Add a new notification object if it doesn't exist
-            recipient.newMsgNotificationDot.push({
-                Id: sender._id,
-                count: 1
+          
+           
+        if(recipient.isMyChatOpen.toString()!==sender._id.toString()){
+            
+            const notificationIndex = recipient.newMsgNotificationDot.findIndex(
+                (notification) => notification.Id.toString() === sender._id.toString()
+            );
+          
+            
+            if (notificationIndex !== -1) {
+                // Update the count if notification exists
+                recipient.newMsgNotificationDot[notificationIndex].count += 1;
+            } else {
+                // Add a new notification object if it doesn't exist
+                recipient.newMsgNotificationDot.push({
+                    Id: sender._id,
+                    count: 1
+                });
+            }
+    
+            await recipient.save();
+            await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
+                Id: sender._id
             });
         }
-
-        await recipient.save();
+       
+    
         
 
         chat.messages.push({ sender: sender._id, content: message });
@@ -62,9 +70,7 @@ export async function POST(request) {
 
         // Trigger the Pusher event for real-time updates
         await pusher.trigger(`private-${chatId}`, 'newmsg', { message });
-        await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
-            Id: sender._id
-        });
+      
 
         return Response.json({
             success: true,

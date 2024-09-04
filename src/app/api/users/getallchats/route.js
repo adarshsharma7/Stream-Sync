@@ -39,7 +39,9 @@ export async function GET() {
                             $project:{
                                 _id:1,
                                 username:1,
-                                avatar:1
+                                avatar:1,
+                                status:1
+
                             }
                         }
                     ]

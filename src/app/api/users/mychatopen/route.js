@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 
 
-export async function GET(request) {
+export async function POST(request) {
     const session = await getServerSession(authOptions);
     const _user = session?.user;
     if (!_user || !session) {
@@ -17,9 +17,7 @@ export async function GET(request) {
 
     try {
         await dbConnect();
-        // Parse the URL to get the query parameters
-        const url = new URL(request.url);
-        const chatId = url.searchParams.get('chatId');
+        const { chatId } = await request.json()
         if (!chatId) {
             return Response.json({
                 success: false,
@@ -27,24 +25,23 @@ export async function GET(request) {
             }, { status: 400 });
         }
 
-        const recipient = await User.findById(chatId);
-        const sender = await User.findById(_user._id);
 
-        const chat = await Chat.findOne({
-            participants: { $all: [sender._id, recipient._id] }
-        }).populate('messages.sender', 'username');
+        const updatedUser = await User.findOneAndUpdate(
+            { _id: _user._id },
+            {
+                $pull: { newMsgNotificationDot: { Id: chatId } },
+                $set: { isMyChatOpen: chatId }
+            },
+            { new: true }  
+        );
+        
 
-        if (!chat) {
-            return Response.json({
-                success: false,
-                message: "No chat history found"
-            }, { status: 200 });
-        }
-    
-    
         return Response.json({
             success: true,
-            chatHistory: chat.messages
+            isNewMsgNotification: updatedUser.newMsgNotificationDot,
+            message: "done",
+
+
         }, { status: 200 });
     } catch (error) {
         console.error("Error fetching chat history:", error);
