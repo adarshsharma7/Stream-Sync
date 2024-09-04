@@ -398,8 +398,8 @@ function Page() {
                             {newMsgNotificationDot.length > 0 &&
                                 newMsgNotificationDot.map((noti, index) => (
                                     noti.Id === chat._id && (
-                                        <div className='w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center bg-green-600 '>
-                                            <p className='text-sm text-white' key={index}>{noti.count}</p>
+                                        <div key={index} className='w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center bg-green-600 '>
+                                            <p className='text-sm text-white'>{noti.count}</p>
                                         </div>
 
                                     )
