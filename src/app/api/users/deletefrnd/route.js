@@ -2,9 +2,9 @@ import { dbConnect } from '@/dbConfig/dbConfig';
 import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
-import Pusher from 'pusher';
 import { Notifications } from "@/models/notifications.models"
-// Initialize Pusher
+import Pusher from 'pusher';
+
 const pusher = new Pusher({
     appId: process.env.PUSHER_APP_ID,
     key: process.env.PUSHER_KEY,
@@ -26,50 +26,39 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        let { username } = await request.json()
-        let user = await User.findOne({ username })
-        let iam = await User.findById(_user._id)
+        const { chatId } = await request.json()
+        let recipent = await User.findById(chatId)
+        let user = await User.findById(_user._id)
 
 
-
-        iam.chatfrnd.push(user._id)
-        await iam.save()
-        await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id } });
-        await User.updateOne({ _id: user._id }, { $pull: { myrequests: { username: iam.username } } });
-
-
-
+        await User.updateOne({ _id: recipent._id }, { $pull: { chatfrnd: user._id } })
+        let updatedUser = await User.updateOne({ _id: user._id }, { $pull: { chatfrnd: recipent._id } }, { new: true })
 
         let notifi = await Notifications.create({
-            msg: "accept",
-            owner: iam._id
+            msg: "remove",
+            owner: user._id
         })
-
-
-        user.notifications.push(notifi._id)
-        user.chatfrnd.push(iam._id)
-        await user.save()
-
-        await pusher.trigger(`private-${user._id}`, 'acceptRequest', {
+        await pusher.trigger(`private-${recipent._id}`, 'removeFrnd', {
             notificationId: notifi._id,
-            username: iam.username,
-            avatar: iam.avatar,
-            Id: iam._id,
-            status: iam.status
+            username: user.username,
+            avatar: user.avatar,
+            Id: user._id
+
         });
+
 
         return Response.json({
             success: true,
             message: "done",
-            chatfrndid: user._id,
-            data: { username: user.username, avatar: user.avatar, status: user.status, _id: user._id }
+            data: updatedUser.chatfrnd
+
         }, { status: 200 });
     } catch (error) {
-        console.log("dikkat", error);
+        console.error("Error fetching chat history:", error);
 
         return Response.json({
             success: false,
-            message: "problemm"
+            message: "Problem fetching chat history"
         }, { status: 500 });
     }
 }

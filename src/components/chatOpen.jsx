@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -12,11 +12,11 @@ import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { IoClose } from "react-icons/io5";
 import { TiTick, TiTickOutline } from 'react-icons/ti';
+import { RxDotsVertical } from "react-icons/rx";
 import { useDebounceCallback } from 'usehooks-ts';
 
 
-
-function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
+function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats }) {
 
 
 
@@ -29,6 +29,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
     const [userTyping, setUserTyping] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [isTypingSent, setIsTypingSent] = useState(null);
+    const [removeFrndPopup, setRemoveFrndPopup] = useState(false);
 
 
 
@@ -43,6 +44,20 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
             chatMessage: ""
         }
     });
+
+    let removeFrndPopupRef = useRef(null)
+    const handleClickOutside = (event) => {
+        if (removeFrndPopupRef.current && !removeFrndPopupRef.current.contains(event.target)) {
+            setRemoveFrndPopup(false);
+        }
+    };
+    useEffect(() => {
+        document.addEventListener('click', handleClickOutside, true);
+        return () => {
+            document.removeEventListener('click', handleClickOutside, true);
+        };
+    }, []);
+
 
     useEffect(() => {
 
@@ -188,6 +203,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
             if (response.status === 200) {
                 // Add the sent message to the messages array
                 setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+                setUserTyping('')
 
             }
         } catch (error) {
@@ -195,11 +211,22 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
         }
     };
 
+    const removeFrnd = async () => {
+        try {
+            let response = await axios.post("/api/users/deletefrnd", { chatId })
+            setChats(response.data.data)
+            setIsChatOpen(false)
+
+        } catch (error) {
+            console.log("kuch galt hua remove friend karte time", error);
+
+        }
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-gray-900 text-gray-100 shadow-lg rounded-lg">
             {/* Header */}
-            <div className="h-[60px] bg-gray-800 flex justify-between items-center px-4">
+            <div className="h-[60px] bg-gray-800 flex justify-between items-center px-4 relative">
                 <div className="flex items-center space-x-3">
                     <Image
                         src={avatar}
@@ -214,7 +241,28 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
                         {isTyping && isChatVisible && onlineUsers[chatId] ? 'Typing...' : isChatVisible && onlineUsers[chatId] ? 'In chat' : userStatus}
                     </div>
                 </div>
-                <IoClose onClick={() => setIsChatOpen(false)} className="md:hidden cursor-pointer text-2xl text-gray-400 hover:text-white transition" />
+                <div>
+                    <IoClose onClick={() => setIsChatOpen(false)} className="md:hidden cursor-pointer text-2xl text-gray-400 hover:text-white transition" />
+                    <div className='cursor-pointer' onClick={() => setRemoveFrndPopup(!removeFrndPopup)}><RxDotsVertical /></div>
+                </div>
+                {removeFrndPopup && (
+                    <div className='flex flex-col justify-center items-center text-black' ref={removeFrndPopupRef} style={{
+                        position: 'absolute',
+                        top: '70%',
+                        right: '2%',
+                        backgroundColor: 'white',
+                        border: '1px solid #ccc',
+                        borderRadius: '5px',
+                        boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000,
+                    }}>
+                        <Button variant="outline" onClick={() => removeFrnd()}>
+                            Remove Friend
+                        </Button>
+
+                    </div>
+                )}
+
             </div>
 
             {/* Messages */}
@@ -242,7 +290,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
                                     </span>
                                     {msg.sender._id === user._id && (
                                         <span className="flex items-center">
-                                         
+
                                             {msg.msgStatus === 'sent' && (
                                                 <span className="text-slate-400">
                                                     <TiTickOutline size={16} />

@@ -190,10 +190,12 @@ function Page() {
 
         });
         requestChannel.bind("acceptRequest", function (data) {
-            const { Id, username, avatar } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "accept", owner: { avatar, username } }
+            const { notificationId, Id, username, avatar, status } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "accept", owner: { avatar, username } }
             ]);
-            setChats((prev) => [...prev, { avatar, username }])
+            setChats((prev) => [...prev, { _id: Id, status, avatar, username }])
+            let updatedRequestedUsername=requestedUsername.filter((obj)=>obj.username!==username)
+            setRequestedUsername(updatedRequestedUsername)
             setNewNotificationDot((prevDots) => [...prevDots, username]);
             checkNewNotification(username, undefined, false)
 
@@ -218,6 +220,20 @@ function Page() {
                 }
             });
 
+
+        });
+
+        requestChannel.bind("removeFrnd", function (data) {
+            const { notificationId, username, avatar, Id } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "remove", owner: { avatar, username } }
+            ]);
+            let updatedChats = chats.filter((obj) => obj._id !== Id)
+            setChats(updatedChats)
+            let updatedFrndIds = chatFrndIds.filter((val) => val !== Id)
+            setChatFrndIds(updatedFrndIds)
+            setIsChatOpen(false)
+            setNewNotificationDot((prevDots) => [...prevDots, username]);
+            checkNewNotification(username, undefined, false)
 
         });
 
@@ -432,6 +448,7 @@ function Page() {
                             chatId={chatOpen._id}
                             status={chatOpen.status}
                             setIsChatOpen={setIsChatOpen}
+                            setChats={setChats}
                         />
                     </div>
                 )}
@@ -443,6 +460,8 @@ function Page() {
                             username={chatOpen.username}
                             chatId={chatOpen._id}
                             status={chatOpen.status}
+                            setChats={setChats}
+                            setIsChatOpen={setIsChatOpen}
                         />
                     )}
                 </div>
@@ -523,6 +542,8 @@ function Page() {
                                             <p className="text-sm text-red-500">has declined your request</p>
                                         ) : notifi.msg === "accept" ? (
                                             <p className="text-sm text-green-500">has accepted your request</p>
+                                        ) : notifi.msg === "remove" ? (
+                                            <p className="text-sm text-red-500">has removed you from Friend List</p>
                                         ) : (
                                             <p className="text-sm text-gray-700">wants to be your message friend</p>
                                         )}
@@ -530,7 +551,7 @@ function Page() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && !chatFrndIds.includes(notifi.owner._id) ? (
+                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && notifi.msg !== "remove" && !chatFrndIds.includes(notifi.owner._id) ? (
                                         <div className="flex gap-2 items-center">
                                             <button className="text-green-500" onClick={() => acceptRequest(notifi.owner.username)}>
                                                 ✓
@@ -545,7 +566,7 @@ function Page() {
                                                 <IoCloseCircle />
                                             </button>
                                         </div>
-                                    ) : chatFrndIds.includes(notifi.owner._id) && (
+                                    ) : chatFrndIds.includes(notifi.owner._id) && notifi.msg !== "declined" && notifi.msg !== "remove" && notifi.msg !== "accept" && (
                                         <FaUserShield className="text-gray-500" />
                                     )}
                                     <MdOutlineDeleteSweep className="cursor-pointer text-gray-400 hover:text-gray-600 transition" onClick={() => deleteNotification(notifi._id)} />
