@@ -11,6 +11,9 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import { IoClose } from "react-icons/io5";
+import { TiTick, TiTickOutline } from 'react-icons/ti';
+import { useDebounceCallback } from 'usehooks-ts';
+
 
 
 function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
@@ -23,9 +26,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
     const [onlineUsers, setOnlineUsers] = useState({});
     const [userStatus, setUserStatus] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
+    const [userTyping, setUserTyping] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [isTypingSent, setIsTypingSent] = useState(null);
 
 
 
+    // let debounceTyping=useDebounceCallback(setUserTyping,2000)
 
     const { data: session } = useSession();
     const user = session?.user;
@@ -36,9 +43,47 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
             chatMessage: ""
         }
     });
+
+    useEffect(() => {
+
+        const updateMsgStatus = async () => {
+            try {
+                await axios.post("/api/users/updatemsgstatus", { chatId });
+            } catch (error) {
+                console.error('Error updating message status', error);
+            }
+        };
+        updateMsgStatus();
+
+    }, []);
+
+
     useEffect(() => {
         setUserStatus(status)
     }, [])
+
+    useEffect(() => {
+
+        const sendTypingStatus = async (isTyping) => {
+            try {
+                await axios.post('/api/users/isusertyping', { isTyping });
+            } catch (error) {
+                console.error('Error sending typing status', error);
+            }
+        };
+        if (userTyping === '' && isTypingSent !== false) {
+            sendTypingStatus(false);
+            setIsTypingSent(false);
+
+        } else if (userTyping !== '' && isTypingSent !== true) {
+
+            sendTypingStatus(true);
+
+            setIsTypingSent(true)
+        }
+
+    }, [userTyping]);
+
 
 
     useEffect(() => {
@@ -102,6 +147,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${user._id}`);
         msgChannel.bind('newmsg', function (data) {
+
             const { message } = data;
             setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId }, content: message, timestamp: new Date() }]);
         });
@@ -113,6 +159,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
             } else {
                 setIsChatVisible(false)
             }
+        })
+        statusChannel.bind('isUserTyping', function (data) {
+
+            setIsTyping(data.isTyping)
+        })
+        statusChannel.bind('msgstatusUpdate', function (data) {
+            setMessages(data.updatedMessages)
         })
 
         // Cleanup function to unsubscribe from Pusher channels
@@ -128,108 +181,128 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
     }, [chatId, user]);
 
 
-
-    const sendMessage = async (data) => {
+    const isInChat = onlineUsers[chatId] !== undefined;
+    const sendMessage = async () => {
         try {
-            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId });
+            let response = await axios.post("/api/users/sendmessages", { message: userTyping, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
             if (response.status === 200) {
                 // Add the sent message to the messages array
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, content: data.chatMessage, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
 
             }
         } catch (error) {
             console.error("Error sending message:", error);
         }
     };
-    const isInChat = onlineUsers[chatId] !== undefined;
+
 
     return (
-        <div className='flex flex-col border-2 border-red-600 h-full w-full'>
-            <div className='h-[6%] border-2 border-green-500 flex justify-between'>
-                <div className='flex items-center gap-2'>
-                    <div className='overflow-hidden h-7 w-7 rounded-full relative'>
-                        <Image
-                            src={avatar}
-                            alt="dp"
-                            fill
-                            sizes="28px"
-                            style={{ objectFit: "cover" }}
-                        />
-                    </div>
-                    <div className='text-white'>{username}</div>
-                    <div className={`ml-2 text-sm ${isChatVisible && isInChat ? 'text-green-500' : userStatus == 'online' ? 'text-blue-500' : 'text-gray-500'}`}>
-                        {isChatVisible && isInChat ? 'In chat' : userStatus}
-                    </div>
-                </div>
-
-                <div className='md:hidden'>
-                    <div className="flex items-center">
-                        <IoClose onClick={() => setIsChatOpen(false)} className="cursor-pointer text-xl text-white" />
+        <div className="flex flex-col h-full w-full bg-gray-900 text-gray-100 shadow-lg rounded-lg">
+            {/* Header */}
+            <div className="h-[60px] bg-gray-800 flex justify-between items-center px-4">
+                <div className="flex items-center space-x-3">
+                    <Image
+                        src={avatar}
+                        alt="dp"
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                        style={{ objectFit: 'cover' }}
+                    />
+                    <div className="text-lg font-semibold">{username}</div>
+                    <div className={`ml-2 text-sm ${isChatVisible && onlineUsers[chatId] ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
+                        {isTyping && isChatVisible && onlineUsers[chatId] ? 'Typing...' : isChatVisible && onlineUsers[chatId] ? 'In chat' : userStatus}
                     </div>
                 </div>
+                <IoClose onClick={() => setIsChatOpen(false)} className="md:hidden cursor-pointer text-2xl text-gray-400 hover:text-white transition" />
             </div>
 
-            <div className='h-[77%] border-2 border-green-500 overflow-y-auto'>
-                {messages.map((msg, index) => (
-                    <div
-                        key={index}
-                        className={`mb-2 flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
-                    >
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-800">
+                {historyLoading ? (
+                    <div className="flex justify-center items-center">
+                        <Loader2 className="animate-spin text-blue-400" />
+                    </div>
+                ) : error ? (
+                    <div className="text-center text-red-400">{error}</div>
+                ) : (
+                    messages.map((msg, index) => (
                         <div
-                            className={`p-2 rounded-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
-                            style={{ maxWidth: '80%' }}
+                            key={index}
+                            className={`mb-2 flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                         >
-                            <p>{msg.content}</p>
-                        </div>
-                    </div>
-                ))}
-                {historyLoading && (
-                    <div className='flex h-full w-full justify-center items-center'>
-                        <Loader2 className="animate-spin text-blue-500" />
-                    </div>
-                )}
-                {error && (
-                    <div>Error: {error}</div>
-                )}
-            </div>
-
-
-            <div className='h-[11%] w-full'>
-                <div className='w-full'>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(sendMessage)}>
-                            <div className="flex">
-                                <FormField
-                                    control={form.control}
-                                    name="chatMessage"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Input
-                                                        type='text'
-                                                        placeholder='Add your message...'
-                                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
-                                                        {...field}
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
+                            <div
+                                className={`p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
+                                style={{ maxWidth: '75%' }}
+                            >
+                                <p>{msg.content}</p>
+                                <div className="flex items-center justify-end mt-1">
+                                    <span className="text-xs text-gray-400 mr-2">
+                                        {new Date(msg.timestamp).toLocaleTimeString()}
+                                    </span>
+                                    {msg.sender._id === user._id && (
+                                        <span className="flex items-center">
+                                         
+                                            {msg.msgStatus === 'sent' && (
+                                                <span className="text-slate-400">
+                                                    <TiTickOutline size={16} />
+                                                </span>
+                                            )}
+                                            {msg.msgStatus === 'delivered' && (
+                                                <span className="text-slate-400">
+                                                    <TiTickOutline size={16} />
+                                                    <TiTickOutline size={16} />
+                                                </span>
+                                            )}
+                                            {msg.msgStatus === 'read' && (
+                                                <span className="text-green-500">
+                                                    <TiTick size={16} />
+                                                    <TiTick size={16} />
+                                                </span>
+                                            )}
+                                        </span>
                                     )}
-                                />
-                                <div className='ml-2'>
-                                    <Button
-                                        type="submit"
-                                        className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
-                                    >
-                                        Send
-                                    </Button>
+
+
                                 </div>
                             </div>
-                        </form>
-                    </Form>
-                </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+
+            {/* Input */}
+            <div className="p-3 mb-24 bg-gray-800 border-t border-gray-700">
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(sendMessage)} className="flex space-x-2">
+                        <FormField
+                            control={form.control}
+                            name="chatMessage"
+                            render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                    <FormControl>
+                                        <Input
+                                            type="text"
+                                            placeholder="Type a message..."
+                                            className="w-full px-4 py-2 rounded-full bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-400 text-gray-100"
+                                            {...field}
+                                            onChange={(e) => setUserTyping(e.target.value)}
+                                            value={userTyping}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button
+                            type="submit"
+                            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-full shadow-lg"
+                        >
+                            Send
+                        </Button>
+                    </form>
+                </Form>
             </div>
         </div>
     );

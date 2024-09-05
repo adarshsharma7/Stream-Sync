@@ -6,6 +6,11 @@ const messageSchema = new mongoose.Schema({
     ref: 'User', 
     required: true
   },
+  msgStatus:{
+    type: String,
+    required: true,
+    enum: ['read', 'diliverd','sent']
+  },
   content: {
     type: String,
     required: true
