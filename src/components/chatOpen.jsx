@@ -273,7 +273,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen }) {
 
 
             {/* Input */}
-            <div className="p-3 mb-24 bg-gray-800 border-t border-gray-700">
+            <div className="p-3 md:mb-24 bg-gray-800 border-t border-gray-700">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(sendMessage)} className="flex space-x-2">
                         <FormField

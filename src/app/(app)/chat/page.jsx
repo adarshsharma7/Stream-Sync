@@ -377,7 +377,7 @@ function Page() {
                 </div>
             </div>
 
-            <div className='w-full h-full flex border border-gray-300'>
+            <div className='w-full h-full md:flex border border-gray-300'>
                 {/* Chat List */}
                 <div className='md:w-1/3 h-full border-r border-gray-300 bg-gray-50 flex flex-col gap-2 overflow-y-auto p-4'>
                     {chats?.length > 0 ? chats.map((chat, index) => (
