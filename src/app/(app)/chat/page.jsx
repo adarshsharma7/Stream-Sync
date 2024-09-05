@@ -332,19 +332,16 @@ function Page() {
     }, [users, searchTerm]);
 
     return (
-        <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900 overflow-y-hidden'>
+        <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900'>
             <div className='flex w-full h-[8%] border-2 border-red-500 justify-between items-center px-2'>
-                <h1 className='text-xl font-semibold'>YouChat</h1>
-                <div className='flex gap-2 items-center'>
+                <h1>YouChat</h1>
+                <div className='flex gap-2'>
                     <div className='flex items-center gap-3 h-full' ref={searchRef}>
-                        <div
-                            className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`}
-                            onClick={() => setSearchVisible(true)}
-                        >
+                        <div className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`} onClick={() => setSearchVisible(true)}>
                             <CiSearch className='text-2xl text-gray-600 cursor-pointer' />
                         </div>
                         {searchVisible && (
-                            <div className='absolute top-0 md:left-96 left-44 right-8 flex h-10 items-center bg-gray-100 px-4 py-2 rounded-full shadow-md'>
+                            <div className='absolute top-0 md:left-96 left-44 right-8 flex h-7 items-center bg-gray-100 px-4 py-2 rounded-full'>
                                 <CiSearch className='text-2xl text-gray-600' />
                                 <input
                                     type="text"
@@ -354,146 +351,138 @@ function Page() {
                                     onFocus={() => setSuggestions(true)}
                                     className='bg-transparent outline-none ml-2 flex-grow h-full'
                                 />
-                                <IoClose
-                                    className='text-2xl text-gray-600 cursor-pointer ml-2'
-                                    onClick={() => setSearchVisible(false)}
-                                />
                             </div>
                         )}
                     </div>
-                    <div
-                        onClick={() => {
-                            setNewNotificationDot([]);
-                            checkNewNotification(undefined, false, true);
-                            setNotificationBox(true);
-                        }}
-                        className='relative cursor-pointer flex justify-center items-center'
-                    >
-                        {newNotificationDot.length > 0 && (
-                            <div className='absolute top-0 right-0 w-2 h-2 rounded-full bg-red-700 border-2 border-red-700'></div>
-                        )}
-                        <IoIosNotificationsOutline className='text-2xl text-gray-600' />
-                    </div>
-                </div>
-            </div>
 
-            <div className='w-full h-full flex border border-gray-300'>
-                {/* Chat List */}
-                <div className='md:w-1/3 h-full border-r border-gray-300 bg-gray-50 flex flex-col gap-2 overflow-y-auto p-4'>
+                    <div onClick={() => {
+                        setNewNotificationDot([]);
+                        checkNewNotification(undefined, false, true)
+                        setNotificationBox(true)
+                    }} className='relative cursor-pointer flex justify-center items-center'>
+                        {newNotificationDot?.length > 0 && (
+                            <div className='absolute top-2 right-0 w-2 h-2 rounded-full bg-red-700 border-red-700 border-2'></div>
+                        )}
+
+                        <IoIosNotificationsOutline />
+                    </div>
+
+                </div>
+
+            </div>
+            <div className='w-full h-full border-red-700 md:flex border-2'>
+                <div className='md:w-1/2 h-full border-2 border-green-500 flex flex-col gap-2 overflow-y-auto'>
                     {chats?.length > 0 ? chats.map((chat, index) => (
-                        <div
-                            onClick={() => {
-                                setIsChatOpen(true);
-                                isMyChatOpen(chat._id);
-                                setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id, status: chat.status });
-                            }}
-                            key={index}
-                            className={`flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
-                    ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
-                    border`}
+                        <div onClick={() => {
+                            setIsChatOpen(true)
+                            isMyChatOpen(chat._id)
+                            setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id, status: chat.status })
+                        }}
+                            key={index} className={`${chatOpen._id == chat._id ? "bg-slate-400" : "bg-blue-600"} border-2 border-yellow-700 p-2 w-full flex items-center cursor-pointer justify-between`}
                         >
-                            <div className='flex items-center gap-3'>
-                                <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                            <div className='flex gap-2 items-center '>
+                                <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                                     <Image
                                         src={chat.avatar}
                                         alt="dp"
                                         fill
-                                        sizes="48px"
+                                        sizes="40px" // Adjust according to your requirements
                                         style={{ objectFit: "cover" }}
                                     />
                                 </div>
-                                <div className='text-gray-800 font-medium'>
+                                <div>
                                     <h1>{chat.username}</h1>
                                 </div>
+
                             </div>
                             {newMsgNotificationDot.length > 0 &&
                                 newMsgNotificationDot.map((noti, index) => (
                                     noti.Id === chat._id && (
-                                        <div className='w-6 h-6 rounded-full bg-green-600 flex items-center justify-center ml-auto'>
-                                            <p className='text-xs text-white' key={index}>{noti.count}</p>
+                                        <div className='w-5 h-5 rounded-full border-2 border-green-600 flex items-center justify-center bg-green-600 '>
+                                            <p className='text-sm text-white' key={index}>{noti.count}</p>
                                         </div>
+
                                     )
                                 ))
                             }
+
                         </div>
                     )) : (
-                        <div className='flex justify-center items-center h-full text-gray-600'>
+                        <div className='h-full w-full flex justify-center items-center'>
                             No Chats
                         </div>
                     )}
                 </div>
-
-                {/* Chat Open View */}
                 {isChatOpen && (
-                    <div className='md:w-2/3 h-full fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 md:hidden'>
-                        <ChatOpen
-                            avatar={chatOpen.avatar}
-                            username={chatOpen.username}
-                            chatId={chatOpen._id}
-                            status={chatOpen.status}
-                            setIsChatOpen={setIsChatOpen}
-                        />
+                    <div className='mt-16 w-full h-full fixed inset-0 bg-black flex justify-center items-center z-50 border-green-600 md:hidden '>
+
+                        {isChatOpen && (
+                            <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} status={chatOpen.status} setIsChatOpen={setIsChatOpen}/>
+                        )}
+
                     </div>
                 )}
 
-                <div className='w-2/3 h-full hidden md:block border-l border-gray-300'>
+                <div className='w-1/2 h-full border-2 border-green-600 hidden md:block'>
+
                     {isChatOpen && (
-                        <ChatOpen
-                            avatar={chatOpen.avatar}
-                            username={chatOpen.username}
-                            chatId={chatOpen._id}
-                            status={chatOpen.status}
-                        />
+                        <ChatOpen avatar={chatOpen.avatar} username={chatOpen.username} chatId={chatOpen._id} status={chatOpen.status} />
                     )}
+
                 </div>
+
             </div>
 
-
             {suggestions && (
-                <div ref={searchPopupef} className='absolute top-14 w-full max-h-[300px] border border-gray-300 rounded-lg bg-white shadow-lg overflow-y-auto p-3'>
-                    {usernameFetchingMessage ? (
-                        <div className='text-center text-gray-600'>{usernameFetchingMessage}</div>
-                    ) : (
-                        filteredUsers.length > 0 ? (
+                <div ref={searchPopupef} className='top-8 absolute max-h-[300px] w-full gap-5 border-2 border-b-red-950 overflow-y-auto flex flex-col p-3 items-center bg-gray-100'>
+
+                    {usernameFetchingMessage ?
+                        (
+                            <div>{usernameFetchingMessage}</div>
+                        ) : (
+
                             filteredUsers.map((user, index) => (
-                                <div key={index} className='flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200'>
-                                    <div className='flex items-center'>
-                                        <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                                <div key={index} className='w-full h-[10%] flex justify-between items-center p-2 cursor-pointer'>
+                                    <div className='flex'>
+                                        <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                                             <Image
                                                 src={user.avatar}
                                                 alt="dp"
                                                 fill
-                                                sizes="48px"
+                                                sizes="40px" // Adjust according to your requirements
                                                 style={{ objectFit: "cover" }}
                                             />
                                         </div>
-                                        <h1 className='ml-3 text-gray-800 font-medium'>{user.username}</h1>
+                                        <h1 className='ml-2'>{user.username}</h1>
                                     </div>
                                     {chatFrndIds.includes(user._id) ? (
-                                        <div className='text-green-600'>
+                                        <div>
                                             <FaUserShield />
                                         </div>
                                     ) : requestedUsername?.some(req => req.username === user.username) ? (
-                                        <div onClick={() => deleteMessageReq(user.username)} className='text-red-600'>
+                                        <div onClick={() => deleteMessageReq(user.username)}>
                                             <RiUserUnfollowFill />
                                         </div>
                                     ) : (
-                                        <div onClick={() => sendMessageReq(user.username)} className='text-blue-600'>
+                                        <div onClick={() => sendMessageReq(user.username)}>
                                             <RiUserFollowLine />
                                         </div>
                                     )}
+
                                 </div>
                             ))
-                        ) : (
-                            <div className='text-center text-gray-600'>No users found</div>
-                        )
-                    )}
+
+
+                        )}
+
+
+
                 </div>
-            )}
+            )
+            }
 
 
-
-            <div className={`${notificationBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform shadow-lg text-gray-800 p-4 z-50 fixed border-t border-gray-200 w-full md:w-[67%] h-full transition-all ease-in-out duration-300 flex flex-col  rounded-t-2xl`}>
+            <div className={`${notificationBox ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"} bg-white transform text-gray-800 p-4 z-50 fixed  border-t border-2 w-full md:w-[67%] h-full transition-all ease-[cubic-bezier(0.25, 0.8, 0.25, 1)] duration-300 flex flex-col realative`}>
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-xl font-semibold text-gray-900 truncate max-w-[80%]">
                         Notifications
@@ -502,62 +491,64 @@ function Page() {
                         <IoClose className="text-2xl text-gray-500 hover:text-gray-700 transition" />
                     </div>
                 </div>
-
-                <div className="flex flex-col gap-4 overflow-y-auto">
+                <div className='flex flex-col gap-1'>
                     {notifications?.length > 0 ? (
                         notifications.map((notifi, index) => (
-                            <div key={index} className="flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition rounded-lg p-3 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="overflow-hidden h-10 w-10 rounded-full relative">
+                            <div key={index} className='flex justify-between'>
+                                <div className='flex gap-2'>
+                                    <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                                         <Image
                                             src={notifi?.owner?.avatar}
                                             alt="dp"
                                             fill
-                                            sizes="40px"
+                                            sizes="40px" // Adjust according to your requirements
                                             style={{ objectFit: "cover" }}
                                         />
                                     </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900">{notifi.owner?.username}</p>
-                                        {notifi.msg === "declined" ? (
-                                            <p className="text-sm text-red-500">has declined your request</p>
-                                        ) : notifi.msg === "accept" ? (
-                                            <p className="text-sm text-green-500">has accepted your request</p>
-                                        ) : (
-                                            <p className="text-sm text-gray-700">wants to be your message friend</p>
-                                        )}
+                                    <div>{notifi.owner?.username}</div>
+                                    {notifi.msg == "declined" ? (
+                                        <div><h1 className='text-red-700'>has decined your request</h1></div>
+                                    ) : notifi.msg == "accept" ? (<div><h1 className='text-green-600'>has accepted your request</h1></div>) : (
+                                        <div><h1 className='text-green-600'>wants your message friend</h1></div>
+
+                                    )}
+                                </div>
+                                {notifi.msg !== "declined" && notifi.msg !== "accept" && !chatFrndIds.includes(notifi.owner._id) ? (
+                                    <div className='flex gap-2 items-center'>
+                                        <div className='cursor-pointer' onClick={() => {
+                                            acceptRequest(notifi.owner.username)
+                                        }}>✓</div>
+                                        <div onClick={(e) => {
+                                            e.preventDefault()
+                                            setNotifications((prevNotification) =>
+                                                prevNotification.filter((notification) => notification._id !== notifi._id)
+                                            );
+                                            declineRequest(notifi.owner.username)
+
+                                        }} className='cursor-pointer '><IoCloseCircle /></div>
+                                        <div></div>
                                     </div>
+                                ) : chatFrndIds.includes(notifi.owner._id) && (
+                                    <FaUserShield />
+                                )}
+                                <div className='cursor-pointer' onClick={() => {
+                                    deleteNotification(notifi._id)
+                                }
+
+                                }>
+                                    <MdOutlineDeleteSweep />
                                 </div>
 
-                                <div className="flex items-center gap-2">
-                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && !chatFrndIds.includes(notifi.owner._id) ? (
-                                        <div className="flex gap-2 items-center">
-                                            <button className="text-green-500" onClick={() => acceptRequest(notifi.owner.username)}>
-                                                ✓
-                                            </button>
-                                            <button className="text-red-500" onClick={(e) => {
-                                                e.preventDefault();
-                                                setNotifications((prevNotification) =>
-                                                    prevNotification.filter((notification) => notification._id !== notifi._id)
-                                                );
-                                                declineRequest(notifi.owner.username);
-                                            }}>
-                                                <IoCloseCircle />
-                                            </button>
-                                        </div>
-                                    ) : chatFrndIds.includes(notifi.owner._id) && (
-                                        <FaUserShield className="text-gray-500" />
-                                    )}
-                                    <MdOutlineDeleteSweep className="cursor-pointer text-gray-400 hover:text-gray-600 transition" onClick={() => deleteNotification(notifi._id)} />
-                                </div>
+
                             </div>
                         ))
                     ) : (
-                        <div className="flex justify-center items-center h-full">
-                            <h1 className="text-gray-500">No Notifications</h1>
+                        <div>
+                            <h1>No Notification</h1>
                         </div>
                     )}
                 </div>
+
             </div>
 
 
