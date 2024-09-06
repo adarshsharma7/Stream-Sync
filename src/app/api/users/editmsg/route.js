@@ -25,58 +25,57 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { message, chatId,msgStatus } = await request.json();
+        const { chatId,msgId,msgContent } = await request.json();
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
+
+
+
 
         let chat = await Chat.findOne({
             participants: { $all: [sender._id, recipient._id] }
         });
+       
 
         if (!chat) {
-            chat = new Chat({ participants: [sender._id, recipient._id] });
+            return Response.json({
+                success: true,
+                message: "no message found for wdit message"
+            }, { status: 400 });
         }
-          
-           
-        if(recipient.isMyChatOpen.toString()!==sender._id.toString()){
-            
-            const notificationIndex = recipient.newMsgNotificationDot.findIndex(
-                (notification) => notification.Id.toString() === sender._id.toString()
-            );
-          
-            
-            if (notificationIndex !== -1) {
-                // Update the count if notification exists
-                recipient.newMsgNotificationDot[notificationIndex].count += 1;
-            } else {
-                // Add a new notification object if it doesn't exist
-                recipient.newMsgNotificationDot.push({
-                    Id: sender._id,
-                    count: 1
-                });
-            }
-    
-            await recipient.save();
-            await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
-                Id: sender._id
-            });
-        }
-       
-    
-        
-
-       let ab= chat.messages.push({ sender: sender._id,msgStatus, content: message });
-        await chat.save();
-
-
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${chatId}`, 'newmsg', { message });
       
+        const updatedMessages = chat.messages.map((message) => {
+            if(message._id.toString()==msgId.toString()){
+                return {
+                    ...message,
+                    content: msgContent,
+                    edited:true,
+                    timestamp:new Date()
+                };
+            }
+            return message
+        
+        });
+       
+        // Update chat with the modified messages
+        chat.messages = updatedMessages;
+        await chat.save()
+
+        const updatedChat = await Chat.findOne({
+            participants: { $all: [sender._id, recipient._id] }
+        }).populate('messages.sender', 'username');
+    
+
+
+
+         // Trigger the Pusher event for real-time updates
+         await pusher.trigger(`private-${sender._id}`, 'messagesUpdate', {updatedMessages:updatedChat.messages});
+
 
         return Response.json({
             success: true,
             message: "Message sent successfully",
-            msgId:chat.messages[ab-1]._id
+            updatedMessages:updatedChat.messages
         }, { status: 200 });
     } catch (error) {
         console.error("Error sending message:", error);

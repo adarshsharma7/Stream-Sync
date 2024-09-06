@@ -30,6 +30,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     const [isTyping, setIsTyping] = useState(false);
     const [isTypingSent, setIsTypingSent] = useState(null);
     const [removeFrndPopup, setRemoveFrndPopup] = useState(false);
+    const [updateMsgPopup, setUpdateMsgPopup] = useState(false);
+    const [uniqueIndexforUpdateMsgPopup, setUniqueIndexforUpdateMsgPopup] = useState('');
+    const [isMsgEditableId, setIsMsgEditableId] = useState(null);
 
 
 
@@ -45,8 +48,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
         }
     });
 
-    let removeFrndPopupRef = useRef(null)
+    const removeFrndPopupRef = useRef(null)
     const chatContainerRef = useRef(null);
+    const updateMsgref = useRef(null);
 
     // Scroll to the bottom when the chat opens or when new messages are added
     useEffect(() => {
@@ -57,7 +61,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
 
 
     const handleClickOutside = (event) => {
-        if (removeFrndPopupRef.current && !removeFrndPopupRef.current.contains(event.target)) {
+        if (
+            (removeFrndPopupRef.current && !removeFrndPopupRef.current.contains(event.target)) || (updateMsgref.current && !updateMsgref.current.contains(event.target))
+        ) {
+            setUpdateMsgPopup(false)
             setRemoveFrndPopup(false);
         }
     };
@@ -192,6 +199,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
         statusChannel.bind('msgstatusUpdate', function (data) {
             setMessages(data.updatedMessages)
         })
+        statusChannel.bind('messagesUpdate', function (data) {
+            setMessages(data.updatedMessages)
+        })
 
         // Cleanup function to unsubscribe from Pusher channels
         return () => {
@@ -209,12 +219,12 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     const isInChat = onlineUsers[chatId] !== undefined;
     const sendMessage = async (data) => {
         try {
-            console.log(data);
 
             // Add the sent message to the messages array
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
-            setUserTyping('')
+
             let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: response.data.msgId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setUserTyping('')
 
 
 
@@ -237,6 +247,18 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
         }
     }
 
+    const deleteMsgForBoth = async (msgId) => {
+        let response = await axios.post("/api/users/deletemsg", { chatId, msgId })
+        setUpdateMsgPopup(false)
+        setMessages(response.data.updatedMessages)
+    }
+    const editMsg = async () => {
+        let response = await axios.post("/api/users/editmsg", { chatId, msgId: isMsgEditableId, msgContent: userTyping })
+        setMessages(response.data.updatedMessages)
+        setIsMsgEditableId(null)
+        setUserTyping('')
+    }
+
     return (
         <div className="flex flex-col h-full w-full bg-gray-900 text-gray-100 shadow-lg rounded-lg">
             {/* Header */}
@@ -245,8 +267,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <Image
                         src={avatar}
                         alt="dp"
-                        width={40}
-                        height={40}
+                        width={30}
+                        height={30}
                         className="rounded-full"
                         style={{ objectFit: 'cover' }}
                     />
@@ -289,72 +311,142 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div
-                            key={index}
-                            className={`mb-2 flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
-                        >
+                        <div className={`flex flex-col mb-2`}>
                             <div
-                                className={`p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
-                                style={{ maxWidth: '75%' }}
+                                key={index}
+                                className={` flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
-                                <p>{msg.content}</p>
-                                <div className="flex items-center justify-end mt-1">
-                                    <span className="text-xs text-gray-400 mr-2">
-                                        {new Date(msg.timestamp).toLocaleTimeString()}
-                                    </span>
+                                <div
+                                    className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
+                                    style={{ maxWidth: '75%' }}
+                                >
                                     {msg.sender._id === user._id && (
-                                        <span className="flex items-center">
+                                        <div className='cursor-pointer absolute right-0' onClick={() => {
+                                            setUniqueIndexforUpdateMsgPopup(index)
+                                            setUpdateMsgPopup(!updateMsgPopup)
+                                        }
+                                        }><RxDotsVertical /></div>
+                                    )
+                                    }
+                                    {updateMsgPopup && index == uniqueIndexforUpdateMsgPopup && (
+                                        <div className='flex flex-col justify-center items-center text-black' ref={updateMsgref} style={{
+                                            position: 'absolute',
+                                            top: '25%',
+                                            right: '2%',
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '5px',
+                                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
+                                            zIndex: 1000,
+                                        }}>
+                                            {/* <Button variant="outline" onClick={() => deleteMsgForMe()}>
+                                                Delete for you
+                                            </Button> */}
+                                            <Button variant="outline" onClick={() => {
+                                                setUpdateMsgPopup(false)
+                                                setUserTyping(msg.content)
+                                                setIsMsgEditableId(msg._id)
+                                            }}>
+                                                Edit Message
+                                            </Button>
 
-                                            {msg.msgStatus === 'sent' && (
-                                                <span className="text-slate-400">
-                                                    <TiTickOutline size={16} />
-                                                </span>
-                                            )}
-                                            {msg.msgStatus === 'delivered' && (
-                                                <span className="text-slate-400">
-                                                    <TiTickOutline size={16} />
-                                                    <TiTickOutline size={16} />
-                                                </span>
-                                            )}
-                                            {msg.msgStatus === 'read' && (
-                                                <span className="text-green-500">
-                                                    <TiTick size={16} />
-                                                    <TiTick size={16} />
-                                                </span>
-                                            )}
-                                        </span>
+                                            <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
+                                                Delete for both
+                                            </Button>
+
+                                        </div>
                                     )}
 
 
+
+                                    <p className='break-words text-base mr-3'>{msg.content}</p>
+
+
+
+                                    <div className="flex items-center justify-end mt-1">
+                                        <span className="text-xs text-gray-400 mr-2">
+                                            {new Date(msg.timestamp).toLocaleTimeString()}
+                                        </span>
+                                        {msg.sender._id === user._id && (
+                                            <span className="flex items-center">
+
+                                                {msg.msgStatus === 'sent' && (
+                                                    <span className="text-slate-400">
+                                                        <TiTickOutline size={16} />
+                                                    </span>
+                                                )}
+                                                {msg.msgStatus === 'delivered' && (
+                                                    <span className="text-slate-400">
+                                                        <TiTickOutline size={16} />
+                                                        <TiTickOutline size={16} />
+                                                    </span>
+                                                )}
+                                                {msg.msgStatus === 'read' && (
+                                                    <span className="text-green-500">
+                                                        <TiTick size={16} />
+                                                        <TiTick size={16} />
+                                                    </span>
+                                                )}
+                                            </span>
+                                        )}
+
+
+                                    </div>
                                 </div>
                             </div>
+                            <div hidden={!msg.edited}>
+                                <p className={`text-slate-500 text-sm ${msg.sender._id === user._id ? 'float-right' : ''}`}>edited</p>
+                            </div>
                         </div>
+
+
                     ))
                 )}
+
             </div>
 
 
             {/* Input */}
             <div className="p-3 md:mb-24 bg-gray-800 border-t border-gray-700">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(sendMessage)} className="flex space-x-2">
+                    <form onSubmit={form.handleSubmit(async (data) => {
+
+                        if (isMsgEditableId) {
+                            await editMsg();
+                        } else {
+                            await sendMessage(data);
+                        }
+                        form.reset();//Reset the full Form input field after submitting
+                        // form.setValue("comment", ""); // Reset the indivisual input field after submitting
+                    })} className="flex space-x-2">
                         <FormField
                             control={form.control}
                             name="chatMessage"
                             render={({ field }) => (
                                 <FormItem className="flex-grow">
                                     <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Type a message..."
-                                            className="w-full px-4 py-2 rounded-full bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-400 text-gray-100"
-                                            {...field}
-                                            onChange={(e) => {
-                                                field.onChange(e);
-                                                setUserTyping(e.target.value)
-                                            }}
-                                            value={userTyping}
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                type="text"
+                                                placeholder="Type a message..."
+                                                className="w-full px-4 py-2 rounded-full bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-400 text-gray-100"
+                                                {...field}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    setUserTyping(e.target.value)
+                                                }}
+                                                value={userTyping}
+                                            />
+                                            {isMsgEditableId && (
+                                                <p onClick={() => {
+                                                    setIsMsgEditableId(null)
+                                                    setUserTyping('')
+                                                    field.onChange('');
+                                                }} className="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white px-2 py-1 rounded">
+                                                    <IoClose />
+                                                </p>
+                                            )}
+                                        </div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
