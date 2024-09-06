@@ -9,7 +9,7 @@ const messageSchema = new mongoose.Schema({
   msgStatus:{
     type: String,
     required: true,
-    enum: ['read', 'diliverd','sent']
+    enum: ['read', 'delivered','sent']
   },
   content: {
     type: String,

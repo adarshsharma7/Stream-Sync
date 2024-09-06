@@ -46,6 +46,16 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     });
 
     let removeFrndPopupRef = useRef(null)
+    const chatContainerRef = useRef(null);
+
+    // Scroll to the bottom when the chat opens or when new messages are added
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+
     const handleClickOutside = (event) => {
         if (removeFrndPopupRef.current && !removeFrndPopupRef.current.contains(event.target)) {
             setRemoveFrndPopup(false);
@@ -197,15 +207,19 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
 
 
     const isInChat = onlineUsers[chatId] !== undefined;
-    const sendMessage = async () => {
+    const sendMessage = async (data) => {
         try {
-            let response = await axios.post("/api/users/sendmessages", { message: userTyping, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
-            if (response.status === 200) {
-                // Add the sent message to the messages array
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
-                setUserTyping('')
+            console.log(data);
 
-            }
+            // Add the sent message to the messages array
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setUserTyping('')
+            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
+
+
+
+
+
         } catch (error) {
             console.error("Error sending message:", error);
         }
@@ -266,7 +280,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-800">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 bg-gray-800">
                 {historyLoading ? (
                     <div className="flex justify-center items-center">
                         <Loader2 className="animate-spin text-blue-400" />
@@ -335,7 +349,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                                             placeholder="Type a message..."
                                             className="w-full px-4 py-2 rounded-full bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-400 text-gray-100"
                                             {...field}
-                                            onChange={(e) => setUserTyping(e.target.value)}
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                setUserTyping(e.target.value)
+                                            }}
                                             value={userTyping}
                                         />
                                     </FormControl>
