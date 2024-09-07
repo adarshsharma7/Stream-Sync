@@ -299,7 +299,7 @@ function Page() {
         setLoading(true);
 
         try {
-          const response = await uploadToCloudinary(file, setVideoProgress,setLoading);
+          const response = await uploadToCloudinary(file, setVideoProgress);
           const Url = response.secure_url;
           const postResponse = await axios.post("/api/videos/uploadstories", { Url }, { headers: { 'Content-Type': 'multipart/application/json' } });
           setMyStories((prevState) => ({
@@ -415,10 +415,11 @@ function Page() {
               }}
               className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-blue-50 transition-colors duration-300 ease-in-out'
             >
-              {loading ? (
+              {videoProgress > 0 ? (
+ <span className="text-blue-500 font-semibold">{`${videoProgress}%`}</span>
+
+              ) : loading ? (
                 <Loader2 className="animate-spin text-blue-500" />
-              ) : videoProgress > 0 ? (
-                <span className="text-blue-500 font-semibold">{`${videoProgress}%`}</span>
               ) : myStories.stories?.length > 0 ? (
                 <RiFolderHistoryFill className="text-blue-500" size={28} />
               ) : (
