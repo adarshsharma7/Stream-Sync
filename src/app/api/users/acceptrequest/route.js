@@ -26,14 +26,13 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        let { username } = await request.json()
+        let { username,currNotificationId } = await request.json()
         let user = await User.findOne({ username })
         let iam = await User.findById(_user._id)
 
 
 
-        iam.chatfrnd.push(user._id)
-        await iam.save()
+       
         await User.updateOne({ _id: _user._id }, { $pull: { requests: user._id } });
         await User.updateOne({ _id: user._id }, { $pull: { myrequests: { username: iam.username } } });
 
@@ -44,6 +43,13 @@ export async function POST(request) {
             msg: "accept",
             owner: iam._id
         })
+        let notifiForMe = await Notifications.create({
+            msg: "urnowfrnd",
+            owner: user._id
+        })
+        iam.chatfrnd.push(user._id)
+        iam.notifications.push(notifiForMe._id)
+        await iam.save()
 
 
         user.notifications.push(notifi._id)
@@ -57,11 +63,13 @@ export async function POST(request) {
             Id: iam._id,
             status: iam.status
         });
+        await Notifications.findByIdAndDelete(currNotificationId)
 
         return Response.json({
             success: true,
             message: "done",
             chatfrndid: user._id,
+            notificationForMe:{_id:notifiForMe._id,msg:"urnowfrnd",owner:{_id:user._id,avatar: user.avatar,username: user.username}},
             data: { username: user.username, avatar: user.avatar, status: user.status, _id: user._id }
         }, { status: 200 });
     } catch (error) {

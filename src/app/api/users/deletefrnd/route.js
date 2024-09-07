@@ -34,6 +34,8 @@ export async function POST(request) {
         await User.updateOne({ _id: recipent._id }, { $pull: { chatfrnd: user._id } })
         let updatedUser = await User.updateOne({ _id: user._id }, { $pull: { chatfrnd: recipent._id } }, { new: true })
 
+        
+
         let notifi = await Notifications.create({
             msg: "remove",
             owner: user._id

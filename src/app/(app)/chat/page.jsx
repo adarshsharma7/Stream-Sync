@@ -34,7 +34,7 @@ function Page() {
     const [chatFrndIds, setChatFrndIds] = useState([]);
     const [chatOpen, setChatOpen] = useState({});
     const [isChatOpen, setIsChatOpen] = useState(false);
- 
+
 
 
 
@@ -56,12 +56,12 @@ function Page() {
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-              
+
 
                 axios.post('/api/users/set-status', { status: 'online' });
             } else {
                 setIsChatOpen(false)
-                
+
                 axios.post('/api/users/set-status', { status: 'offline' });
             }
         };
@@ -194,10 +194,10 @@ function Page() {
         });
         requestChannel.bind("acceptRequest", function (data) {
             const { notificationId, Id, username, avatar, status } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "accept", owner: { avatar, username } }
+            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "accept", owner: {_id:Id, avatar, username } }
             ]);
             setChats((prev) => [...prev, { _id: Id, status, avatar, username }])
-            let updatedRequestedUsername=requestedUsername.filter((obj)=>obj.username!==username)
+            let updatedRequestedUsername = requestedUsername.filter((obj) => obj.username !== username)
             setRequestedUsername(updatedRequestedUsername)
             setNewNotificationDot((prevDots) => [...prevDots, username]);
             checkNewNotification(username, undefined, false)
@@ -284,12 +284,16 @@ function Page() {
 
         }
     }
-    const acceptRequest = async (username) => {
+    const acceptRequest = async (username, notificationId) => {
         try {
-            let response = await axios.post("/api/users/acceptrequest", { username })
+            let response = await axios.post("/api/users/acceptrequest", { username, currNotificationId: notificationId })
+
+            setNotifications((prevNotification) => [...prevNotification, response.data.notificationForMe
+            ]);
+            setNewNotificationDot((prevDots) => [...prevDots, response.data.notificationForMe.owner.username]);
+            checkNewNotification(response.data.notificationForMe.owner.username, undefined, false)
 
             setChatFrndIds((prev) => [...prev, response.data.chatfrndid])
-
 
             setChats((prev) => [...prev, response.data.data])
         } catch (error) {
@@ -549,6 +553,8 @@ function Page() {
                                             <p className="text-sm text-green-500">has accepted your request</p>
                                         ) : notifi.msg === "remove" ? (
                                             <p className="text-sm text-red-500">has removed you from Friend List</p>
+                                        ) : notifi.msg === "urnowfrnd" ? (
+                                            <p className="text-sm text-gray-700">You Are Now Chat Friends</p>
                                         ) : (
                                             <p className="text-sm text-gray-700">wants to be your message friend</p>
                                         )}
@@ -556,9 +562,14 @@ function Page() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && notifi.msg !== "remove" && !chatFrndIds.includes(notifi.owner._id) ? (
+                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && notifi.msg !== "remove" && notifi.msg !== "urnowfrnd" && !chatFrndIds.includes(notifi.owner._id) ? (
                                         <div className="flex gap-2 items-center">
-                                            <button className="text-green-500" onClick={() => acceptRequest(notifi.owner.username)}>
+                                            <button className="text-green-500" onClick={() => {
+                                                setNotifications((prevNotification) =>
+                                                    prevNotification.filter((notification) => notification._id !== notifi._id)
+                                                );
+                                                acceptRequest(notifi.owner.username, notifi._id)
+                                            }}>
                                                 ✓
                                             </button>
                                             <button className="text-red-500" onClick={(e) => {
@@ -571,7 +582,7 @@ function Page() {
                                                 <IoCloseCircle />
                                             </button>
                                         </div>
-                                    ) : chatFrndIds.includes(notifi.owner._id) && notifi.msg !== "declined" && notifi.msg !== "remove" && notifi.msg !== "accept" && (
+                                    ) : chatFrndIds.includes(notifi.owner._id) &&  notifi.msg == "urnowfrnd" && (
                                         <FaUserShield className="text-gray-500" />
                                     )}
                                     <MdOutlineDeleteSweep className="cursor-pointer text-gray-400 hover:text-gray-600 transition" onClick={() => deleteNotification(notifi._id)} />
