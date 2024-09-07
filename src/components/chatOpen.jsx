@@ -360,9 +360,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
+                        <div  key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
                             <div
-                                key={index}
+                               
                                 className={` flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
