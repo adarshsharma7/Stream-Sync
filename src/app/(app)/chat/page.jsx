@@ -34,6 +34,7 @@ function Page() {
     const [chatFrndIds, setChatFrndIds] = useState([]);
     const [chatOpen, setChatOpen] = useState({});
     const [isChatOpen, setIsChatOpen] = useState(false);
+ 
 
 
 
@@ -55,10 +56,12 @@ function Page() {
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
+              
 
                 axios.post('/api/users/set-status', { status: 'online' });
             } else {
-
+                setIsChatOpen(false)
+                
                 axios.post('/api/users/set-status', { status: 'offline' });
             }
         };
@@ -72,7 +75,7 @@ function Page() {
         // Clean up the event listener and mark the user as offline when the component unmounts
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-
+            setIsChatOpen(false)
             axios.post('/api/users/set-status', { status: 'offline' });
         };
     }, []);

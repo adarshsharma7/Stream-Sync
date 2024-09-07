@@ -24,8 +24,13 @@ export async function POST(request) {
     }
 
     try {
+
+        const { message, chatId, msgStatus } = await request.json();
+        // Trigger the Pusher event for real-time updates
+        await pusher.trigger(`private-${chatId}`, 'newmsg', { message });
+
         await dbConnect();
-        const { message, chatId,msgStatus } = await request.json();
+
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
 
@@ -36,15 +41,15 @@ export async function POST(request) {
         if (!chat) {
             chat = new Chat({ participants: [sender._id, recipient._id] });
         }
-          
-           
-        if(recipient.isMyChatOpen.toString()!==sender._id.toString()){
-            
+
+
+        if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
+
             const notificationIndex = recipient.newMsgNotificationDot.findIndex(
                 (notification) => notification.Id.toString() === sender._id.toString()
             );
-          
-            
+
+
             if (notificationIndex !== -1) {
                 // Update the count if notification exists
                 recipient.newMsgNotificationDot[notificationIndex].count += 1;
@@ -55,28 +60,21 @@ export async function POST(request) {
                     count: 1
                 });
             }
-    
+
             await recipient.save();
             await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
                 Id: sender._id
             });
         }
-       
-    
-        
 
-       let ab= chat.messages.push({ sender: sender._id,msgStatus, content: message });
+
+        let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message });
         await chat.save();
-
-
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${chatId}`, 'newmsg', { message });
-      
 
         return Response.json({
             success: true,
             message: "Message sent successfully",
-            msgId:chat.messages[ab-1]._id
+            msgId: chat.messages[ab - 1]._id
         }, { status: 200 });
     } catch (error) {
         console.error("Error sending message:", error);

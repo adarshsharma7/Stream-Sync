@@ -25,9 +25,11 @@ export async function POST(request) {
     try {
         await dbConnect();
         const {status}=await request.json()
+      
        let user=await User.findById(_user._id)
        user.status=status
        user.isMyChatOpen=""
+      
       await user.save()
       await pusher.trigger(`private-${user._id}`, 'userStatusUpdate', {
         status

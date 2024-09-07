@@ -29,7 +29,8 @@ export async function POST(request) {
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
 
-
+    // Trigger the Pusher event for real-time updates
+    await pusher.trigger(`private-${sender._id}`, 'messagesDelete', {msgId});
 
 
         let chat = await Chat.findOne({
@@ -50,21 +51,10 @@ export async function POST(request) {
         chat.messages = updatedMessages;
         await chat.save()
 
-        const updatedChat = await Chat.findOne({
-            participants: { $all: [sender._id, recipient._id] }
-        }).populate('messages.sender', 'username');
-    
-
-
-
-         // Trigger the Pusher event for real-time updates
-         await pusher.trigger(`private-${sender._id}`, 'messagesUpdate', {updatedMessages:updatedChat.messages});
-
 
         return Response.json({
             success: true,
             message: "Message sent successfully",
-            updatedMessages:updatedChat.messages
         }, { status: 200 });
     } catch (error) {
         console.error("Error sending message:", error);

@@ -199,8 +199,23 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
         statusChannel.bind('msgstatusUpdate', function (data) {
             setMessages(data.updatedMessages)
         })
-        statusChannel.bind('messagesUpdate', function (data) {
-            setMessages(data.updatedMessages)
+        statusChannel.bind('messagesDelete', function (data) {
+            const {msgId}=data
+            setMessages((prev)=>prev.filter((prevObj)=>prevObj._id!==msgId))
+        })
+        statusChannel.bind('messagesEdit', function (data) {
+            const {msgId,msgContent}=data
+            setMessages((prev) => prev.map((prevObj) => {
+                if (prevObj._id == msgId) {
+                    return {
+                        ...prevObj,
+                        content: msgContent,
+                        edited: true,
+                        timestamp: new Date()
+                    }
+                }
+                return prevObj
+            }))
         })
 
         // Cleanup function to unsubscribe from Pusher channels
@@ -219,19 +234,24 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     const isInChat = onlineUsers[chatId] !== undefined;
     const sendMessage = async (data) => {
         try {
+            // Generate a temporary ID for the message (just an example using Date.now)
+            const tempMsgId = Date.now();
 
             // Add the sent message to the messages array
-
-            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: response.data.msgId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
+            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
-
-
-
+            setMessages((prevMessages) =>
+                prevMessages.map(msg =>
+                    msg._id === tempMsgId ? { ...msg, _id: response.data.msgId } : msg
+                )
+            );
 
         } catch (error) {
             console.error("Error sending message:", error);
+            // Optionally, remove the optimistically added message in case of failure
+            setMessages((prevMessages) => prevMessages.filter(msg => msg._id !== tempMsgId));
         }
     };
 
@@ -248,15 +268,44 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     }
 
     const deleteMsgForBoth = async (msgId) => {
-        let response = await axios.post("/api/users/deletemsg", { chatId, msgId })
+        setMessages((prev) => prev.filter((prevObj) => prevObj._id !== msgId))
         setUpdateMsgPopup(false)
-        setMessages(response.data.updatedMessages)
+        let response = await axios.post("/api/users/deletemsg", { chatId, msgId })
+
+
     }
-    const editMsg = async () => {
-        let response = await axios.post("/api/users/editmsg", { chatId, msgId: isMsgEditableId, msgContent: userTyping })
-        setMessages(response.data.updatedMessages)
-        setIsMsgEditableId(null)
+    const deleteMsgForMe = async (msgId) => {
+        setMessages((prev) => prev.map((prevObj) =>{ 
+            if(prevObj._id==msgId){
+               return {
+                ...prevObj,
+                delForMe:true
+               }
+            }
+            return prevObj
+           
+        }))
+        setUpdateMsgPopup(false)
+        let response = await axios.post("/api/users/deletemsgforme", { chatId, msgId })
+
+
+    }
+    const editMsg = async (data) => {
+        setMessages((prev) => prev.map((prevObj) => {
+            if (prevObj._id == isMsgEditableId) {
+                return {
+                    ...prevObj,
+                    content: userTyping,
+                    edited: true,
+                    timestamp: new Date()
+                }
+            }
+            return prevObj
+        }))
         setUserTyping('')
+        let response = await axios.post("/api/users/editmsg", { chatId, msgId: isMsgEditableId, msgContent: data.chatMessage })
+        setIsMsgEditableId(null)
+
     }
 
     return (
@@ -311,7 +360,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div className={`flex flex-col mb-2`}>
+                        <div className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
                             <div
                                 key={index}
                                 className={` flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
@@ -352,6 +401,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
 
                                             <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
                                                 Delete for both
+                                            </Button>
+
+                                            <Button variant="outline" onClick={() => deleteMsgForMe(msg._id)}>
+                                                Delete for Me
                                             </Button>
 
                                         </div>
@@ -412,7 +465,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <form onSubmit={form.handleSubmit(async (data) => {
 
                         if (isMsgEditableId) {
-                            await editMsg();
+                            await editMsg(data);
                         } else {
                             await sendMessage(data);
                         }

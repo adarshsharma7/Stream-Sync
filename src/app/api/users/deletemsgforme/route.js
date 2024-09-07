@@ -3,15 +3,6 @@ import Chat from '@/models/chat.models';
 import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
-import Pusher from 'pusher';
-
-const pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID,
-    key: process.env.PUSHER_KEY,
-    secret: process.env.PUSHER_SECRET,
-    cluster: process.env.PUSHER_CLUSTER,
-    useTLS: true
-});
 
 export async function POST(request) {
     const session = await getServerSession(authOptions);
@@ -25,10 +16,7 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { chatId,msgId,msgContent } = await request.json();
-
-  // Trigger the Pusher event for real-time updates
-  await pusher.trigger(`private-${_user._id}`, 'messagesEdit', {msgId,msgContent});
+        const { chatId,msgId} = await request.json();
 
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
@@ -41,7 +29,7 @@ export async function POST(request) {
         if (!chat) {
             return Response.json({
                 success: true,
-                message: "no message found for wdit message"
+                message: "no message found for delete message for me"
             }, { status: 400 });
         }
       
@@ -49,9 +37,7 @@ export async function POST(request) {
             if(message._id.toString()==msgId.toString()){
                 return {
                     ...message,
-                    content: msgContent,
-                    edited:true,
-                    timestamp:new Date()
+                   delForMe:true
                 };
             }
             return message
@@ -66,7 +52,7 @@ export async function POST(request) {
 
         return Response.json({
             success: true,
-            message: "Message sent successfully",
+            message: "Message delete successfully for your side",
         }, { status: 200 });
     } catch (error) {
         console.error("Error sending message:", error);
