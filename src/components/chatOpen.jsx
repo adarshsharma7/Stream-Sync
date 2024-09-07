@@ -16,7 +16,7 @@ import { RxDotsVertical } from "react-icons/rx";
 import { useDebounceCallback } from 'usehooks-ts';
 
 
-function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats }) {
+function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,setChatFrndIds }) {
 
 
 
@@ -33,6 +33,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     const [updateMsgPopup, setUpdateMsgPopup] = useState(false);
     const [uniqueIndexforUpdateMsgPopup, setUniqueIndexforUpdateMsgPopup] = useState('');
     const [isMsgEditableId, setIsMsgEditableId] = useState(null);
+    const [editedContent, setEditedContent] = useState('');
+    const [removeFrndLoading, setRemoveFrndLoading] = useState(false);
 
 
 
@@ -200,11 +202,11 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
             setMessages(data.updatedMessages)
         })
         statusChannel.bind('messagesDelete', function (data) {
-            const {msgId}=data
-            setMessages((prev)=>prev.filter((prevObj)=>prevObj._id!==msgId))
+            const { msgId } = data
+            setMessages((prev) => prev.filter((prevObj) => prevObj._id !== msgId))
         })
         statusChannel.bind('messagesEdit', function (data) {
-            const {msgId,msgContent}=data
+            const { msgId, msgContent } = data
             setMessages((prev) => prev.map((prevObj) => {
                 if (prevObj._id == msgId) {
                     return {
@@ -258,6 +260,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
     const removeFrnd = async () => {
         try {
             let response = await axios.post("/api/users/deletefrnd", { chatId })
+            setChatFrndIds((prev)=>prev.filter((prevVal)=>prevVal!==chatId))
             setChats(response.data.data)
             setIsChatOpen(false)
 
@@ -275,15 +278,15 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
 
     }
     const deleteMsgForMe = async (msgId) => {
-        setMessages((prev) => prev.map((prevObj) =>{ 
-            if(prevObj._id==msgId){
-               return {
-                ...prevObj,
-                delForMe:true
-               }
+        setMessages((prev) => prev.map((prevObj) => {
+            if (prevObj._id == msgId) {
+                return {
+                    ...prevObj,
+                    delForMe: true
+                }
             }
             return prevObj
-           
+
         }))
         setUpdateMsgPopup(false)
         let response = await axios.post("/api/users/deletemsgforme", { chatId, msgId })
@@ -303,6 +306,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
             return prevObj
         }))
         setUserTyping('')
+        setEditedContent('')
         let response = await axios.post("/api/users/editmsg", { chatId, msgId: isMsgEditableId, msgContent: data.chatMessage })
         setIsMsgEditableId(null)
 
@@ -341,9 +345,29 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                         boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
                         zIndex: 1000,
                     }}>
-                        <Button variant="outline" onClick={() => removeFrnd()}>
-                            Remove Friend
-                        </Button>
+                        {removeFrndLoading ? (
+                            <Button
+                                disabled
+                                className="bg-gray-400 text-white hover:bg-gray-500 px-4 py-2 rounded-lg"
+                            >
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Wait...
+                            </Button>
+                        ) : (
+                            <Button variant="outline"
+                                onClick={() => {
+                                    setRemoveFrndLoading(true)
+                                    removeFrnd()
+                                }}
+                                disabled={removeFrndLoading}
+                                className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
+                            >
+
+                                Remove Friend
+                            </Button>
+                        )}
+
+
 
                     </div>
                 )}
@@ -360,9 +384,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div  key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
+                        <div key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
                             <div
-                               
+
                                 className={` flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
@@ -394,6 +418,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                                             <Button variant="outline" onClick={() => {
                                                 setUpdateMsgPopup(false)
                                                 setUserTyping(msg.content)
+                                                setEditedContent(msg.content)
                                                 setIsMsgEditableId(msg._id)
                                             }}>
                                                 Edit Message
@@ -508,8 +533,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats })
                         <Button
                             type="submit"
                             className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2 rounded-full shadow-lg"
+                            disabled={editedContent == userTyping}
                         >
-                            Send
+
+                            {editedContent ? 'Edit' : 'send'}
                         </Button>
                     </form>
                 </Form>

@@ -452,6 +452,7 @@ function Page() {
                             status={chatOpen.status}
                             setIsChatOpen={setIsChatOpen}
                             setChats={setChats}
+                            setChatFrndIds={setChatFrndIds}
                         />
                     </div>
                 )}
@@ -465,6 +466,7 @@ function Page() {
                             status={chatOpen.status}
                             setChats={setChats}
                             setIsChatOpen={setIsChatOpen}
+                            setChatFrndIds={setChatFrndIds}
                         />
                     )}
                 </div>
