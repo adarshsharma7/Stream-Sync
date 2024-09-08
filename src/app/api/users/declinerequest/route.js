@@ -47,7 +47,8 @@ export async function POST(request) {
         await pusher.trigger(`private-${user._id}`, 'declineRequest', {
             Id:notifi._id,
             avatar: iam.avatar,
-            username: iam.username
+            username: iam.username,
+            isDot:user.isNotificationBoxOpen?false:true
         });
 
 

@@ -67,20 +67,24 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   status: { type: String, enum: ['online', 'offline'], default: 'offline' },
-  chatfrnd:[{
+  chatfrnd: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   }],
-  newMsgNotificationDot:[{
+  newMsgNotificationDot: [{
     Id: mongoose.Schema.Types.ObjectId,
     count: { type: Number, default: 0 }
-}],
-isMyChatOpen:{type:String},
+  }],
+  isMyChatOpen: { type: String },
   notifications: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Notifications",
   }],
   isNewNotification: [],
+  isNotificationBoxOpen: {
+    type: Boolean,
+    default: false
+  },
 
   requests: [{
     type: mongoose.Schema.Types.ObjectId,

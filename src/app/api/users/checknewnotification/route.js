@@ -17,12 +17,15 @@ export async function POST(req) {
     }
 
     try {
-        const { username, isDel, isEmpty } = await req.json()
+        const { username, isDel, isEmpty,isNotificationBoxClose } = await req.json()
         let user = await User.findById(_user._id)
-        console.log(username);
-        console.log(isEmpty);
+      
         if (isEmpty) {
+            user.isNotificationBoxOpen=true
             user.isNewNotification = []
+        }else if(isNotificationBoxClose){
+            user.isNotificationBoxOpen=false
+
         } else if (isDel) {
             await User.updateOne({ _id: _user._id }, { $pull: { isNewNotification: username } })
         } else {

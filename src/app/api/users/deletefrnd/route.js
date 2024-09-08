@@ -44,7 +44,8 @@ export async function POST(request) {
             notificationId: notifi._id,
             username: user.username,
             avatar: user.avatar,
-            Id: user._id
+            Id: user._id,
+            isDot:recipent.isNotificationBoxOpen?false:true
 
         });
 

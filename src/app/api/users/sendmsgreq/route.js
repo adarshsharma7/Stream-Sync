@@ -47,7 +47,8 @@ export async function POST(request) {
             Id:notification._id,
             ownerId:iam._id,
             avatar: iam.avatar,
-            username: iam.username
+            username: iam.username,
+            isDot:user.isNotificationBoxOpen?false:true
         });
 
 

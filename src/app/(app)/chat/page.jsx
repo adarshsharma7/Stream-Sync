@@ -36,8 +36,6 @@ function Page() {
     const [isChatOpen, setIsChatOpen] = useState(false);
 
 
-
-
     const searchRef = useRef(null);
     const searchPopupef = useRef(null);
 
@@ -130,9 +128,9 @@ function Page() {
 
     }, []);
 
-    const checkNewNotification = async (username, isDel = false, isEmpty = false) => {
+    const checkNewNotification = async (username, isDel = false, isEmpty = false, isNotificationBoxClose = false) => {
         try {
-            let response = await axios.post("/api/users/checknewnotification", { username, isDel, isEmpty })
+            let response = await axios.post("/api/users/checknewnotification", { username, isDel, isEmpty, isNotificationBoxClose })
         } catch (error) {
             console.log("kuch galt hua ", error);
 
@@ -152,55 +150,74 @@ function Page() {
         const requestChannel = pusher.subscribe(`private-${user._id}`);
 
         requestChannel.bind("msgRequest", function (data) {
-            const { Id, ownerId, avatar, username } = data
+            const { Id, ownerId, avatar, username, isDot } = data
             setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "want frnd", owner: { _id: ownerId, avatar, username } }
             ]);
 
-            setNewNotificationDot((prevDots) => [...prevDots, username]);
 
 
-            checkNewNotification(username)
+            if (isDot) {
+                setNewNotificationDot((prevDots) => [...prevDots, username]);
+                checkNewNotification(username)
+            } else {
+                checkNewNotification(undefined, false, true)
+            }
 
         });
 
         requestChannel.bind("declineRequest", function (data) {
-            const { Id, avatar, username } = data
+            const { Id, avatar, username, isDot } = data
             setRequestedUsername((prevRequest) =>
                 prevRequest.filter((requests) => requests.username !== username)
             );
             setNotifications((prevNotification) => [...prevNotification, { _id: Id, msg: "declined", owner: { avatar, username } }
             ]);
-            if (!notificationBox) {
+            if (isDot) {
                 setNewNotificationDot((prevDots) => [...prevDots, username]);
+                checkNewNotification(username, true, false)
+            } else {
+                checkNewNotification(undefined, false, true)
             }
 
 
-            checkNewNotification(username, true, false)
+
+
+
 
 
         });
 
         requestChannel.bind("msgDelRequest", function (data) {
-            const { Id, username } = data
+            const { Id, username, isDot } = data
             setNotifications((prevNotification) =>
                 prevNotification.filter((notification) => notification._id !== Id)
             );
-            if (newNotificationDot?.length > 0) {
+            // if (newNotificationDot?.length > 0) {}
+
+            if (isDot) {
                 setNewNotificationDot((prevDots) => prevDots.filter((dot) => dot !== username));
+                checkNewNotification(username, true, false)
+            } else {
+                checkNewNotification(undefined, false, true)
             }
-            checkNewNotification(username, true, false)
 
 
         });
+
         requestChannel.bind("acceptRequest", function (data) {
-            const { notificationId, Id, username, avatar, status } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "accept", owner: {_id:Id, avatar, username } }
+            const { notificationId, Id, username, avatar, status, isDot } = data
+            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "accept", owner: { _id: Id, avatar, username } }
             ]);
             setChats((prev) => [...prev, { _id: Id, status, avatar, username }])
             let updatedRequestedUsername = requestedUsername.filter((obj) => obj.username !== username)
             setRequestedUsername(updatedRequestedUsername)
-            setNewNotificationDot((prevDots) => [...prevDots, username]);
-            checkNewNotification(username, undefined, false)
+
+            if (isDot) {
+                setNewNotificationDot((prevDots) => [...prevDots, username]);
+                checkNewNotification(username, undefined, false)
+            } else {
+                checkNewNotification(undefined, false, true)
+            }
 
 
         });
@@ -227,7 +244,7 @@ function Page() {
         });
 
         requestChannel.bind("removeFrnd", function (data) {
-            const { notificationId, username, avatar, Id } = data
+            const { notificationId, username, avatar, Id, isDot } = data
             setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "remove", owner: { avatar, username } }
             ]);
             let updatedChats = chats.filter((obj) => obj._id !== Id)
@@ -235,8 +252,14 @@ function Page() {
             let updatedFrndIds = chatFrndIds.filter((val) => val !== Id)
             setChatFrndIds(updatedFrndIds)
             setIsChatOpen(false)
-            setNewNotificationDot((prevDots) => [...prevDots, username]);
-            checkNewNotification(username, undefined, false)
+
+
+            if (isDot) {
+                setNewNotificationDot((prevDots) => [...prevDots, username]);
+                checkNewNotification(username, undefined, false)
+            } else {
+                checkNewNotification(undefined, false, true)
+            }
 
         });
 
@@ -526,7 +549,10 @@ function Page() {
                     <h1 className="text-xl font-semibold text-gray-900 truncate max-w-[80%]">
                         Notifications
                     </h1>
-                    <div onClick={() => setNotificationBox(false)} className="cursor-pointer">
+                    <div onClick={() => {
+                        checkNewNotification(undefined, false, false, true);
+                        setNotificationBox(false)
+                    }} className="cursor-pointer">
                         <IoClose className="text-2xl text-gray-500 hover:text-gray-700 transition" />
                     </div>
                 </div>
@@ -582,7 +608,7 @@ function Page() {
                                                 <IoCloseCircle />
                                             </button>
                                         </div>
-                                    ) : chatFrndIds.includes(notifi.owner._id) &&  notifi.msg == "urnowfrnd" && (
+                                    ) : chatFrndIds.includes(notifi.owner._id) && notifi.msg == "urnowfrnd" && (
                                         <FaUserShield className="text-gray-500" />
                                     )}
                                     <MdOutlineDeleteSweep className="cursor-pointer text-gray-400 hover:text-gray-600 transition" onClick={() => deleteNotification(notifi._id)} />

@@ -61,7 +61,8 @@ export async function POST(request) {
             username: iam.username,
             avatar: iam.avatar,
             Id: iam._id,
-            status: iam.status
+            status: iam.status,
+            isDot:user.isNotificationBoxOpen?false:true
         });
         await Notifications.findByIdAndDelete(currNotificationId)
 
