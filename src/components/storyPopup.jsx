@@ -216,7 +216,10 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
               onEnded={handleVideoEnd}
               onTimeUpdate={handleTimeUpdate}
               autoPlay
-              onLoad={() => setIsPaused(false)}
+              onLoad={() => {
+                setIsImageLoading(false);
+                setIsPaused(false)
+              }}
               poster="loading-spinner.gif"
             >
               <source src={story.stories[currentStoryIndex]?.file} type="video/mp4" />
@@ -239,9 +242,9 @@ function StoryComponent({ story, myStories, setMyStories, setStoryMsg, closePopu
 
 
           }
-         
+
           <div hidden={!isImageLoading} className='absolute top-3 right-10'>
-          <Loader2 className="animate-spin text-blue-500 w-7 h-7" />
+            <Loader2 className="animate-spin text-blue-500 w-7 h-7" />
 
           </div>
 
