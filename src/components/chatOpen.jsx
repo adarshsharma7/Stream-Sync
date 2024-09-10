@@ -267,9 +267,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             const tempMsgId = Date.now();
 
             // Add the sent message to the messages array
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
-            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && isInChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
+            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
             setMessages((prevMessages) =>
                 prevMessages.map(msg =>

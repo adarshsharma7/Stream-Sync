@@ -414,7 +414,7 @@ function Page() {
 
 
 
-                <div className='videPlayDetailBox flex flex-col h-[28%] w-full border-2 p-2 rounded-t-[10px] gap-1'>
+                <div className='videPlayDetailBox flex flex-col h-[28%] w-full border-t-2 p-2 rounded-t-[10px] gap-1'>
                     {!videoData ? (
                         <div className="flex flex-col gap-3">
                             {/* Title Skeleton */}
