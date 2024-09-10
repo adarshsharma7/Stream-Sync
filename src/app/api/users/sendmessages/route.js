@@ -26,8 +26,7 @@ export async function POST(request) {
     try {
 
         const { message, chatId, msgStatus } = await request.json();
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${chatId}`, 'newmsg', { message });
+
 
         await dbConnect();
 
@@ -41,7 +40,12 @@ export async function POST(request) {
         if (!chat) {
             chat = new Chat({ participants: [sender._id, recipient._id] });
         }
+        // Trigger the Pusher event for real-time updates
+        let uniqueChatId=chat._id.toString()
+        await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message,msgSenderId:sender._id });
 
+      
+    
 
         if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
 
@@ -71,10 +75,11 @@ export async function POST(request) {
         let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message });
         await chat.save();
 
+      
         return Response.json({
             success: true,
             message: "Message sent successfully",
-            msgId: chat.messages[ab - 1]._id
+            msgId: chat.messages[ab - 1]._id,
         }, { status: 200 });
     } catch (error) {
         console.error("Error sending message:", error);

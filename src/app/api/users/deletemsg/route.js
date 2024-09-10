@@ -25,18 +25,18 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { chatId,msgId } = await request.json();
+        const { chatId, msgId } = await request.json();
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
 
-    // Trigger the Pusher event for real-time updates
-    await pusher.trigger(`private-${sender._id}`, 'messagesDelete', {msgId});
+        // Trigger the Pusher event for real-time updates
+        await pusher.trigger(`private-${sender._id}`, 'messagesDelete', { msgId });
 
 
         let chat = await Chat.findOne({
             participants: { $all: [sender._id, recipient._id] }
         });
-       
+
 
         if (!chat) {
             return Response.json({
@@ -44,9 +44,11 @@ export async function POST(request) {
                 message: "no message found for delete message"
             }, { status: 400 });
         }
-      
-        const updatedMessages = chat.messages.filter((message) => message._id.toString()!==msgId.toString());
-       
+        let uniqueChatId = chat._id.toString()
+        // Trigger the Pusher event for real-time updates
+        await pusher.trigger(`private-${uniqueChatId}`, 'messagesDelete', { msgId });
+        const updatedMessages = chat.messages.filter((message) => message._id.toString() !== msgId.toString());
+
         // Update chat with the modified messages
         chat.messages = updatedMessages;
         await chat.save()

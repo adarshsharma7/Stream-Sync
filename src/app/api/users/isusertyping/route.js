@@ -2,6 +2,7 @@ import { dbConnect } from '@/dbConfig/dbConfig';
 import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
+import Chat from '@/models/chat.models';
 
 import Pusher from 'pusher';
 
@@ -23,14 +24,28 @@ export async function POST(request) {
     }
 
     try {
-       
-        const { isTyping } = await request.json()
-      
-        await pusher.trigger(`private-${_user._id}`, 'isUserTyping', {
-            isTyping 
+        await dbConnect()
+        const { chatId, isTyping } = await request.json()
+
+        const recipient = await User.findById(chatId);
+        const sender = await User.findById(_user._id);
+
+        let chat = await Chat.findOne({
+            participants: { $all: [sender._id, recipient._id] }
         });
 
-   
+        if (!chat) {
+            chat = new Chat({ participants: [sender._id, recipient._id] });
+        }
+        // Trigger the Pusher event for real-time updates
+        let uniqueChatId = chat._id.toString()
+
+        await pusher.trigger(`private-${uniqueChatId}`, 'isUserTyping', {
+            isTyping,
+            userTypingId:sender._id
+        });
+
+
 
         return Response.json({
             success: true,

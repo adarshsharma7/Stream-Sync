@@ -13,10 +13,10 @@ import { Loader2 } from 'lucide-react';
 import { IoClose } from "react-icons/io5";
 import { TiTick, TiTickOutline } from 'react-icons/ti';
 import { RxDotsVertical } from "react-icons/rx";
-import { useDebounceCallback } from 'usehooks-ts';
 
 
-function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,setChatFrndIds }) {
+
+function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, setChatFrndIds }) {
 
 
 
@@ -35,6 +35,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
     const [isMsgEditableId, setIsMsgEditableId] = useState(null);
     const [editedContent, setEditedContent] = useState('');
     const [removeFrndLoading, setRemoveFrndLoading] = useState(false);
+    const [uniqueChatId, setUniqueChatId] = useState('');
+    const [inChat, setInChat] = useState(false);
+
 
 
 
@@ -100,7 +103,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
 
         const sendTypingStatus = async (isTyping) => {
             try {
-                await axios.post('/api/users/isusertyping', { isTyping });
+                await axios.post('/api/users/isusertyping', { chatId, isTyping });
             } catch (error) {
                 console.error('Error sending typing status', error);
             }
@@ -131,7 +134,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
 
                 if (response.data.success) {
                     setMessages(response.data.chatHistory);
-                    console.log(response.data.chatHistory);
+                    setUniqueChatId(response.data.uniqueChatId.toString())
+
+                    if (response.data.isMyChatOpen == user._id) {
+                        setInChat(true)
+                    }else{
+                        setInChat(false)
+                    }
+
 
                 } else {
                     setError(response.data.message);
@@ -150,8 +160,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
 
 
     useEffect(() => {
-        if (!user) return;
-
+        if (uniqueChatId == '' || !chatId || !user) return
         const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
             cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
             authEndpoint: '/api/pusher/auth',
@@ -161,8 +170,6 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
         const globalPresenceChannel = pusher.subscribe('presence-online-users');
         globalPresenceChannel.bind('pusher:subscription_succeeded', (members) => {
             const onlineUsers = members.members;
-            console.log("members", members);
-
             setOnlineUsers(onlineUsers);
         });
 
@@ -179,14 +186,17 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
         });
 
         // Subscribe to the private channel to receive messages
-        const msgChannel = pusher.subscribe(`private-${user._id}`);
+        const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
+            const { message, msgSenderId } = data;
+            if (msgSenderId !== user._id) {
+                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId }, content: message, timestamp: new Date() }]);
+            }
 
-            const { message } = data;
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId }, content: message, timestamp: new Date() }]);
         });
-        const statusChannel = pusher.subscribe(`private-${chatId}`);
-        statusChannel.bind('userStatusUpdate', function (data) {
+        const statusChannel = pusher.subscribe(`private-${uniqueChatId}`);
+        const statusUpdateChannel = pusher.subscribe(`private-${chatId}`);
+        statusUpdateChannel.bind('userStatusUpdate', function (data) {
             setUserStatus(data.status)
             if (data.status == 'online') {
                 setIsChatVisible(true)
@@ -194,10 +204,25 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
                 setIsChatVisible(false)
             }
         })
-        statusChannel.bind('isUserTyping', function (data) {
+        statusUpdateChannel.bind('inChatUpdate', function (data) {
+            console.log("data", data.isMyChatOpen);
+            console.log("apun ki id", user._id);
 
-            setIsTyping(data.isTyping)
+            if (data.isMyChatOpen == chatId) {
+                setInChat(true)
+            } else {
+                setInChat(false)
+            }
+
         })
+        statusChannel.bind('isUserTyping', function (data) {
+            if (data.userTypingId !== user._id) {
+                setIsTyping(data.isTyping)
+            }
+
+
+        })
+
         statusChannel.bind('msgstatusUpdate', function (data) {
             setMessages(data.updatedMessages)
         })
@@ -228,9 +253,11 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
             statusChannel.unbind_all();
             msgChannel.unbind_all();
             msgChannel.unsubscribe();
+            statusUpdateChannel.unbind_all();
+            statusUpdateChannel.unsubscribe();
         };
 
-    }, [chatId, user]);
+    }, [chatId, uniqueChatId, user]);
 
 
     const isInChat = onlineUsers[chatId] !== undefined;
@@ -260,7 +287,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
     const removeFrnd = async () => {
         try {
             let response = await axios.post("/api/users/deletefrnd", { chatId })
-            setChatFrndIds((prev)=>prev.filter((prevVal)=>prevVal!==chatId))
+            setChatFrndIds((prev) => prev.filter((prevVal) => prevVal !== chatId))
             setChats(response.data.data)
             setIsChatOpen(false)
 
@@ -326,8 +353,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats,se
                         style={{ objectFit: 'cover' }}
                     />
                     <div className="text-lg font-semibold">{username}</div>
-                    <div className={`ml-2 text-sm ${isChatVisible && onlineUsers[chatId] ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
-                        {isTyping && isChatVisible && onlineUsers[chatId] ? 'Typing...' : isChatVisible && onlineUsers[chatId] ? 'In chat' : userStatus}
+                    <div className={`ml-2 text-sm ${isChatVisible && inChat ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
+                        {isTyping && isChatVisible ? 'Typing...' : isChatVisible && inChat ? 'In chat' : userStatus}
                     </div>
                 </div>
                 <div>

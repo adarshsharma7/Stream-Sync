@@ -25,10 +25,9 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { chatId,msgId,msgContent } = await request.json();
+        const { chatId, msgId, msgContent } = await request.json();
 
-  // Trigger the Pusher event for real-time updates
-  await pusher.trigger(`private-${_user._id}`, 'messagesEdit', {msgId,msgContent});
+
 
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
@@ -36,7 +35,7 @@ export async function POST(request) {
         let chat = await Chat.findOne({
             participants: { $all: [sender._id, recipient._id] }
         });
-       
+
 
         if (!chat) {
             return Response.json({
@@ -44,25 +43,27 @@ export async function POST(request) {
                 message: "no message found for wdit message"
             }, { status: 400 });
         }
-      
+        let uniqueChatId = chat._id.toString()
+        // Trigger the Pusher event for real-time updates
+        await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });
         const updatedMessages = chat.messages.map((message) => {
-            if(message._id.toString()==msgId.toString()){
+            if (message._id.toString() == msgId.toString()) {
                 return {
                     ...message,
                     content: msgContent,
-                    edited:true,
-                    timestamp:new Date()
+                    edited: true,
+                    timestamp: new Date()
                 };
             }
             return message
-        
+
         });
-       
+
         // Update chat with the modified messages
         chat.messages = updatedMessages;
         await chat.save()
 
-    
+
 
         return Response.json({
             success: true,

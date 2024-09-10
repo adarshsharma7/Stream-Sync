@@ -13,7 +13,9 @@ import { IoClose, IoCloseCircle } from "react-icons/io5";
 import { FaUserShield } from "react-icons/fa";
 import { MdOutlineDeleteSweep } from "react-icons/md";
 import ChatOpen from '@/components/chatOpen'
-import { GoIssueClosed } from "react-icons/go";
+import { FaPlus } from "react-icons/fa6";
+import { Button } from '@/components/ui/button';
+
 
 
 function Page() {
@@ -34,6 +36,8 @@ function Page() {
     const [chatFrndIds, setChatFrndIds] = useState([]);
     const [chatOpen, setChatOpen] = useState({});
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [groupPopup, setGroupPopup] = useState(false);
+    const [addMemberToGroup, setAddMemberToGroup] = useState([]);
 
 
     const searchRef = useRef(null);
@@ -339,6 +343,23 @@ function Page() {
             let response = await axios.post("/api/users/mychatopen", { chatId: Id })
             setNewMsgNotificationDot(response.data.isNewMsgNotification)
         } catch (error) {
+            console.log("kuch galt hua isMyChatOpen function me", error);
+        }
+    }
+
+
+    const craeteGroup = async () => {
+        try {
+            setAddMemberToGroup((prev)=>[...prev,user._id])
+            setChats((prev)=>[...prev,{
+                avatar: user.avatar,
+                username: user.username,
+                _id: user._id,
+               members:addMemberToGroup
+            }])
+            let response = await axios.post("/api/users/creategroup", { users: addMemberToGroup })
+        } catch (error) {
+            console.log("kuch galt hua", error);
 
         }
     }
@@ -377,6 +398,12 @@ function Page() {
         handleSearch(searchTerm);
     }, [users, searchTerm]);
 
+
+
+
+
+
+
     return (
         <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900 overflow-y-hidden'>
             <div className='flex w-full h-[8%] border-2 border-red-500 justify-between items-center px-2'>
@@ -390,7 +417,7 @@ function Page() {
                             <CiSearch className='text-2xl text-gray-600 cursor-pointer' />
                         </div>
                         {searchVisible && (
-                            <div className='absolute top-0 md:left-96 left-44 right-8 flex h-10 items-center bg-gray-100 px-4 py-2 rounded-full shadow-md'>
+                            <div className='absolute md:top-[6px] top-3 md:left-96 left-44 right-16 flex h-10 items-center bg-gray-100 px-4 py-2 rounded-full shadow-md'>
                                 <CiSearch className='text-2xl text-gray-600' />
                                 <input
                                     type="text"
@@ -407,6 +434,9 @@ function Page() {
                             </div>
                         )}
                     </div>
+                    <div className='cursor-pointer' onClick={() => setGroupPopup(true)}>
+                        <FaPlus />
+                    </div>
                     <div
                         onClick={() => {
                             setNewNotificationDot([]);
@@ -420,6 +450,75 @@ function Page() {
                         )}
                         <IoIosNotificationsOutline className='text-2xl text-gray-600' />
                     </div>
+                    {groupPopup && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                            <div className="bg-white p-4 rounded-lg md:w-1/3 flex flex-col relative">
+                                <div className='absolute right-1 top-1'>
+                                    <IoClose
+                                        className='text-[15px] text-gray-600 cursor-pointer ml-2'
+                                        onClick={() => {
+                                            setSearchTerm("")
+                                            setGroupPopup(false)
+                                        }}
+                                    />
+                                </div>
+
+                                <div className=' bg-slate-400 px-4 py-2 rounded-full shadow-md flex'>
+                                    <CiSearch className='text-2xl text-gray-600' />
+                                    <input
+                                        type="text"
+                                        placeholder="Search"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onFocus={() => setSuggestions(true)}
+                                        className='bg-transparent outline-none ml-2 flex-grow h-full'
+                                    />
+
+                                </div>
+                                <div className='flex flex-col gap-2 py-2'>
+                                    {usernameFetchingMessage ? (
+                                        <div className='text-center text-gray-600'>{usernameFetchingMessage}</div>
+                                    ) : (
+                                        filteredUsers.length > 0 ? (
+                                            filteredUsers.map((user, index) => (
+                                                <div onClick={() => {
+                                                    if (addMemberToGroup.includes(user._id)) {
+                                                        setAddMemberToGroup((prev) => prev.filter((id) => id !== user._id))
+                                                    } else {
+                                                        setAddMemberToGroup((prev) => [...prev, user._id])
+                                                    }
+                                                }
+
+                                                } key={index} className={` ${addMemberToGroup.includes(user._id) ? "bg-green-300" : "hover:bg-gray-100 "} flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200`}>
+                                                    <div className='flex items-center'>
+                                                        <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                                                            <Image
+                                                                src={user.avatar}
+                                                                alt="dp"
+                                                                fill
+                                                                sizes="48px"
+                                                                style={{ objectFit: "cover" }}
+                                                            />
+                                                        </div>
+                                                        <h1 className='ml-3 text-gray-800 font-medium'>{user.username}</h1>
+                                                    </div>
+
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className='text-center text-gray-600'>No users found</div>
+                                        )
+                                    )}
+                                </div>
+
+                                <Button disabled={addMemberToGroup.length < 2} onClick={() => craeteGroup()}>
+                                    Create Group
+                                </Button>
+
+
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -427,47 +526,91 @@ function Page() {
                 {/* Chat List */}
                 <div className='md:w-1/3 h-full border-r border-gray-300 bg-gray-50 flex flex-col gap-2 overflow-y-auto p-4'>
                     {chats?.length > 0 ? chats.map((chat, index) => (
-                        <div
-                            onClick={() => {
+                        //for Group
+                        chat.members ? (
+                            <div key={index}  onClick={() => {
                                 setIsChatOpen(true);
                                 isMyChatOpen(chat._id);
-                                setChatOpen({ avatar: chat.avatar, username: chat.username, _id: chat._id, status: chat.status });
-                            }}
-                            key={index}
-                            className={`flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
-                    ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
-                    border`}
-                        >
-                            <div className='flex items-center gap-3'>
-                                <div className='h-12 w-12 rounded-full overflow-hidden relative'>
-                                    <Image
-                                        src={chat.avatar}
-                                        alt="dp"
-                                        fill
-                                        sizes="48px"
-                                        style={{ objectFit: "cover" }}
-                                    />
-                                </div>
-                                <div className='text-gray-800 font-medium'>
-                                    <h1>{chat.username}</h1>
-                                </div>
-                            </div>
-                            {newMsgNotificationDot.length > 0 &&
-                                newMsgNotificationDot.map((noti, index) => (
-                                    noti.Id === chat._id && (
-                                        <div key={index} className=' w-6 h-6 rounded-full bg-green-600 flex items-center justify-center ml-auto'>
-                                            <p className='text-xs text-white'>{noti.count}</p>
+                                setChatOpen({
+                                    avatar: chat.avatar,
+                                    username: chat.username,
+                                    _id: chat._id,
+                                   
+                                });
+                            }}   className={`relative flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
+                                ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
+                                border`} >
+                                     <div className='flex items-center gap-3'>
+                                    <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                                        <Image
+                                            src={chat.avatar}
+                                            alt="dp"
+                                            fill
+                                            sizes="48px"
+                                            style={{ objectFit: "cover" }}
+                                        />
+                                    </div>
+                                    <div className='text-gray-800 font-medium'>
+                                        <div className='flex gap-1'>
+                                             <h1>{chat.username}</h1>
+                                             
+                                             <h1 className='rounded-full text-sm bg-green-400 shadow-sm'>Group</h1>
                                         </div>
-                                    )
-                                ))
-                            }
-                        </div>
+                                       
+                                    </div>
+                                </div>
+                                <p className='text-sm text-slate-500 absolute right-2 top-1'>{chat.members.length} members</p>
+                            </div>
+                        ) : (
+                            //for indivisual chat
+                            <div
+                                onClick={() => {
+                                    setIsChatOpen(true);
+                                    isMyChatOpen(chat._id);
+                                    setChatOpen({
+                                        avatar: chat.avatar,
+                                        username: chat.username,
+                                        _id: chat._id,
+                                        status: chat.status
+                                    });
+                                }}
+                                key={index}
+                                className={`flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
+                ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
+                border`}
+                            >
+                                <div className='flex items-center gap-3'>
+                                    <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                                        <Image
+                                            src={chat.avatar}
+                                            alt="dp"
+                                            fill
+                                            sizes="48px"
+                                            style={{ objectFit: "cover" }}
+                                        />
+                                    </div>
+                                    <div className='text-gray-800 font-medium'>
+                                        <h1>{chat.username}</h1>
+                                    </div>
+                                </div>
+                                {newMsgNotificationDot.length > 0 &&
+                                    newMsgNotificationDot.map((noti, notiIndex) => (
+                                        noti.Id === chat._id && (
+                                            <div key={notiIndex} className=' w-6 h-6 rounded-full bg-green-600 flex items-center justify-center ml-auto'>
+                                                <p className='text-xs text-white'>{noti.count}</p>
+                                            </div>
+                                        )
+                                    ))
+                                }
+                            </div>
+                        )
                     )) : (
                         <div className='flex justify-center items-center h-full text-gray-600'>
                             No Chats
                         </div>
                     )}
                 </div>
+
 
                 {/* Chat Open View */}
                 {isChatOpen && (
@@ -480,6 +623,7 @@ function Page() {
                             setIsChatOpen={setIsChatOpen}
                             setChats={setChats}
                             setChatFrndIds={setChatFrndIds}
+                            addMemberToGroup={addMemberToGroup}
                         />
                     </div>
                 )}
@@ -494,53 +638,56 @@ function Page() {
                             setChats={setChats}
                             setIsChatOpen={setIsChatOpen}
                             setChatFrndIds={setChatFrndIds}
+                            addMemberToGroup={addMemberToGroup}
                         />
                     )}
                 </div>
             </div>
 
 
-            {suggestions && (
-                <div ref={searchPopupef} className='absolute top-14 w-full max-h-[300px] border border-gray-300 rounded-lg bg-white shadow-lg overflow-y-auto p-3'>
-                    {usernameFetchingMessage ? (
-                        <div className='text-center text-gray-600'>{usernameFetchingMessage}</div>
-                    ) : (
-                        filteredUsers.length > 0 ? (
-                            filteredUsers.map((user, index) => (
-                                <div key={index} className='flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200'>
-                                    <div className='flex items-center'>
-                                        <div className='h-12 w-12 rounded-full overflow-hidden relative'>
-                                            <Image
-                                                src={user.avatar}
-                                                alt="dp"
-                                                fill
-                                                sizes="48px"
-                                                style={{ objectFit: "cover" }}
-                                            />
-                                        </div>
-                                        <h1 className='ml-3 text-gray-800 font-medium'>{user.username}</h1>
-                                    </div>
-                                    {chatFrndIds.includes(user._id) ? (
-                                        <div className='text-green-600'>
-                                            <FaUserShield />
-                                        </div>
-                                    ) : requestedUsername?.some(req => req.username === user.username) ? (
-                                        <div onClick={() => deleteMessageReq(user.username)} className='text-red-600'>
-                                            <RiUserUnfollowFill />
-                                        </div>
-                                    ) : (
-                                        <div onClick={() => sendMessageReq(user.username)} className='text-blue-600'>
-                                            <RiUserFollowLine />
-                                        </div>
-                                    )}
-                                </div>
-                            ))
+            {
+                suggestions && (
+                    <div ref={searchPopupef} className='absolute top-14 w-full max-h-[300px] border border-gray-300 rounded-lg bg-white shadow-lg overflow-y-auto p-3'>
+                        {usernameFetchingMessage ? (
+                            <div className='text-center text-gray-600'>{usernameFetchingMessage}</div>
                         ) : (
-                            <div className='text-center text-gray-600'>No users found</div>
-                        )
-                    )}
-                </div>
-            )}
+                            filteredUsers.length > 0 ? (
+                                filteredUsers.map((user, index) => (
+                                    <div key={index} className='flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200'>
+                                        <div className='flex items-center'>
+                                            <div className='h-12 w-12 rounded-full overflow-hidden relative'>
+                                                <Image
+                                                    src={user.avatar}
+                                                    alt="dp"
+                                                    fill
+                                                    sizes="48px"
+                                                    style={{ objectFit: "cover" }}
+                                                />
+                                            </div>
+                                            <h1 className='ml-3 text-gray-800 font-medium'>{user.username}</h1>
+                                        </div>
+                                        {chatFrndIds.includes(user._id) ? (
+                                            <div className='text-green-600'>
+                                                <FaUserShield />
+                                            </div>
+                                        ) : requestedUsername?.some(req => req.username === user.username) ? (
+                                            <div onClick={() => deleteMessageReq(user.username)} className='text-red-600'>
+                                                <RiUserUnfollowFill />
+                                            </div>
+                                        ) : (
+                                            <div onClick={() => sendMessageReq(user.username)} className='text-blue-600'>
+                                                <RiUserFollowLine />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className='text-center text-gray-600'>No users found</div>
+                            )
+                        )}
+                    </div>
+                )
+            }
 
 
 

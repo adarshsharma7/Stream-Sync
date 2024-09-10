@@ -25,7 +25,8 @@ function Page() {
     const fetchedUser = async () => {
       try {
         let response = await axios.post("/api/users/userprofile", { username })
-
+   
+        
         setUser(response.data.data)
         dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: response.data.data.subscribers })
         if (response.data.message) {
@@ -53,7 +54,7 @@ function Page() {
       <div className='flex items-center bg-white p-4 shadow-md'>
         <div className='w-20 h-20 rounded-full border-4 border-gray-200 overflow-hidden relative'>
           <Image
-            src={user.avatar}
+            src={user?.avatar}
             alt="User Avatar"
             className='object-cover'
             layout="fill"  // Image will fill the entire container
@@ -66,17 +67,17 @@ function Page() {
           <div className='flex text-sm text-gray-500 mt-1'>
             <p>{state.subscriberCount} Subscribers</p>
             <span className='mx-2'>•</span>
-            <p>{user.uploadedVideos?.length || 0} videos</p>
+            <p>{user?.uploadedVideos?.length || 0} videos</p>
           </div>
           <div className='flex '>
-            {user.createdAt && (
+            {user?.createdAt && (
               <p className='text-sm text-gray-500 mt-2 mr-14'>
                 Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
 
               </p>
 
             )}
-            <div className='subscribeButtonBox  ' onClick={() => subscribe(user._id, state, dispatch)}>
+            <div className='subscribeButtonBox  ' onClick={() => subscribe(user?._id, state, dispatch)}>
 
               <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
                 {state.isSubscribe ? (
@@ -103,7 +104,7 @@ function Page() {
             <div className="col-span-full text-center text-red-700">
               <h1>{videosFetchingMessage}</h1>
             </div>
-          ) : user.uploadedVideos?.map((video, index) => (
+          ) : user?.uploadedVideos?.map((video, index) => (
             <div
               key={index}
               onClick={() => router.push(`/videoplay/${video._id}`)}
@@ -122,9 +123,9 @@ function Page() {
                 <h3 className='text-sm font-medium text-gray-800'>{video.title}</h3>
                 <div className='flex items-center text-xs text-gray-500 mt-1'>
                   <div className='flex items-center h-5 w-5 relative'>
-                    <Image src={user.avatar} alt="User Avatar" layout="fill"
+                    <Image src={user?.avatar} alt="User Avatar" layout="fill"
                       objectFit="cover" className='rounded-full mr-2 object-cover' />
-                    <span className='ml-6'>{user.username}</span>
+                    <span className='ml-6'>{user?.username}</span>
                   </div>
                 </div>
                 <div className='flex justify-between text-xs text-gray-500 mt-2'>

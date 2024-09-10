@@ -3,8 +3,15 @@ import Chat from '@/models/chat.models';
 import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
+import Pusher from 'pusher';
 
-
+const pusher = new Pusher({
+    appId: process.env.PUSHER_APP_ID,
+    key: process.env.PUSHER_KEY,
+    secret: process.env.PUSHER_SECRET,
+    cluster: process.env.PUSHER_CLUSTER,
+    useTLS: true
+});
 export async function GET(request) {
     const session = await getServerSession(authOptions);
     const _user = session?.user;
@@ -40,11 +47,19 @@ export async function GET(request) {
                 message: "No chat history found"
             }, { status: 200 });
         }
-    
-    
+        
+   
+        await pusher.trigger(`private-${sender._id}`, 'inChatUpdate', {isMyChatOpen:recipient.isMyChatOpen });
+     
+
+
+  
         return Response.json({
             success: true,
-            chatHistory: chat.messages
+            chatHistory: chat.messages,
+            uniqueChatId:chat._id,
+            isMyChatOpen:recipient.isMyChatOpen
+           
         }, { status: 200 });
     } catch (error) {
         console.error("Error fetching chat history:", error);

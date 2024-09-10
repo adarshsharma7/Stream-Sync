@@ -20,6 +20,7 @@ export async function POST(request){
         },
         {
          $project:{
+            _id:1,
             username:1,
             fullName:1,
             avatar:1,
@@ -51,6 +52,7 @@ export async function POST(request){
     if(userProfile[0].uploadedVideos.length==0){
         return Response.json({
             success:true,
+            data:userProfile[0],
            message:"No Videos From This Channel"
         },{status:200})
     

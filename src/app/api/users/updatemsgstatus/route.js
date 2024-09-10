@@ -43,6 +43,7 @@ export async function POST(request) {
                 message: "no message for check status"
             }, { status: 200 });
         }
+       let uniqueChatId=chat._id.toString()
         // Update message status only if it's not already "read"
         const updatedMessages = chat.messages.map(message => {
             if (message.sender.toString() === recipient._id.toString() && message.msgStatus !== "read") {
@@ -66,7 +67,8 @@ export async function POST(request) {
 
 
         // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${sender._id}`, 'msgstatusUpdate', {updatedMessages:updatedChat.messages});
+
+        await pusher.trigger(`private-${uniqueChatId}`, 'msgstatusUpdate', {updatedMessages:updatedChat.messages});
 
 
         return Response.json({
