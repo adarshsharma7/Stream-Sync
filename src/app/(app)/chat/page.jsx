@@ -229,20 +229,42 @@ function Page() {
 
         requestChannel.bind("newMsgNotificationDot", function (data) {
 
+            if (data.decrement) {
+                setNewMsgNotificationDot((prev) => {
+                    const existingNotification = prev.find(noti => noti.Id === data.Id);
+        
+                    if (existingNotification) {
+                        if (existingNotification.count === 1) {
+                            // If count is 1, remove the notification from the list
+                            return prev.filter(noti => noti.Id !== data.Id);
+                        } else {
+                            // Otherwise, decrement the count
+                            return prev.map(noti =>
+                                noti.Id === data.Id ? { ...noti, count: noti.count - 1 } : noti
+                            );
+                        }
+                    }
+        
+                    return prev; // Return unchanged if no matching notification is found
+                });
+                
+            } else {
+                setNewMsgNotificationDot((prev) => {
+                    const existingNotification = prev.find(noti => noti.Id === data.Id);
 
-            setNewMsgNotificationDot((prev) => {
-                const existingNotification = prev.find(noti => noti.Id === data.Id);
+                    if (existingNotification) {
+                        // If notification for this sender already exists, update the count
+                        return prev.map(noti =>
+                            noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
+                        );
+                    } else {
+                        // Otherwise, add a new notification object
+                        return [...prev, { Id: data.Id, count: 1 }];
+                    }
+                });
+            }
 
-                if (existingNotification) {
-                    // If notification for this sender already exists, update the count
-                    return prev.map(noti =>
-                        noti.Id === data.Id ? { ...noti, count: noti.count + 1 } : noti
-                    );
-                } else {
-                    // Otherwise, add a new notification object
-                    return [...prev, { Id: data.Id, count: 1 }];
-                }
-            });
+
 
 
         });
@@ -350,12 +372,12 @@ function Page() {
 
     const craeteGroup = async () => {
         try {
-            setAddMemberToGroup((prev)=>[...prev,user._id])
-            setChats((prev)=>[...prev,{
+            setAddMemberToGroup((prev) => [...prev, user._id])
+            setChats((prev) => [...prev, {
                 avatar: user.avatar,
                 username: user.username,
                 _id: user._id,
-               members:addMemberToGroup
+                members: addMemberToGroup
             }])
             let response = await axios.post("/api/users/creategroup", { users: addMemberToGroup })
         } catch (error) {
@@ -528,19 +550,19 @@ function Page() {
                     {chats?.length > 0 ? chats.map((chat, index) => (
                         //for Group
                         chat.members ? (
-                            <div key={index}  onClick={() => {
+                            <div key={index} onClick={() => {
                                 setIsChatOpen(true);
                                 isMyChatOpen(chat._id);
                                 setChatOpen({
                                     avatar: chat.avatar,
                                     username: chat.username,
                                     _id: chat._id,
-                                   
+
                                 });
-                            }}   className={`relative flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
+                            }} className={`relative flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
                                 ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
                                 border`} >
-                                     <div className='flex items-center gap-3'>
+                                <div className='flex items-center gap-3'>
                                     <div className='h-12 w-12 rounded-full overflow-hidden relative'>
                                         <Image
                                             src={chat.avatar}
@@ -552,11 +574,11 @@ function Page() {
                                     </div>
                                     <div className='text-gray-800 font-medium'>
                                         <div className='flex gap-1'>
-                                             <h1>{chat.username}</h1>
-                                             
-                                             <h1 className='rounded-full text-sm bg-green-400 shadow-sm'>Group</h1>
+                                            <h1>{chat.username}</h1>
+
+                                            <h1 className='rounded-full text-sm bg-green-400 shadow-sm'>Group</h1>
                                         </div>
-                                       
+
                                     </div>
                                 </div>
                                 <p className='text-sm text-slate-500 absolute right-2 top-1'>{chat.members.length} members</p>

@@ -228,6 +228,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         })
         statusChannel.bind('messagesDelete', function (data) {
             const { msgId } = data
+        
             setMessages((prev) => prev.filter((prevObj) => prevObj._id !== msgId))
         })
         statusChannel.bind('messagesEdit', function (data) {

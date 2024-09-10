@@ -28,11 +28,15 @@ export async function POST(request) {
         const { chatId, msgId } = await request.json();
         const recipient = await User.findById(chatId);
         const sender = await User.findById(_user._id);
+        
+        if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
 
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${sender._id}`, 'messagesDelete', { msgId });
+        await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
+            Id: sender._id,
+            decrement:true
+        });
 
-
+    }
         let chat = await Chat.findOne({
             participants: { $all: [sender._id, recipient._id] }
         });
@@ -52,6 +56,22 @@ export async function POST(request) {
         // Update chat with the modified messages
         chat.messages = updatedMessages;
         await chat.save()
+
+        if (recipient.newMsgNotificationDot.length > 0) {
+            recipient.newMsgNotificationDot.forEach((notification, index) => {
+                if (notification.Id === sender._id) {
+                    if (notification.count === 1) {
+                        // Remove the object from the array
+                        recipient.newMsgNotificationDot.splice(index, 1);
+                    } else {
+                        // Increment the count
+                        notification.count -= 1;
+                    }
+                    
+                }
+            });
+        }
+        await recipient.save()
 
 
         return Response.json({
