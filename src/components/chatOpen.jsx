@@ -23,7 +23,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     const [messages, setMessages] = useState([]);
     const [error, setError] = useState(null);
     const [historyLoading, setHistoryLoading] = useState(true);
-    const [onlineUsers, setOnlineUsers] = useState({});
+    // const [onlineUsers, setOnlineUsers] = useState({});
     const [userStatus, setUserStatus] = useState('');
     const [isChatVisible, setIsChatVisible] = useState(true);
     const [userTyping, setUserTyping] = useState('');
@@ -37,9 +37,6 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     const [removeFrndLoading, setRemoveFrndLoading] = useState(false);
     const [uniqueChatId, setUniqueChatId] = useState('');
     const [inChat, setInChat] = useState(false);
-
-
-
 
     // let debounceTyping=useDebounceCallback(setUserTyping,2000)
 
@@ -166,24 +163,24 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             authEndpoint: '/api/pusher/auth',
         });
 
-        // Subscribe to the global presence channel for overall online status
-        const globalPresenceChannel = pusher.subscribe('presence-online-users');
-        globalPresenceChannel.bind('pusher:subscription_succeeded', (members) => {
-            const onlineUsers = members.members;
-            setOnlineUsers(onlineUsers);
-        });
+        // // Subscribe to the global presence channel for overall online status
+        // const globalPresenceChannel = pusher.subscribe('presence-online-users');
+        // globalPresenceChannel.bind('pusher:subscription_succeeded', (members) => {
+        //     const onlineUsers = members.members;
+        //     setOnlineUsers(onlineUsers);
+        // });
 
-        globalPresenceChannel.bind('pusher:member_added', (member) => {
-            setOnlineUsers((prevUsers) => ({ ...prevUsers, [member.id]: member.info }));
-        });
+        // globalPresenceChannel.bind('pusher:member_added', (member) => {
+        //     setOnlineUsers((prevUsers) => ({ ...prevUsers, [member.id]: member.info }));
+        // });
 
-        globalPresenceChannel.bind('pusher:member_removed', (member) => {
-            setOnlineUsers((prevUsers) => {
-                const updatedUsers = { ...prevUsers };
-                delete updatedUsers[member.id];
-                return updatedUsers;
-            });
-        });
+        // globalPresenceChannel.bind('pusher:member_removed', (member) => {
+        //     setOnlineUsers((prevUsers) => {
+        //         const updatedUsers = { ...prevUsers };
+        //         delete updatedUsers[member.id];
+        //         return updatedUsers;
+        //     });
+        // });
 
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
@@ -205,8 +202,6 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             }
         })
         statusUpdateChannel.bind('inChatUpdate', function (data) {
-            console.log("data", data.isMyChatOpen);
-            console.log("apun ki id", user._id);
 
             if (data.isMyChatOpen == chatId) {
                 setInChat(true)
@@ -261,7 +256,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     }, [chatId, uniqueChatId, user]);
 
 
-    const isInChat = onlineUsers[chatId] !== undefined;
+    // const isInChat = onlineUsers[chatId] !== undefined;
     const sendMessage = async (data) => {
         try {
             // Generate a temporary ID for the message (just an example using Date.now)
