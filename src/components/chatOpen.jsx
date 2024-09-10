@@ -243,8 +243,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
         // Cleanup function to unsubscribe from Pusher channels
         return () => {
-            globalPresenceChannel.unbind_all();
-            globalPresenceChannel.unsubscribe();
+            // globalPresenceChannel.unbind_all();
+            // globalPresenceChannel.unsubscribe();
             statusChannel.unsubscribe();
             statusChannel.unbind_all();
             msgChannel.unbind_all();
