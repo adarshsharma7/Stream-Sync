@@ -43,6 +43,8 @@ export async function GET() {
                 }
             }
         ])
+      
+        
         if (subscription[0].length == 0) {
             return Response.json({
                 success: true,

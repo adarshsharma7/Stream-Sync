@@ -31,7 +31,24 @@ const chatSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  messages: [messageSchema]
+  messages: [messageSchema],
+  isGroupChat: {
+    type: Boolean,
+    default: false
+  },
+  groupAdmin: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: function () { return this.isGroupChat; }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 const Chat = mongoose.models.Chat || mongoose.model('Chat', chatSchema);

@@ -26,64 +26,79 @@ export async function POST(request) {
     try {
         await dbConnect();
         const { chatId, msgId } = await request.json();
-        const recipient = await User.findById(chatId);
-        const sender = await User.findById(_user._id);
-        
-        if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
+       
 
-        await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
-            Id: sender._id,
-            decrement:true
-        });
+        const isChat = await Chat.findById(chatId);
+        if (isChat) {
 
-    }
-        let chat = await Chat.findOne({
-            participants: { $all: [sender._id, recipient._id] }
-        });
+            let uniqueChatId = isChat._id.toString()
+            // Trigger the Pusher event for real-time updates
+            await pusher.trigger(`private-${uniqueChatId}`, 'messagesDelete', { msgId });
+            const updatedMessages = isChat.messages.filter((message) => message._id.toString() !== msgId.toString());
 
+            // Update chat with the modified messages
+            isChat.messages = updatedMessages;
+            await isChat.save()
 
-        if (!chat) {
-            return Response.json({
-                success: true,
-                message: "no message found for delete message"
-            }, { status: 400 });
-        }
-        let uniqueChatId = chat._id.toString()
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${uniqueChatId}`, 'messagesDelete', { msgId });
-        const updatedMessages = chat.messages.filter((message) => message._id.toString() !== msgId.toString());
+        } else {
+            const recipient = await User.findById(chatId);
+            const sender = await User.findById(_user._id);
+            if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
 
-        // Update chat with the modified messages
-        chat.messages = updatedMessages;
-        await chat.save()
+                await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
+                    Id: sender._id,
+                    decrement: true
+                });
 
-        if (recipient.newMsgNotificationDot.length > 0) {
-            recipient.newMsgNotificationDot.forEach((notification, index) => {
-                if (notification.Id === sender._id) {
-                    if (notification.count === 1) {
-                        // Remove the object from the array
-                        recipient.newMsgNotificationDot.splice(index, 1);
-                    } else {
-                        // Increment the count
-                        notification.count -= 1;
-                    }
-                    
-                }
+            }
+            let chat = await Chat.findOne({
+                participants: { $all: [sender._id, recipient._id] }
             });
-        }
-        await recipient.save()
 
+
+            if (!chat) {
+                return Response.json({
+                    success: true,
+                    message: "no message found for delete message"
+                }, { status: 400 });
+            }
+            let uniqueChatId = chat._id.toString()
+            // Trigger the Pusher event for real-time updates
+            await pusher.trigger(`private-${uniqueChatId}`, 'messagesDelete', { msgId });
+            const updatedMessages = chat.messages.filter((message) => message._id.toString() !== msgId.toString());
+
+            // Update chat with the modified messages
+            chat.messages = updatedMessages;
+            await chat.save()
+
+            if (recipient.newMsgNotificationDot.length > 0) {
+                recipient.newMsgNotificationDot.forEach((notification, index) => {
+                    if (notification.Id === sender._id) {
+                        if (notification.count === 1) {
+                            // Remove the object from the array
+                            recipient.newMsgNotificationDot.splice(index, 1);
+                        } else {
+                            // Increment the count
+                            notification.count -= 1;
+                        }
+
+                    }
+                });
+            }
+            await recipient.save()
+
+        }
 
         return Response.json({
             success: true,
-            message: "Message sent successfully",
+            message: "Message delete successfully",
         }, { status: 200 });
     } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error delete message:", error);
 
         return Response.json({
             success: false,
-            message: "Problem sending message"
+            message: "Problem delete message"
         }, { status: 500 });
     }
 }

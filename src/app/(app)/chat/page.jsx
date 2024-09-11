@@ -119,7 +119,12 @@ function Page() {
         const getAllChats = async () => {
             try {
                 let response = await axios.get("/api/users/getallchats")
-                setChats(response.data.data)
+                const mergedChats = [...response.data.chatData, ...response.data.groupData];
+                console.log("groupData", response.data.groupData);
+
+
+                setChats(mergedChats);
+
             } catch (error) {
                 console.log(error);
 
@@ -184,11 +189,6 @@ function Page() {
             }
 
 
-
-
-
-
-
         });
 
         requestChannel.bind("msgDelRequest", function (data) {
@@ -232,7 +232,7 @@ function Page() {
             if (data.decrement) {
                 setNewMsgNotificationDot((prev) => {
                     const existingNotification = prev.find(noti => noti.Id === data.Id);
-        
+
                     if (existingNotification) {
                         if (existingNotification.count === 1) {
                             // If count is 1, remove the notification from the list
@@ -244,10 +244,10 @@ function Page() {
                             );
                         }
                     }
-        
+
                     return prev; // Return unchanged if no matching notification is found
                 });
-                
+
             } else {
                 setNewMsgNotificationDot((prev) => {
                     const existingNotification = prev.find(noti => noti.Id === data.Id);
@@ -285,6 +285,14 @@ function Page() {
                 checkNewNotification(username, undefined, false)
             } else {
                 checkNewNotification(undefined, false, true)
+            }
+
+        });
+        requestChannel.bind("newGroup", function (data) {
+            if (data._id !== user._id) {
+                console.log("realtime mee", data);
+
+                setChats((prev) => [...prev, data])
             }
 
         });
@@ -372,14 +380,18 @@ function Page() {
 
     const craeteGroup = async () => {
         try {
-            setAddMemberToGroup((prev) => [...prev, user._id])
+
+            let response = await axios.post("/api/users/creategroup", { users: addMemberToGroup })
+
+
             setChats((prev) => [...prev, {
                 avatar: user.avatar,
                 username: user.username,
                 _id: user._id,
+                groupId: response.data.groupId,
                 members: addMemberToGroup
             }])
-            let response = await axios.post("/api/users/creategroup", { users: addMemberToGroup })
+
         } catch (error) {
             console.log("kuch galt hua", error);
 
@@ -533,7 +545,10 @@ function Page() {
                                     )}
                                 </div>
 
-                                <Button disabled={addMemberToGroup.length < 2} onClick={() => craeteGroup()}>
+                                <Button disabled={addMemberToGroup.length < 2} onClick={() => {
+                                    setAddMemberToGroup((prev) => [...prev, user._id])
+                                    craeteGroup()
+                                }}>
                                     Create Group
                                 </Button>
 
@@ -553,10 +568,12 @@ function Page() {
                             <div key={index} onClick={() => {
                                 setIsChatOpen(true);
                                 isMyChatOpen(chat._id);
+                                console.log("page pr", chat.groupId);
+
                                 setChatOpen({
                                     avatar: chat.avatar,
                                     username: chat.username,
-                                    _id: chat._id,
+                                    _id: chat.groupId,
 
                                 });
                             }} className={`relative flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200

@@ -20,6 +20,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
 
+
     const [messages, setMessages] = useState([]);
     const [error, setError] = useState(null);
     const [historyLoading, setHistoryLoading] = useState(true);
@@ -37,6 +38,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     const [removeFrndLoading, setRemoveFrndLoading] = useState(false);
     const [uniqueChatId, setUniqueChatId] = useState('');
     const [inChat, setInChat] = useState(false);
+    const [isGroup, setIsGroup] = useState(true);
 
     // let debounceTyping=useDebounceCallback(setUserTyping,2000)
 
@@ -87,7 +89,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                 console.error('Error updating message status', error);
             }
         };
-        updateMsgStatus();
+        if (!isGroup) {
+            updateMsgStatus();
+
+        }
 
     }, []);
 
@@ -105,11 +110,12 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                 console.error('Error sending typing status', error);
             }
         };
-        if (userTyping === '' && isTypingSent !== false) {
+
+        if (userTyping === '' && isTypingSent !== false && !isGroup) {
             sendTypingStatus(false);
             setIsTypingSent(false);
 
-        } else if (userTyping !== '' && isTypingSent !== true) {
+        } else if (userTyping !== '' && isTypingSent !== true && !isGroup) {
 
             sendTypingStatus(true);
 
@@ -131,11 +137,16 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                 if (response.data.success) {
                     setMessages(response.data.chatHistory);
+
+
                     setUniqueChatId(response.data.uniqueChatId.toString())
+                    console.log("is group", response.data.isGroup);
+
+                    setIsGroup(response.data.isGroup)
 
                     if (response.data.isMyChatOpen == user._id) {
                         setInChat(true)
-                    }else{
+                    } else {
                         setInChat(false)
                     }
 
@@ -185,9 +196,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
-            const { message, msgSenderId } = data;
+            const { message, msgSenderId, username } = data;
             if (msgSenderId !== user._id) {
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId }, content: message, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, content: message, timestamp: new Date() }]);
             }
 
         });
@@ -223,7 +234,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         })
         statusChannel.bind('messagesDelete', function (data) {
             const { msgId } = data
-        
+
             setMessages((prev) => prev.filter((prevObj) => prevObj._id !== msgId))
         })
         statusChannel.bind('messagesEdit', function (data) {
@@ -258,9 +269,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
     // const isInChat = onlineUsers[chatId] !== undefined;
     const sendMessage = async (data) => {
+        // Generate a temporary ID for the message (just an example using Date.now)
+        const tempMsgId = Date.now();
         try {
-            // Generate a temporary ID for the message (just an example using Date.now)
-            const tempMsgId = Date.now();
+
 
             // Add the sent message to the messages array
             setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
@@ -349,9 +361,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                         style={{ objectFit: 'cover' }}
                     />
                     <div className="text-lg font-semibold">{username}</div>
-                    <div className={`ml-2 text-sm ${isChatVisible && inChat ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
-                        {isTyping && isChatVisible ? 'Typing...' : isChatVisible && inChat ? 'In chat' : userStatus}
-                    </div>
+                    {!isGroup && (
+                        <div className={`ml-2 text-sm ${isChatVisible && inChat ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
+                            {isTyping && isChatVisible ? 'Typing...' : isChatVisible && inChat ? 'In chat' : userStatus}
+                        </div>
+                    )}
+
+
                 </div>
                 <div>
                     <IoClose onClick={() => setIsChatOpen(false)} className="md:hidden cursor-pointer text-2xl text-gray-400 hover:text-white transition" />
@@ -386,7 +402,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                 className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
                             >
 
-                                Remove Friend
+                                {isGroup ? "Remove from this group" : "Remove Friend"}
                             </Button>
                         )}
 
@@ -407,10 +423,10 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2`}>
+                        <div key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2 `}>
                             <div
 
-                                className={` flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
+                                className={`relative flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
                                     className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
@@ -458,11 +474,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                         </div>
                                     )}
 
-
-
                                     <p className='break-words text-base mr-3'>{msg.content}</p>
-
-
 
                                     <div className="flex items-center justify-end mt-1">
                                         <span className="text-xs text-gray-400 mr-2">
@@ -493,13 +505,26 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
                                     </div>
+                                    {username == msg.sender.username && (
+                                        <p className={`absolute text-green-500 top-1 right-2 text-[9px]`}>Ad</p>
+                                    )}
                                 </div>
                             </div>
-                            <div hidden={!msg.edited}>
-                                <p className={`text-slate-500 text-sm ${msg.sender._id === user._id ? 'float-right' : ''}`}>edited</p>
-                            </div>
-                        </div>
+                            <div className='flex gap-1'>
+                                {isGroup && (
+                                    <div hidden={msg.sender._id === user._id}>
+                                        <p className={`text-slate-500 text-sm`}>@{msg.sender.username}</p>
+                                    </div>
+                                )}
 
+                                <div hidden={!msg.edited}>
+                                    <p className={`text-slate-500 text-sm ${msg.sender._id === user._id ? 'float-right' : ''}`}>edited</p>
+                                </div>
+
+                            </div>
+
+
+                        </div>
 
                     ))
                 )}

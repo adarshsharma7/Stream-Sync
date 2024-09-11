@@ -66,6 +66,18 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
+  group:[
+    {
+      avatar: String,
+      username:String,
+      _id: String,
+      groupId:{
+        type:mongoose.Schema.Types.ObjectId,
+         ref: "Chat"
+      },
+      members: []
+    }
+  ],
   status: { type: String, enum: ['online', 'offline'], default: 'offline' },
   chatfrnd: [{
     type: mongoose.Schema.Types.ObjectId,

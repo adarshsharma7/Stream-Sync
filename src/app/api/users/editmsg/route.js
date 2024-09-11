@@ -27,54 +27,79 @@ export async function POST(request) {
         await dbConnect();
         const { chatId, msgId, msgContent } = await request.json();
 
+        const isChat = await Chat.findById(chatId);
+        if (isChat) {
+            let uniqueChatId = isChat._id.toString()
+            // Trigger the Pusher event for real-time updates
+            await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });
+            const updatedMessages = isChat.messages.map((message) => {
+                if (message._id.toString() == msgId.toString()) {
+                    return {
+                        ...message,
+                        content: msgContent,
+                        edited: true,
+                        timestamp: new Date()
+                    };
+                }
+                return message
+
+            });
+
+            // Update chat with the modified messages
+            isChat.messages = updatedMessages;
+            await isChat.save()
 
 
-        const recipient = await User.findById(chatId);
-        const sender = await User.findById(_user._id);
+        } else {
 
-        let chat = await Chat.findOne({
-            participants: { $all: [sender._id, recipient._id] }
-        });
+            const recipient = await User.findById(chatId);
+            const sender = await User.findById(_user._id);
+
+            let chat = await Chat.findOne({
+                participants: { $all: [sender._id, recipient._id] }
+            });
 
 
-        if (!chat) {
-            return Response.json({
-                success: true,
-                message: "no message found for wdit message"
-            }, { status: 400 });
-        }
-        let uniqueChatId = chat._id.toString()
-        // Trigger the Pusher event for real-time updates
-        await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });
-        const updatedMessages = chat.messages.map((message) => {
-            if (message._id.toString() == msgId.toString()) {
-                return {
-                    ...message,
-                    content: msgContent,
-                    edited: true,
-                    timestamp: new Date()
-                };
+            if (!chat) {
+                return Response.json({
+                    success: true,
+                    message: "no message found for wdit message"
+                }, { status: 400 });
             }
-            return message
+            let uniqueChatId = chat._id.toString()
+            // Trigger the Pusher event for real-time updates
+            await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });
+            const updatedMessages = chat.messages.map((message) => {
+                if (message._id.toString() == msgId.toString()) {
+                    return {
+                        ...message,
+                        content: msgContent,
+                        edited: true,
+                        timestamp: new Date()
+                    };
+                }
+                return message
 
-        });
+            });
 
-        // Update chat with the modified messages
-        chat.messages = updatedMessages;
-        await chat.save()
+            // Update chat with the modified messages
+            chat.messages = updatedMessages;
+            await chat.save()
+
+        }
 
 
 
         return Response.json({
             success: true,
-            message: "Message sent successfully",
+            message: "Message edit successfully",
         }, { status: 200 });
     } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error edit message:", error);
 
         return Response.json({
             success: false,
-            message: "Problem sending message"
+            message: "Problem edit message"
         }, { status: 500 });
     }
 }

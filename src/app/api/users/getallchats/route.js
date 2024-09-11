@@ -18,7 +18,7 @@ export async function GET() {
 
     try {
         await dbConnect();
-     
+     let user=await User.findById(_user._id)
 
         let frnd=await User.aggregate([
             {
@@ -53,7 +53,9 @@ export async function GET() {
         return Response.json({
             success: true,
             message: "done",
-            data:frnd[0].chatfrnd
+            chatData:frnd[0].chatfrnd,
+            groupData:user.group
+
         }, { status: 200 });
     } catch (error) {
         console.log("dikkat h", error);

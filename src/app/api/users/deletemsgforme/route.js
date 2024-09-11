@@ -16,50 +16,67 @@ export async function POST(request) {
 
     try {
         await dbConnect();
-        const { chatId,msgId} = await request.json();
+        const { chatId, msgId } = await request.json();
 
-        const recipient = await User.findById(chatId);
-        const sender = await User.findById(_user._id);
+        const isChat = await Chat.findById(chatId);
+        if (isChat) {
+            const updatedMessages = isChat.messages.map((message) => {
+                if (message._id.toString() == msgId.toString()) {
+                    return {
+                        ...message,
+                        delForMe: true
+                    };
+                }
+                return message
 
-        let chat = await Chat.findOne({
-            participants: { $all: [sender._id, recipient._id] }
-        });
-       
+            });
 
-        if (!chat) {
-            return Response.json({
-                success: true,
-                message: "no message found for delete message for me"
-            }, { status: 400 });
-        }
-      
-        const updatedMessages = chat.messages.map((message) => {
-            if(message._id.toString()==msgId.toString()){
-                return {
-                    ...message,
-                   delForMe:true
-                };
+            // Update chat with the modified messages
+            isChat.messages = updatedMessages;
+            await isChat.save()
+        } else {
+            const recipient = await User.findById(chatId);
+            const sender = await User.findById(_user._id);
+
+            let chat = await Chat.findOne({
+                participants: { $all: [sender._id, recipient._id] }
+            });
+
+
+            if (!chat) {
+                return Response.json({
+                    success: true,
+                    message: "no message found for delete message for me"
+                }, { status: 400 });
             }
-            return message
-        
-        });
-       
-        // Update chat with the modified messages
-        chat.messages = updatedMessages;
-        await chat.save()
 
-    
+            const updatedMessages = chat.messages.map((message) => {
+                if (message._id.toString() == msgId.toString()) {
+                    return {
+                        ...message,
+                        delForMe: true
+                    };
+                }
+                return message
+
+            });
+
+            // Update chat with the modified messages
+            chat.messages = updatedMessages;
+            await chat.save()
+
+        }
 
         return Response.json({
             success: true,
             message: "Message delete successfully for your side",
         }, { status: 200 });
     } catch (error) {
-        console.error("Error sending message:", error);
+        console.error("Error delete for me message:", error);
 
         return Response.json({
             success: false,
-            message: "Problem sending message"
+            message: "Problem delete for me message"
         }, { status: 500 });
     }
 }
