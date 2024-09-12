@@ -292,11 +292,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         }
     };
 
-    const removeFrnd = async () => {
+    const removeFrnd = async (deleteGroup) => {
         try {
-            let response = await axios.post("/api/users/deletefrnd", { chatId })
-            setChatFrndIds((prev) => prev.filter((prevVal) => prevVal !== chatId))
-            setChats(response.data.data)
+            let response = await axios.post("/api/users/deletefrnd", { chatId, deleteGroup })
+            if (!isGroup) {
+                setChatFrndIds((prev) => prev.filter((prevVal) => prevVal !== chatId))
+            }
+            let updatedChat = [...response.data.chatData, ...response.data.groupData]
+            setChats(updatedChat)
             setIsChatOpen(false)
 
         } catch (error) {
@@ -396,13 +399,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                             <Button variant="outline"
                                 onClick={() => {
                                     setRemoveFrndLoading(true)
-                                    removeFrnd()
+                                    removeFrnd({ deleteGroup: isGroup && user.username === username })
                                 }}
                                 disabled={removeFrndLoading}
                                 className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
                             >
 
-                                {isGroup ? "Remove from this group" : "Remove Friend"}
+                                {isGroup && user.username == username ? "Delete Group" : isGroup ? "Remove from this group" : "Remove Friend"}
                             </Button>
                         )}
 
@@ -505,7 +508,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
                                     </div>
-                                    {username == msg.sender.username && (
+                                    {username == msg.sender.username && isGroup && (
                                         <p className={`absolute text-green-500 top-1 right-2 text-[9px]`}>Ad</p>
                                     )}
                                 </div>

@@ -26,7 +26,7 @@ export async function POST(request) {
     try {
         await dbConnect();
         const { chatId, msgId } = await request.json();
-       
+
 
         const isChat = await Chat.findById(chatId);
         if (isChat) {
@@ -39,11 +39,59 @@ export async function POST(request) {
             // Update chat with the modified messages
             isChat.messages = updatedMessages;
             await isChat.save()
+            for (let participantId of isChat.participants) {
+
+                const recipient = await User.findById(participantId);
+                if (recipient.isMyChatOpen.toString() !== uniqueChatId) {
+
+                    if (recipient.newMsgNotificationDot.length > 0) {
+                        recipient.newMsgNotificationDot.forEach((notification, index) => {
+                            if (notification.Id === uniqueChatId) {
+                                if (notification.count === 1) {
+                                    // Remove the object from the array
+                                    recipient.newMsgNotificationDot.splice(index, 1);
+                                } else {
+                                    // Increment the count
+                                    notification.count -= 1;
+                                }
+
+                            }
+                        });
+                    }
+                    await recipient.save()
+                    await pusher.trigger(`private-${recipient._id}`, 'newMsgNotificationDot', {
+                        Id: uniqueChatId,
+                        decrement: true
+                    });
+                }
+
+            }
+
+
+
 
         } else {
             const recipient = await User.findById(chatId);
             const sender = await User.findById(_user._id);
             if (recipient.isMyChatOpen.toString() !== sender._id.toString()) {
+
+                if (recipient.newMsgNotificationDot.length > 0) {
+
+                    recipient.newMsgNotificationDot.forEach((notification, index) => {
+                        if (notification.Id === sender._id) {
+                            if (notification.count === 1) {
+                                // Remove the object from the array
+                                recipient.newMsgNotificationDot.splice(index, 1);
+                            } else {
+                                // Increment the count
+                                notification.count -= 1;
+                            }
+
+                        }
+                    });
+
+                }
+                await recipient.save()
 
                 await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
                     Id: sender._id,
@@ -71,21 +119,7 @@ export async function POST(request) {
             chat.messages = updatedMessages;
             await chat.save()
 
-            if (recipient.newMsgNotificationDot.length > 0) {
-                recipient.newMsgNotificationDot.forEach((notification, index) => {
-                    if (notification.Id === sender._id) {
-                        if (notification.count === 1) {
-                            // Remove the object from the array
-                            recipient.newMsgNotificationDot.splice(index, 1);
-                        } else {
-                            // Increment the count
-                            notification.count -= 1;
-                        }
 
-                    }
-                });
-            }
-            await recipient.save()
 
         }
 

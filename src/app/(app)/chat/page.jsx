@@ -120,8 +120,6 @@ function Page() {
             try {
                 let response = await axios.get("/api/users/getallchats")
                 const mergedChats = [...response.data.chatData, ...response.data.groupData];
-                console.log("groupData", response.data.groupData);
-
 
                 setChats(mergedChats);
 
@@ -264,35 +262,53 @@ function Page() {
                 });
             }
 
-
-
-
         });
 
         requestChannel.bind("removeFrnd", function (data) {
-            const { notificationId, username, avatar, Id, isDot } = data
-            setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "remove", owner: { avatar, username } }
-            ]);
-            let updatedChats = chats.filter((obj) => obj._id !== Id)
-            setChats(updatedChats)
-            let updatedFrndIds = chatFrndIds.filter((val) => val !== Id)
-            setChatFrndIds(updatedFrndIds)
-            setIsChatOpen(false)
+            const { notificationId, username, avatar, Id, isDot, removeGroupFrndId,removeFrndId,deleteGroup } = data
+            if(deleteGroup){
+                setChats((prev)=>prev.filter((obj)=>obj.groupId!==removeGroupFrndId))
+                setIsChatOpen(false)
+            }
+            if (removeGroupFrndId && removeFrndId) {
+                setChats((prev) =>
+                    prev.map((obj) => {
+                      if (obj.groupId === removeGroupFrndId) {
+                        return {
+                          ...obj, // Spread the existing object properties
+                          members: obj.members.filter((member) => member !== removeFrndId), // Filter out the removeFrndId from members
+                        };
+                      }
+                      return obj; // Return the object as is if groupId doesn't match
+                    })
+                  );
+                setIsChatOpen(false)
 
-
-            if (isDot) {
-                setNewNotificationDot((prevDots) => [...prevDots, username]);
-                checkNewNotification(username, undefined, false)
+                    
             } else {
-                checkNewNotification(undefined, false, true)
+                setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "remove", owner: { avatar, username } }
+                ]);
+                let updatedChats = chats.filter((obj) => obj._id !== Id)
+                setChats(updatedChats)
+                let updatedFrndIds = chatFrndIds.filter((val) => val !== Id)
+                setChatFrndIds(updatedFrndIds)
+                setIsChatOpen(false)
+
+
+                if (isDot) {
+                    setNewNotificationDot((prevDots) => [...prevDots, username]);
+                    checkNewNotification(username, undefined, false)
+                } else {
+                    checkNewNotification(undefined, false, true)
+                }
+
             }
 
         });
         requestChannel.bind("newGroup", function (data) {
             if (data._id !== user._id) {
-                console.log("realtime mee", data);
 
-                setChats((prev) => [...prev, data])
+               setChats((prev) => [...prev, data])
             }
 
         });
@@ -567,8 +583,7 @@ function Page() {
                         chat.members ? (
                             <div key={index} onClick={() => {
                                 setIsChatOpen(true);
-                                isMyChatOpen(chat._id);
-                                console.log("page pr", chat.groupId);
+                                isMyChatOpen(chat.groupId);
 
                                 setChatOpen({
                                     avatar: chat.avatar,
@@ -577,7 +592,7 @@ function Page() {
 
                                 });
                             }} className={`relative flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
-                                ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
+                                ${chatOpen._id === chat.groupId ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
                                 border`} >
                                 <div className='flex items-center gap-3'>
                                     <div className='h-12 w-12 rounded-full overflow-hidden relative'>
@@ -592,6 +607,15 @@ function Page() {
                                     <div className='text-gray-800 font-medium'>
                                         <div className='flex gap-1'>
                                             <h1>{chat.username}</h1>
+                                            {newMsgNotificationDot.length > 0 &&
+                                                newMsgNotificationDot.map((noti, notiIndex) => (
+                                                    noti.Id === chat.groupId && (
+                                                        <div key={notiIndex} className=' w-6 h-6 rounded-full bg-green-600 flex items-center justify-center ml-auto'>
+                                                            <p className='text-xs text-white'>{noti.count}</p>
+                                                        </div>
+                                                    )
+                                                ))
+                                            }
 
                                             <h1 className='rounded-full text-sm bg-green-400 shadow-sm'>Group</h1>
                                         </div>
@@ -634,7 +658,7 @@ function Page() {
                                 </div>
                                 {newMsgNotificationDot.length > 0 &&
                                     newMsgNotificationDot.map((noti, notiIndex) => (
-                                        noti.Id === chat._id && (
+                                        chat.members ? noti.Id === chat.groupId : noti.Id === chat._id && (
                                             <div key={notiIndex} className=' w-6 h-6 rounded-full bg-green-600 flex items-center justify-center ml-auto'>
                                                 <p className='text-xs text-white'>{noti.count}</p>
                                             </div>
