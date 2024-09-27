@@ -275,7 +275,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
             // Add the sent message to the messages array
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
             let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
@@ -372,7 +372,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
                 </div>
-                <div>
+                <div className='flex gap-2 items-center'>
                     <IoClose onClick={() => setIsChatOpen(false)} className="md:hidden cursor-pointer text-2xl text-gray-400 hover:text-white transition" />
                     <div className='cursor-pointer' onClick={() => setRemoveFrndPopup(!removeFrndPopup)}><RxDotsVertical /></div>
                 </div>
@@ -431,42 +431,45 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                                 className={`relative flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
-                             
-                                <div className='flex flex-col'>
-                                  
-                                    {msg.videoData.title!==null && msg.videoData.title!== undefined && (
-                                        <>
-                                       
-                                            <div className='flex flex-col'>
+
+                                <div className='flex flex-col border-2 border-slate-500 rounded-lg'>
+
+                                    {msg.videoData?.title !== null && msg.videoData?.title !== undefined && (
+                                        <div className='flex flex-col rounded-lg overflow-hidden shadow-lg'>
+                                            {/* Video Thumbnail */}
                                             <Image
                                                 src={msg.videoData.thumbnail}
                                                 alt="thumbnail"
-                                                width={50}
-                                                height={40}
+                                                width={250}
+                                                height={140} // Adjust height for better aspect ratio
                                                 className="rounded-t-lg"
                                                 style={{ objectFit: 'cover' }}
                                             />
-                                            <div className='flex gap-2'>
-                                                <Image
-                                                    src={msg.videoData.avatar}
-                                                    alt="dp"
-                                                    width={30}
-                                                    height={30}
-                                                    className="rounded-full"
-                                                    style={{ objectFit: 'cover' }}
-                                                />
-                                                <p>{msg.videoData.ownerUsername}</p>
+
+                                            {/* User Info and Video Title */}
+                                            <div className='flex flex-col p-3 bg-white'>
+                                                <div className='flex items-center gap-2 mb-2'>
+                                                    {/* User Avatar (dp) */}
+                                                    <Image
+                                                        src={msg.videoData.avatar}
+                                                        alt="dp"
+                                                        width={30}
+                                                        height={30}
+                                                        className="rounded-full"
+                                                        style={{ objectFit: 'cover' }}
+                                                    />
+                                                    {/* User's Name */}
+                                                    <p className='font-medium text-gray-800'>{msg.videoData.ownerUsername}</p>
+                                                </div>
+                                                {/* Video Title */}
+                                                <h1 className='text-lg font-semibold text-gray-900'>{msg.videoData.title}</h1>
                                             </div>
-                                            <h1>{msg.videoData.title}</h1>
                                         </div>
-                                        </>
-                                   
-                                        
-                                    
                                     )}
+
                                     <div
-                                        className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
-                                        style={{ maxWidth: '75%' }}
+                                        className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100 '}`}
+
                                     >
                                         {msg.sender._id === user._id && (
                                             <div className='cursor-pointer absolute right-0' onClick={() => {
@@ -509,8 +512,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                                             </div>
                                         )}
-
-                                        <p className='break-words text-base mr-3'>{msg.content}</p>
+                                         
+                                         {msg.videoData?.title!==null ?(
+                                          <a href={msg.content}>{msg.content}</a>
+                                         ) : (
+                                            <p className='break-words text-base mr-3'>{msg.content}</p>
+                                         )}
+                                       
 
                                         <div className="flex items-center justify-end mt-1">
                                             <span className="text-xs text-gray-400 mr-2">

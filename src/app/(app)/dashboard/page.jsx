@@ -116,13 +116,13 @@ function Page() {
     });
     const deleteStoryChannel = pusher.subscribe('story-channel');
     const addStoryChannel = pusher.subscribe('stories-channel');
-   
+
     // Fetch initial stories
     const fetchAllStories = async () => {
       try {
         const response = await axios.get("/api/users/stories");
         setMyStories(response.data.data);
-       
+
 
         if (response.data.data?.subscriptions.length > 0) {
           const filtered = response.data.data.subscriptions
@@ -197,9 +197,9 @@ function Page() {
       });
     });
 
-    deleteStoryChannel.bind('delete-story', function(data) {
-      
-     
+    deleteStoryChannel.bind('delete-story', function (data) {
+
+
       setStories((prevStories) => {
         return prevStories
           .map(sub => {
@@ -223,7 +223,7 @@ function Page() {
       addStoryChannel.unsubscribe();
       deleteStoryChannel.unbind_all();
       deleteStoryChannel.unsubscribe();
-  };
+    };
   }, []);
 
 
@@ -402,7 +402,7 @@ function Page() {
       {/* Video List */}
       <div className='flex-1 overflow-y-auto p-4 '>
 
-        <div className='storiesBox w-full h-[80px] border-2 border-gray-300 rounded-lg flex gap-4 mb-4 items-center px-2 py-2 bg-white shadow-md'>
+        <div  className={`storiesBox ${searchTerm!=='' ? "hidden" : "flex"} w-full h-[80px] border-2 border-gray-300 rounded-lg gap-4 mb-4 items-center px-2 py-2 bg-white shadow-md`}>
 
           <div className='flex items-center justify-center relative'>
             <div
@@ -416,7 +416,7 @@ function Page() {
               className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-blue-50 transition-colors duration-300 ease-in-out'
             >
               {videoProgress > 0 ? (
- <span className="text-blue-500 font-semibold">{`${videoProgress}%`}</span>
+                <span className="text-blue-500 font-semibold">{`${videoProgress}%`}</span>
 
               ) : loading ? (
                 <Loader2 className="animate-spin text-blue-500" />
