@@ -354,15 +354,21 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         <div className="flex flex-col h-full w-full bg-gray-900 text-gray-100 shadow-lg rounded-lg">
             {/* Header */}
             <div className="h-[60px] bg-gray-800 flex justify-between items-center px-4 relative">
-                <div className="flex items-center space-x-3">
-                    <Image
-                        src={avatar}
-                        alt="dp"
-                        width={30}
-                        height={30}
-                        className="rounded-full"
-                        style={{ objectFit: 'cover' }}
-                    />
+
+                <div className="flex items-center space-x-3 ">
+                    <div className='flex items-center justify-center overflow-hidden h-10 w-10 rounded-full relative'>
+                        {/* User Avatar (dp) */}
+                        <Image
+                            src={avatar}
+                            alt="dp"
+                            fill
+                            sizes="40px"
+                            className="rounded-full"
+                            style={{ objectFit: 'cover' }}
+                        />
+
+                    </div>
+
                     <div className="text-lg font-semibold">{username}</div>
                     {!isGroup && (
                         <div className={`ml-2 text-sm ${isChatVisible && inChat ? 'text-green-400' : userStatus === 'online' ? 'text-blue-400' : 'text-gray-500'}`}>
@@ -432,35 +438,39 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                 className={`relative flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
 
-                                <div className='flex flex-col border-2 border-slate-500 rounded-lg'>
+                                <div className='flex flex-col border-2 border-slate-500 rounded-lg max-w-[50%]'>
 
                                     {msg.videoData?.title !== null && msg.videoData?.title !== undefined && (
                                         <div className='flex flex-col rounded-lg overflow-hidden shadow-lg'>
                                             {/* Video Thumbnail */}
-                                            <Image
-                                                src={msg.videoData.thumbnail}
-                                                alt="thumbnail"
-                                                width={250}
-                                                height={140} // Adjust height for better aspect ratio
-                                                className="rounded-t-lg"
-                                                style={{ objectFit: 'cover' }}
-                                            />
+                                            <div className='w-full h-[215px] bg-gray-200 relative'>
+                                                <Image
+                                                    src={msg.videoData.thumbnail}
+                                                    alt="thumbnail"
+                                                    fill
+                                                    className="rounded-t-lg"
+                                                    style={{ objectFit: "cover" }}
+                                                />
+                                            </div>
 
                                             {/* User Info and Video Title */}
                                             <div className='flex flex-col p-3 bg-white'>
-                                                <div className='flex items-center gap-2 mb-2'>
-                                                    {/* User Avatar (dp) */}
-                                                    <Image
-                                                        src={msg.videoData.avatar}
-                                                        alt="dp"
-                                                        width={30}
-                                                        height={30}
-                                                        className="rounded-full"
-                                                        style={{ objectFit: 'cover' }}
-                                                    />
+                                                <div className='flex gap-2 items-center'>
+                                                    <div className='flex items-center justify-center overflow-hidden h-10 w-10 rounded-full relative'>
+                                                        {/* User Avatar (dp) */}
+                                                        <Image
+                                                            src={msg.videoData.avatar}
+                                                            alt="dp"
+                                                            fill
+                                                            sizes="40px"
+                                                            className="rounded-full"
+                                                            style={{ objectFit: 'cover' }}
+                                                        />
+                                                    </div>
                                                     {/* User's Name */}
                                                     <p className='font-medium text-gray-800'>{msg.videoData.ownerUsername}</p>
                                                 </div>
+
                                                 {/* Video Title */}
                                                 <h1 className='text-lg font-semibold text-gray-900'>{msg.videoData.title}</h1>
                                             </div>
@@ -512,13 +522,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                                             </div>
                                         )}
-                                         
-                                         {msg.videoData?.title!==null ?(
-                                          <a href={msg.content}>{msg.content}</a>
-                                         ) : (
+
+                                        {msg.videoData?.title !== null && msg.videoData?.title !== undefined ? (
+                                            <a className='break-words text-base mr-3' href={msg.content}>{msg.content}</a>
+                                        ) : (
                                             <p className='break-words text-base mr-3'>{msg.content}</p>
-                                         )}
-                                       
+                                        )}
+
 
                                         <div className="flex items-center justify-end mt-1">
                                             <span className="text-xs text-gray-400 mr-2">
@@ -558,14 +568,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
                             </div>
-                            <div className='flex gap-1'>
+                            <div className='flex gap-1 w-full'>
                                 {isGroup && (
                                     <div hidden={msg.sender._id === user._id}>
                                         <p className={`text-slate-500 text-sm`}>@{msg.sender.username}</p>
                                     </div>
                                 )}
 
-                                <div hidden={!msg.edited}>
+                                <div className=' w-full' hidden={!msg.edited}>
                                     <p className={`text-slate-500 text-sm ${msg.sender._id === user._id ? 'float-right' : ''}`}>edited</p>
                                 </div>
 
