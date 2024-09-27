@@ -15,6 +15,24 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  videoData: {
+    title: { 
+      type: String,
+      default: null 
+    },
+    ownerUsername: {
+      type: String,
+      default: null
+    },
+    avatar: {
+      type: String,
+      default: null 
+    },
+    thumbnail: {
+      type: String,
+      default: null 
+    }
+  },
   edited:{
   type:Boolean,
   default:false

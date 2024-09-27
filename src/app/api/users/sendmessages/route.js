@@ -4,6 +4,7 @@ import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import Pusher from 'pusher';
+import { log } from 'console';
 
 const pusher = new Pusher({
     appId: process.env.PUSHER_APP_ID,
@@ -24,23 +25,23 @@ export async function POST(request) {
     }
 
     try {
-        const { message, chatId, msgStatus } = await request.json();
+        const { message, chatId, msgStatus,videoData } = await request.json();
+        console.log("video data h ye",videoData);
+        
 
         await dbConnect();
 
         const sender = await User.findById(_user._id);
         const chat = await Chat.findById(chatId);
 
-
-        if (chat) {
-            // Handle group chat
-            let ab = chat.messages.push({ sender: _user._id, msgStatus, content: message });
+        const HandleGroupChat = async (chat, isLink) => {
+            let ab = chat.messages.push({ sender: _user._id, msgStatus, content: message ,videoData});
             await chat.save();
 
             // Notify all participants of the group chat
 
             let uniqueChatId = chat._id.toString()
-            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: _user._id, username: sender.username });
+            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: _user._id, username: sender.username,videoData });
 
 
             for (let participantId of chat.participants) {
@@ -59,7 +60,7 @@ export async function POST(request) {
                     } else {
                         // Add a new notification object if it doesn't exist
                         recipient.newMsgNotificationDot.push({
-                            Id:uniqueChatId ,
+                            Id: uniqueChatId,
                             count: 1
                         });
                     }
@@ -73,16 +74,17 @@ export async function POST(request) {
                     });
                 }
             }
+            if (!isLink) {
+                return {
+                    success: true,
+                    message: "Message sent successfully",
+                    msgId: chat.messages[ab - 1]._id,
+                }
+            }
+        }
 
-
-            return Response.json({
-                success: true,
-                message: "Message sent successfully to group",
-                msgId: chat.messages[ab - 1]._id,
-            }, { status: 200 });
-
-        } else {
-            const recipient = await User.findById(chatId);
+        const HandleIndivisualChat = async (chatid, isLink) => {
+            const recipient = await User.findById(chatid);
 
 
             let chat = await Chat.findOne({
@@ -94,7 +96,7 @@ export async function POST(request) {
             }
             // Trigger the Pusher event for real-time updates
             let uniqueChatId = chat._id.toString()
-            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: sender._id, username: sender.username });
+            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: sender._id, username: sender.username,videoData });
 
 
 
@@ -118,23 +120,53 @@ export async function POST(request) {
                 }
 
                 await recipient.save();
-                await pusher.trigger(`private-${chatId}`, 'newMsgNotificationDot', {
+                await pusher.trigger(`private-${chatid}`, 'newMsgNotificationDot', {
                     Id: sender._id
                 });
             }
 
 
-            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message });
+            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message,videoData });
             await chat.save();
 
-
-            return Response.json({
-                success: true,
-                message: "Message sent successfully",
-                msgId: chat.messages[ab - 1]._id,
-            }, { status: 200 });
+            if (!isLink) {
+                return {
+                    success: true,
+                    message: "Message sent successfully",
+                    msgId: chat.messages[ab - 1]._id,
+                }
+            }
 
         }
+
+        if (Array.isArray(chatId)) {
+            for (let val of chatId) {
+
+                const chat = await Chat.findById(val);
+
+                if (chat) {
+
+                    await HandleGroupChat(chat, true);
+                } else {
+
+                    await HandleIndivisualChat(val, true);
+                }
+            }
+            return Response.json({
+                success: true,
+                message: "Messages processed for all chatIds",
+            }, { status: 200 });
+        } else if (chat) {
+
+            const obj = await HandleGroupChat(chat, false);
+            return Response.json(obj, { status: 200 })
+        } else {
+
+            const obj = await HandleIndivisualChat(chatId, false);
+            return Response.json(obj, { status: 200 })
+        }
+
+
     } catch (error) {
         console.error("Error sending message:", error);
 

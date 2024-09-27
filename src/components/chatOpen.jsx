@@ -196,9 +196,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
-            const { message, msgSenderId, username } = data;
+            const { message, msgSenderId, username, videodata } = data;
             if (msgSenderId !== user._id) {
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, content: message, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, content: message, videodata, timestamp: new Date() }]);
             }
 
         });
@@ -431,87 +431,124 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                                 className={`relative flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
-                                <div
-                                    className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
-                                    style={{ maxWidth: '75%' }}
-                                >
-                                    {msg.sender._id === user._id && (
-                                        <div className='cursor-pointer absolute right-0' onClick={() => {
-                                            setUniqueIndexforUpdateMsgPopup(index)
-                                            setUpdateMsgPopup(!updateMsgPopup)
+                             
+                                <div className='flex flex-col'>
+                                  
+                                    {msg.videoData.title!==null && msg.videoData.title!== undefined && (
+                                        <>
+                                       
+                                            <div className='flex flex-col'>
+                                            <Image
+                                                src={msg.videoData.thumbnail}
+                                                alt="thumbnail"
+                                                width={50}
+                                                height={40}
+                                                className="rounded-t-lg"
+                                                style={{ objectFit: 'cover' }}
+                                            />
+                                            <div className='flex gap-2'>
+                                                <Image
+                                                    src={msg.videoData.avatar}
+                                                    alt="dp"
+                                                    width={30}
+                                                    height={30}
+                                                    className="rounded-full"
+                                                    style={{ objectFit: 'cover' }}
+                                                />
+                                                <p>{msg.videoData.ownerUsername}</p>
+                                            </div>
+                                            <h1>{msg.videoData.title}</h1>
+                                        </div>
+                                        </>
+                                   
+                                        
+                                    
+                                    )}
+                                    <div
+                                        className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'}`}
+                                        style={{ maxWidth: '75%' }}
+                                    >
+                                        {msg.sender._id === user._id && (
+                                            <div className='cursor-pointer absolute right-0' onClick={() => {
+                                                setUniqueIndexforUpdateMsgPopup(index)
+                                                setUpdateMsgPopup(!updateMsgPopup)
+                                            }
+                                            }><RxDotsVertical /></div>
+                                        )
                                         }
-                                        }><RxDotsVertical /></div>
-                                    )
-                                    }
-                                    {updateMsgPopup && index == uniqueIndexforUpdateMsgPopup && (
-                                        <div className='flex flex-col justify-center items-center text-black' ref={updateMsgref} style={{
-                                            position: 'absolute',
-                                            top: '25%',
-                                            right: '2%',
-                                            backgroundColor: 'white',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '5px',
-                                            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
-                                            zIndex: 1000,
-                                        }}>
-                                            {/* <Button variant="outline" onClick={() => deleteMsgForMe()}>
+                                        {updateMsgPopup && index == uniqueIndexforUpdateMsgPopup && (
+                                            <div className='flex flex-col justify-center items-center text-black' ref={updateMsgref} style={{
+                                                position: 'absolute',
+                                                top: '25%',
+                                                right: '2%',
+                                                backgroundColor: 'white',
+                                                border: '1px solid #ccc',
+                                                borderRadius: '5px',
+                                                boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
+                                                zIndex: 1000,
+                                            }}>
+                                                {/* <Button variant="outline" onClick={() => deleteMsgForMe()}>
                                                 Delete for you
                                             </Button> */}
-                                            <Button variant="outline" onClick={() => {
-                                                setUpdateMsgPopup(false)
-                                                setUserTyping(msg.content)
-                                                setEditedContent(msg.content)
-                                                setIsMsgEditableId(msg._id)
-                                            }}>
-                                                Edit Message
-                                            </Button>
+                                                <Button variant="outline" onClick={() => {
+                                                    setUpdateMsgPopup(false)
+                                                    setUserTyping(msg.content)
+                                                    setEditedContent(msg.content)
+                                                    setIsMsgEditableId(msg._id)
+                                                }}>
+                                                    Edit Message
+                                                </Button>
 
-                                            <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
-                                                Delete for both
-                                            </Button>
+                                                <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
+                                                    Delete for both
+                                                </Button>
 
-                                            <Button variant="outline" onClick={() => deleteMsgForMe(msg._id)}>
-                                                Delete for Me
-                                            </Button>
+                                                <Button variant="outline" onClick={() => deleteMsgForMe(msg._id)}>
+                                                    Delete for Me
+                                                </Button>
 
-                                        </div>
-                                    )}
-
-                                    <p className='break-words text-base mr-3'>{msg.content}</p>
-
-                                    <div className="flex items-center justify-end mt-1">
-                                        <span className="text-xs text-gray-400 mr-2">
-                                            {new Date(msg.timestamp).toLocaleTimeString()}
-                                        </span>
-                                        {msg.sender._id === user._id && (
-                                            <span className="flex items-center">
-
-                                                {msg.msgStatus === 'sent' && (
-                                                    <span className="text-slate-400">
-                                                        <TiTickOutline size={16} />
-                                                    </span>
-                                                )}
-                                                {msg.msgStatus === 'delivered' && (
-                                                    <span className="text-slate-400">
-                                                        <TiTickOutline size={16} />
-                                                        <TiTickOutline size={16} />
-                                                    </span>
-                                                )}
-                                                {msg.msgStatus === 'read' && (
-                                                    <span className="text-green-500">
-                                                        <TiTick size={16} />
-                                                        <TiTick size={16} />
-                                                    </span>
-                                                )}
-                                            </span>
+                                            </div>
                                         )}
 
+                                        <p className='break-words text-base mr-3'>{msg.content}</p>
 
+                                        <div className="flex items-center justify-end mt-1">
+                                            <span className="text-xs text-gray-400 mr-2">
+                                                {new Date(msg.timestamp).toLocaleTimeString()}
+                                            </span>
+                                            {msg.sender._id === user._id && (
+                                                <span className="flex items-center">
+
+                                                    {msg.msgStatus === 'sent' && (
+                                                        <span className="text-slate-400">
+                                                            <TiTickOutline size={16} />
+                                                        </span>
+                                                    )}
+                                                    {msg.msgStatus === 'delivered' && (
+                                                        <span className="text-slate-400">
+                                                            <TiTickOutline size={16} />
+                                                            <TiTickOutline size={16} />
+                                                        </span>
+                                                    )}
+                                                    {msg.msgStatus === 'read' && (
+                                                        <span className="text-green-500">
+                                                            <TiTick size={16} />
+                                                            <TiTick size={16} />
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            )}
+
+
+                                        </div>
+                                        {username == msg.sender.username && isGroup && (
+                                            <p className={`absolute text-green-500 top-1 right-2 text-[9px]`}>Ad</p>
+                                        )}
                                     </div>
-                                    {username == msg.sender.username && isGroup && (
-                                        <p className={`absolute text-green-500 top-1 right-2 text-[9px]`}>Ad</p>
-                                    )}
                                 </div>
+
+
+
                             </div>
                             <div className='flex gap-1'>
                                 {isGroup && (

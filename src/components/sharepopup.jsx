@@ -4,19 +4,24 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { IoClose } from "react-icons/io5";
 
-export function SharePopup({ videoId, onClose }) {
+
+export function SharePopup({ videoId, onClose ,videoData}) {
+    console.log("frontend pr videoData",videoData);
+    
     const [chats, setChats] = useState([])
     const [isFindingFrnds, setIsFindingFrnds] = useState(true)
+    const [isSendingLoading, setIsSendingLoading] = useState(false)
     const [toggleShareId, setToggleShareId] = useState([])
     const shareableLink = `${window.location.origin}/videoplay/${videoId}`;
+
 
     useEffect(() => {
         const getAllChats = async () => {
             try {
-               
+
                 let response = await axios.get("/api/users/getallchats")
                 const mergedChats = [...response.data.chatData, ...response.data.groupData];
-               
+
                 setChats(mergedChats);
 
             } catch (error) {
@@ -35,7 +40,18 @@ export function SharePopup({ videoId, onClose }) {
         alert("Link copied to clipboard!");
     };
 
-    const sendVideoLink = () => {
+    const sendVideoLink = async () => {
+        try {
+            setIsSendingLoading(true)
+            let response = await axios.post("/api/users/sendmessages", { message: shareableLink, chatId: toggleShareId, msgStatus: 'sent',videoData });
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsSendingLoading(false)
+            onClose(true)
+
+        }
+
 
     }
 
@@ -56,10 +72,10 @@ export function SharePopup({ videoId, onClose }) {
                     <div className="flex flex-col gap-2 overflow-y-auto max-h-[400px]" >
                         {
                             isFindingFrnds ? (
-                                <div className="w-full flex justify-center items-center h-8">
-                                     <Loader2 className="animate-spin text-blue-500" /> 
+                                <div className="w-full flex justify-center items-center h-10">
+                                    <Loader2 className="animate-spin text-blue-500" />
                                 </div>
-                              
+
                             ) : (
                                 chats.map((chat, index) => (
                                     <div key={index} className="flex justify-between p-4" onClick={() => {
@@ -106,9 +122,10 @@ export function SharePopup({ videoId, onClose }) {
 
                         }
                         }
+                        disabled={isSendingLoading}
                     >
                         {toggleShareId.length > 0
-                            ? "Send"
+                            ? isSendingLoading ? "Sending..." : "Send"
                             : " Copy Link "
                         }
 

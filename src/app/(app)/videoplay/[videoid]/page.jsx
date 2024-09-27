@@ -60,7 +60,7 @@ function Page() {
     const [editingReplyCommentId, setEditingReplyCommentId] = useState('')
     const [editedReplyContent, setEditedReplyContent] = useState('')
     const [commentReplytoReply, setCommentReplytoReply] = useState({ Id: "", username: "" })
-    const [showNotification, setShowNotification] = useState({ addComment: false, editComment: false, savePlaylist: { isDel: false, isAdd: false } });
+    const [showNotification, setShowNotification] = useState({ addComment: false, editComment: false, sentVideo: false, savePlaylist: { isDel: false, isAdd: false } });
     const [commentSearchTerm, setCommentSearchTerm] = useState("");
     const [filteredComments, setFilteredComments] = useState([])
     const [commentSerachHeading, setCommentSerachHeading] = useState("")
@@ -300,7 +300,11 @@ function Page() {
         }
     }
 
-    const closeSharePopup = () => {
+    const closeSharePopup = (isSent = false) => {
+
+        if (isSent == true) {
+            setShowNotification({ ...showNotification, sentVideo: true })
+        }
         setShowSharePopup(false);
     };
 
@@ -503,7 +507,7 @@ function Page() {
                                     <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
                                 </div>
 
-                                {showSharePopup && <SharePopup videoId={videoId} onClose={closeSharePopup} />}
+                                {showSharePopup && <SharePopup videoId={videoId} onClose={(isSent) => closeSharePopup(isSent)} videoData={{ title: videoData.title, ownerUsername: videoData.owner.username, avatar: videoData.owner.avatar, thumbnail: videoData.thumbnail }} />}
                                 {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
                             </div>
                             <div onClick={() => setCommentBox(true)} className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2 cursor-pointer'>
@@ -804,6 +808,13 @@ function Page() {
                 {showNotification.addComment && (
                     <Notification message={"Comment added"} onClose={() => setShowNotification({
                         ...showNotification, addComment
+                            : false
+                    })} />
+
+                )}
+                {showNotification.sentVideo && (
+                    <Notification message={"Sent"} onClose={() => setShowNotification({
+                        ...showNotification, sentVideo
                             : false
                     })} />
 
