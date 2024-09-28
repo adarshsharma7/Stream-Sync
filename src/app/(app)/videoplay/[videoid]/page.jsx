@@ -116,6 +116,7 @@ function Page() {
 
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
+              
                 setFilteredComments(videoResponse.data.data.comments)
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
                 setLikeCount(videoResponse.data.data.likes);
@@ -178,7 +179,7 @@ function Page() {
 
 
     useEffect(() => {
-        if (comments) {
+        if (comments && user) {
             const likedComments = comments.reduce((acc, comm) => {
                 if (comm.likes?.includes(user._id)) {
                     acc.push(comm._id);
@@ -195,7 +196,7 @@ function Page() {
         return () => {
             document.removeEventListener('click', handleClickOutside, true);
         };
-    }, [videoData])
+    }, [videoData,user])
 
 
 
@@ -385,9 +386,6 @@ function Page() {
 
         }
     };
-
-
-
 
 
 
@@ -736,13 +734,13 @@ function Page() {
                         </div>
                         <div>
 
-                            <CommentsDiv allComments={{ comments, setComments }} comments={replyArray} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
+                            <CommentsDiv allComments={{ comments, setComments }} comments={replyArray} setFilteredComments={setFilteredComments} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
 
                         </div>
 
 
                         <div className='ml-8 mt-4 max-h-[281px] overflow-y-auto'>
-                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form} user={user} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
+                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form}  setFilteredComments={setFilteredComments}  replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                         </div>
 
 

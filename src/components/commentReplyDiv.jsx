@@ -6,8 +6,9 @@ import axios from 'axios';
 import { useDebounceCallback } from '@react-hook/debounce';
 import { useUser } from '@/context/context';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
-function CommentReplyDiv({allComments, comments, user, replyContent, replyToReplyConntent, commentContent }) {
+function CommentReplyDiv({ allComments, comments, setFilteredComments, replyContent, replyToReplyConntent, commentContent }) {
 
   const { state, dispatch } = useUser()
 
@@ -19,6 +20,8 @@ function CommentReplyDiv({allComments, comments, user, replyContent, replyToRepl
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
 
 
+  const { data: session } = useSession();
+  const user = session?.user;
 
   let router = useRouter()
 
@@ -33,15 +36,18 @@ function CommentReplyDiv({allComments, comments, user, replyContent, replyToRepl
     }
   };
 
-useEffect(() => {
-  document.addEventListener('click', handleClickOutside, true);
-  return () => {
-    document.removeEventListener('click', handleClickOutside, true);
-  };
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+    };
 
-}, [commentReplyDeletePopup,delComPopup])
+  }, [commentReplyDeletePopup, delComPopup])
 
-
+  useEffect(() => {
+    // Automatically update filteredComments whenever allComments change
+    setFilteredComments(allComments.comments);
+  }, [allComments]);
 
   useEffect(() => {
     if (comments) {
@@ -54,7 +60,7 @@ useEffect(() => {
   //   // Find the specific comment by its ID in allComments.comments
   //   if(comments){
   //     const matchedComment = allComments.comments.find(comment => comment._id === comments._id);
-  
+
   //     if (matchedComment) {
   //       // Calculate liked replies for the matched comment's replies
   //       const replyLikedComments = matchedComment.replies.reduce((acc, reply) => {
@@ -64,14 +70,14 @@ useEffect(() => {
   //         return acc;
   //       }, []);
   //       setCommentReplyLikes(replyLikedComments);
-    
+
   //       // Perform any additional updates or operations on matchedComment
   //       // If necessary, update allComments state here (if you need to trigger a re-render)
   //     }
   //   }
-    
+
   // }, [comments, allComments]);
-  
+
 
 
 
@@ -79,7 +85,7 @@ useEffect(() => {
 
   useEffect(() => {
 
-    
+
     if (state.commentArray) {
       const replyLikedComments = state.commentArray.reduce((acc, comm) => {
         if (comm.likes?.includes(user._id)) {
@@ -89,9 +95,9 @@ useEffect(() => {
       }, []);
       setCommentReplyLikes(replyLikedComments);
 
-        
+
     }
-  
+
 
   }, [comments, state.commentArray])
 
@@ -104,7 +110,7 @@ useEffect(() => {
       );
 
       dispatch({ type: "UPDATE_COMMENT_REPLY", payload: updatedReplies });
-    
+
       allComments.setComments((prevComments) =>
         prevComments.map(comment => {
           if (comment._id === comments._id) {  // Replace comments[0]._id with the actual comment ID you're targeting
@@ -116,9 +122,7 @@ useEffect(() => {
           return comment;
         })
       );
-      
-       
-   
+
       let response = await axios.post("/api/videos/deletecommentreply", { commentReplyId, commentId: comments._id })
 
 
@@ -136,33 +140,33 @@ useEffect(() => {
       const currentCount = commentLikesCount[commentId] || initialLikeCount;
       if (commentReplyLikes.includes(commentId)) {
 
-allComments.setComments((prevComments) =>
-  prevComments.map((comment) => {
-    if (comment._id === comments._id) {
-      // Iterate through the replies of the matched comment
-      const updatedReplies = comment.replies.map((reply) => {
-        if (reply._id === commentId) { // Assuming you're targeting a specific reply
-          // Create a new likes array by filtering out the user._id
-          const newLikes = reply.likes.filter(like => like !== user._id);
-          
-          // Return the updated reply with the new likes array
-          return {
-            ...reply,
-            likes: newLikes,
-          };
-        }
-        return reply; // Return other replies unchanged
-      });
+        allComments.setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment._id === comments._id) {
+              // Iterate through the replies of the matched comment
+              const updatedReplies = comment.replies.map((reply) => {
+                if (reply._id === commentId) { // Assuming you're targeting a specific reply
+                  // Create a new likes array by filtering out the user._id
+                  const newLikes = reply.likes.filter(like => like !== user._id);
 
-      // Return the updated comment with the new replies array
-      return {
-        ...comment,
-        replies: updatedReplies,
-      };
-    }
-    return comment; // Return other comments unchanged
-  })
-);
+                  // Return the updated reply with the new likes array
+                  return {
+                    ...reply,
+                    likes: newLikes,
+                  };
+                }
+                return reply; // Return other replies unchanged
+              });
+
+              // Return the updated comment with the new replies array
+              return {
+                ...comment,
+                replies: updatedReplies,
+              };
+            }
+            return comment; // Return other comments unchanged
+          })
+        );
 
 
         const updatedCount = currentCount - 1;
@@ -184,7 +188,7 @@ allComments.setComments((prevComments) =>
                 if (reply._id === commentId) { // Assuming you're targeting a specific reply
                   // Create a new likes array and add the new like
                   const newLikes = [...reply.likes, user._id];
-                  
+
                   // Return the updated reply with the new likes array
                   return {
                     ...reply,
@@ -193,7 +197,7 @@ allComments.setComments((prevComments) =>
                 }
                 return reply; // Return other replies unchanged
               });
-        
+
               // Return the updated comment with the new replies array
               return {
                 ...comment,
@@ -203,7 +207,7 @@ allComments.setComments((prevComments) =>
             return comment; // Return other comments unchanged
           })
         );
-        
+
 
         setCommentReplyLikes(prevLikes => [...prevLikes, commentId]);
       }
@@ -219,18 +223,18 @@ allComments.setComments((prevComments) =>
 
   const handleCommentClick = (commentId) => {
     const clickedComment = state.commentArray.find(comment => comment._id === commentId);
-  
+
     if (clickedComment && clickedComment.replies && clickedComment.replies.length > 0) {
       const firstReplyIndex = state.commentArray.findIndex(comment => comment._id === clickedComment.replies[0]);
-  
+
       setHighlightedCommentId(`comment-${firstReplyIndex}`);
-  
+
       // Scroll to the comment
       document.getElementById(`comment-${firstReplyIndex}`)?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
-  
+
       // Remove the highlight after 3 seconds
       setTimeout(() => setHighlightedCommentId(null), 2000);
     }
@@ -292,7 +296,7 @@ allComments.setComments((prevComments) =>
               )}
             </div>
             <div className="mt-2">
-              <h2  onClick={() => handleCommentClick(videoComment._id)} className="text-base text-gray-700 break-words">{videoComment.content}</h2>
+              <h2 onClick={() => handleCommentClick(videoComment._id)} className="text-base text-gray-700 break-words">{videoComment.content}</h2>
             </div>
             <div className="flex mt-2 space-x-4 justify-between">
               <div className='flex gap-1'>

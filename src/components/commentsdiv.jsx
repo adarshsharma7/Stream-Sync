@@ -15,6 +15,7 @@ import { useUser } from '@/context/context';
 function CommentsDiv({
   allComments,
   comments,
+  setFilteredComments,
   UniqueComment,
   commentDelete,
   likeComment,
@@ -23,7 +24,7 @@ function CommentsDiv({
   loading,
   replyContent,
   replyToReplyConntent,
-  router={router}
+  router = { router }
 }) {
 
   const { state, dispatch } = useUser()
@@ -43,10 +44,10 @@ function CommentsDiv({
   const delComPopup = useRef(null);
 
   const handleClickOutside = (event) => {
-    if(delComPopup.current && !delComPopup.current.contains(event.target)){
+    if (delComPopup.current && !delComPopup.current.contains(event.target)) {
       setCommentDeletePopup(false)
     }
-    if (inputRef.current && !inputRef.current.contains(event.target) ) {
+    if (inputRef.current && !inputRef.current.contains(event.target)) {
       replyContent.setEditingReplyCommentId(null);
       replyContent.setEditedReplyContent("");
       replyContent.setCurrentReplyCommentContent();
@@ -54,7 +55,7 @@ function CommentsDiv({
       setEditedContent("");
       setCurrentCommentContent();
       replyToReplyConntent.setCommentReplytoReply({ Id: "", username: "" })
-     
+
     }
   };
   useEffect(() => {
@@ -65,6 +66,11 @@ function CommentsDiv({
       document.removeEventListener('click', handleClickOutside, true);
     };
   }, [focusComment]);
+
+  useEffect(() => {
+    // Automatically update filteredComments whenever allComments change
+    setFilteredComments(allComments.comments);
+  }, [allComments]);
 
 
   //   const replyForm = useForm({
@@ -79,48 +85,67 @@ function CommentsDiv({
   const saveEditedReplyComment = async () => {
     try {
       loading.setEditCommentLoading(true);
-  
+
       // Update the comment in state using setComments
       allComments.setComments((prevComments) =>
         prevComments.map((comment) =>
           comment._id === comments[0]._id
             ? {
-                ...comment,
-                replies: comment.replies.map((reply) =>
-                  reply._id === replyContent.editingReplyCommentId
-                    ? {
-                        ...reply,
-                        content: replyContent.editedReplyContent,
-                        edited: true,
-                        updatedAt: new Date(),
-                      }
-                    : reply
-                ),
-              }
+              ...comment,
+              replies: comment.replies.map((reply) =>
+                reply._id === replyContent.editingReplyCommentId
+                  ? {
+                    ...reply,
+                    content: replyContent.editedReplyContent,
+                    edited: true,
+                    updatedAt: new Date(),
+                  }
+                  : reply
+              ),
+            }
             : comment // Return the original comment if the ID doesn't match
         )
       );
-  
+     setFilteredComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === comments[0]._id
+            ? {
+              ...comment,
+              replies: comment.replies.map((reply) =>
+                reply._id === replyContent.editingReplyCommentId
+                  ? {
+                    ...reply,
+                    content: replyContent.editedReplyContent,
+                    edited: true,
+                    updatedAt: new Date(),
+                  }
+                  : reply
+              ),
+            }
+            : comment // Return the original comment if the ID doesn't match
+        )
+      );
+
       dispatch({
         type: "UPDATE_COMMENT_REPLY",
         payload: state.commentArray.map((comment) =>
           comment._id === replyContent.editingReplyCommentId
             ? {
-                ...comment,
-                content: replyContent.editedReplyContent,
-                edited: true,
-                updatedAt: new Date(),
-              }
+              ...comment,
+              content: replyContent.editedReplyContent,
+              edited: true,
+              updatedAt: new Date(),
+            }
             : comment
         ),
       });
-  
+
       // Make the API call to update the comment on the server
       await axios.post("/api/videos/updatereplycomment", {
         content: replyContent.editedReplyContent,
         commentreplyId: replyContent.editingReplyCommentId,
       });
-  
+
       // Clear the editing state
       replyContent.setEditingReplyCommentId(null);
       replyContent.setEditedReplyContent("");
@@ -130,7 +155,7 @@ function CommentsDiv({
       loading.setEditCommentLoading(false);
     }
   };
-  
+
 
 
   const sendReplyComment = async (data, repliedId) => {
@@ -158,10 +183,10 @@ function CommentsDiv({
         }
       };
 
-       //this is for updateing instantly the length of comments reply in main comment section
+      //this is for updating instantly the length of comments reply in main comment section
       allComments.setComments((prevComments) =>
         prevComments.map(comment => {
-          if (comment._id === comments[0]._id) {  // Replace comments[0]._id with the actual comment ID you're targeting
+          if (comment._id === comments[0]._id) { 
             // Update the replies array
             return {
               ...comment,
@@ -171,7 +196,8 @@ function CommentsDiv({
           return comment;
         })
       );
-//this for adding new reply and showing instantly on a reply comment
+    
+      //this for adding new reply and showing instantly on a reply comment
       dispatch({ type: "UPDATE_COMMENT_REPLY", payload: [...state.commentArray, newCommentReply] });
       replyToReplyConntent?.setCommentReplytoReply({ Id: "", username: "" })
     } catch (error) {
@@ -203,7 +229,7 @@ function CommentsDiv({
                   <p onClick={() => {
                     UniqueComment.setUniqueComment(index);
                     setCommentDeletePopup(true)
-                    
+
                   }}>{<RxDotsVertical />}</p>
                 )}
               </div>
@@ -304,7 +330,7 @@ function CommentsDiv({
 
                           type='text'
 
-                          placeholder={replyContent.editingReplyCommentId ? 'Edit your reply...' :  replyToReplyConntent.commentReplytoReply.username ? 'Reply to this... ' : 'Add your reply...'}
+                          placeholder={replyContent.editingReplyCommentId ? 'Edit your reply...' : replyToReplyConntent.commentReplytoReply.username ? 'Reply to this... ' : 'Add your reply...'}
 
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500"
                           {...field}
