@@ -39,6 +39,7 @@ function Page() {
     const [groupPopup, setGroupPopup] = useState(false);
     const [addMemberToGroup, setAddMemberToGroup] = useState([]);
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+    const [findingChat, setFindingChat] = useState(false);
 
 
     const searchRef = useRef(null);
@@ -119,6 +120,7 @@ function Page() {
         };
         const getAllChats = async () => {
             try {
+                setFindingChat(true)
                 let response = await axios.get("/api/users/getallchats")
                 const mergedChats = [...response.data.chatData, ...response.data.groupData];
 
@@ -127,6 +129,8 @@ function Page() {
             } catch (error) {
                 console.log(error);
 
+            }finally{
+                setFindingChat(false)
             }
 
         }
@@ -574,7 +578,7 @@ function Page() {
                                     craeteGroup()
                                 }}>
                                     {isCreatingGroup ? "Creating Group" : " Create Group"}
-                                    {isCreatingGroup && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {isCreatingGroup && <Loader2 className="h-4 w-4 animate-spin" />}
 
                                 </Button>
 
@@ -590,7 +594,16 @@ function Page() {
             <div className='w-full h-full md:flex border border-gray-300'>
                 {/* Chat List */}
                 <div className='md:w-1/3 h-full border-r border-gray-300 bg-gray-50 flex flex-col gap-2 overflow-y-auto p-4'>
-                    {chats?.length > 0 ? chats.map((chat, index) => (
+                    {findingChat ? (  
+                        <div className='flex justify-center items-center h-full text-blue-600'>
+                           <Loader2 className="h-6 w-6 animate-spin" />
+                        </div>
+                        ) : chats?.length == 0 ? (
+                        <div className='flex flex-col justify-center items-center h-full text-gray-600'>
+                           <h1>No Chats</h1> 
+                           <h3 className='text-gray-500'>(search for add friends)</h3> 
+                        </div>
+                    ) : chats.map((chat, index) => (
                         //for Group
                         chat.members ? (
                             <div key={index} onClick={() => {
@@ -651,8 +664,8 @@ function Page() {
                                 }}
                                 key={index}
                                 className={`flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-200
-                ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
-                border`}
+                                ${chatOpen._id === chat._id ? "bg-blue-200 border-blue-400" : "bg-white border-gray-200 hover:bg-gray-100"} 
+                                  border`}
                             >
                                 <div className='flex items-center gap-3'>
                                     <div className='h-12 w-12 rounded-full overflow-hidden relative'>
@@ -679,11 +692,9 @@ function Page() {
                                 }
                             </div>
                         )
-                    )) : (
-                        <div className='flex justify-center items-center h-full text-gray-600'>
-                            No Chats
-                        </div>
-                    )}
+                    ))
+
+                    }
                 </div>
 
 
