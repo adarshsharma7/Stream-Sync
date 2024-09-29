@@ -294,11 +294,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
     const removeFrnd = async (deleteGroup) => {
         try {
+          
             let response = await axios.post("/api/users/deletefrnd", { chatId, deleteGroup })
             if (!isGroup) {
                 setChatFrndIds((prev) => prev.filter((prevVal) => prevVal !== chatId))
             }
             let updatedChat = [...response.data.chatData, ...response.data.groupData]
+            console.log("updatedChat",updatedChat);
+            
             setChats(updatedChat)
             setIsChatOpen(false)
 
@@ -405,7 +408,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                             <Button variant="outline"
                                 onClick={() => {
                                     setRemoveFrndLoading(true)
-                                    removeFrnd({ deleteGroup: isGroup && user.username === username })
+                                    removeFrnd( isGroup && user.username === username ? true : false )
                                 }}
                                 disabled={removeFrndLoading}
                                 className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"

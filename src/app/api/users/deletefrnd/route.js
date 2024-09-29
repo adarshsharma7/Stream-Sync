@@ -28,11 +28,38 @@ export async function POST(request) {
     try {
         await dbConnect();
         const { chatId, deleteGroup } = await request.json()
+
         let recipent = await User.findById(chatId)
         let user = await User.findById(_user._id)
 
         const isChat = await Chat.findById(chatId);
+
+        // Function to get chat friends data
+        async function getChatFriends() {
+            try {
+                const frnd = await User.findById(_user._id)
+                    .select('chatfrnd group')  // Select only the 'chatfrnd' field from the user document
+                    .populate({
+                        path: 'chatfrnd',  // Populate 'chatfrnd' from the 'users' collection
+                        select: '_id username avatar status',  // Project only the necessary fields
+                    });
+
+                // Return chatData from the populated field
+                return {
+                    chatfrnd: frnd.chatfrnd,
+                    group: frnd.group
+                };
+            } catch (error) {
+                // Handle error if something goes wrong
+                console.error('Error fetching chat friends:', error);
+                throw new Error('Unable to fetch chat friends');
+            }
+        }
+
+
+
         if (deleteGroup) {
+
             await User.updateOne({ _id: user._id }, { $pull: { group: { groupId: isChat._id } } }, { new: true });
             const participantUpdates = isChat.participants.map(async (participantId) => {
                 const recipient = await User.findById(participantId);
@@ -50,9 +77,9 @@ export async function POST(request) {
             await Promise.all(participantUpdates);
 
             await Chat.findByIdAndDelete(chatId);
-            let updatedUser = await User.findById(_user._id)
 
 
+            const updatedUser = await getChatFriends()
             return Response.json({
                 success: true,
                 message: "done",
@@ -62,7 +89,7 @@ export async function POST(request) {
 
         }
 
-        else if (isChat) {
+        else if (isChat && isChat.isGroupChat) {
             let uniqueChatId = isChat._id.toString();
 
             // Remove the user from the chat participants list
@@ -87,7 +114,8 @@ export async function POST(request) {
             });
 
             await Promise.all(participantUpdates); // Wait for all updates to complete
-            let updatedUser = await User.findById(_user._id)
+            const updatedUser = await getChatFriends()
+
             return Response.json({
                 success: true,
                 message: "done",
@@ -101,6 +129,8 @@ export async function POST(request) {
 
             await User.updateOne({ _id: recipent._id }, { $pull: { chatfrnd: user._id } })
             await User.updateOne({ _id: user._id }, { $pull: { chatfrnd: recipent._id } }, { new: true })
+            await Chat.findByIdAndDelete(chatId);
+
 
 
 
@@ -117,7 +147,7 @@ export async function POST(request) {
 
             });
 
-            let updatedUser = await User.findById(_user._id)
+            const updatedUser = await getChatFriends();
             return Response.json({
                 success: true,
                 message: "done",

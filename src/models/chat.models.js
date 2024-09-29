@@ -41,6 +41,10 @@ const messageSchema = new mongoose.Schema({
   type:Boolean,
   default:false
   },
+  replies:{
+    type: String,
+    default: null 
+  },
   timestamp: { type: Date, default: Date.now }
 });
 
