@@ -38,6 +38,7 @@ function Page() {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [groupPopup, setGroupPopup] = useState(false);
     const [addMemberToGroup, setAddMemberToGroup] = useState([]);
+    const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
 
     const searchRef = useRef(null);
@@ -265,26 +266,26 @@ function Page() {
         });
 
         requestChannel.bind("removeFrnd", function (data) {
-            const { notificationId, username, avatar, Id, isDot, removeGroupFrndId,removeFrndId,deleteGroup } = data
-            if(deleteGroup){
-                setChats((prev)=>prev.filter((obj)=>obj.groupId!==removeGroupFrndId))
+            const { notificationId, username, avatar, Id, isDot, removeGroupFrndId, removeFrndId, deleteGroup } = data
+            if (deleteGroup) {
+                setChats((prev) => prev.filter((obj) => obj.groupId !== removeGroupFrndId))
                 setIsChatOpen(false)
             }
             if (removeGroupFrndId && removeFrndId) {
                 setChats((prev) =>
                     prev.map((obj) => {
-                      if (obj.groupId === removeGroupFrndId) {
-                        return {
-                          ...obj, // Spread the existing object properties
-                          members: obj.members.filter((member) => member !== removeFrndId), // Filter out the removeFrndId from members
-                        };
-                      }
-                      return obj; // Return the object as is if groupId doesn't match
+                        if (obj.groupId === removeGroupFrndId) {
+                            return {
+                                ...obj, // Spread the existing object properties
+                                members: obj.members.filter((member) => member !== removeFrndId), // Filter out the removeFrndId from members
+                            };
+                        }
+                        return obj; // Return the object as is if groupId doesn't match
                     })
-                  );
+                );
                 setIsChatOpen(false)
 
-                    
+
             } else {
                 setNotifications((prevNotification) => [...prevNotification, { _id: notificationId, msg: "remove", owner: { avatar, username } }
                 ]);
@@ -308,7 +309,7 @@ function Page() {
         requestChannel.bind("newGroup", function (data) {
             if (data._id !== user._id) {
 
-               setChats((prev) => [...prev, data])
+                setChats((prev) => [...prev, data])
             }
 
         });
@@ -396,6 +397,7 @@ function Page() {
 
     const craeteGroup = async () => {
         try {
+            setIsCreatingGroup(true)
 
             let response = await axios.post("/api/users/creategroup", { users: addMemberToGroup })
 
@@ -407,10 +409,14 @@ function Page() {
                 groupId: response.data.groupId,
                 members: addMemberToGroup
             }])
+            setGroupPopup(false)
+            setAddMemberToGroup([])
 
         } catch (error) {
             console.log("kuch galt hua", error);
 
+        } finally {
+            setIsCreatingGroup(false)
         }
     }
 
@@ -563,11 +569,13 @@ function Page() {
                                     )}
                                 </div>
 
-                                <Button disabled={addMemberToGroup.length < 2} onClick={() => {
+                                <Button disabled={addMemberToGroup.length < 2 || isCreatingGroup} onClick={() => {
                                     setAddMemberToGroup((prev) => [...prev, user._id])
                                     craeteGroup()
                                 }}>
-                                    Create Group
+                                    {isCreatingGroup ? "Creating Group" : " Create Group"}
+                                    {isCreatingGroup && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+
                                 </Button>
 
 
@@ -575,7 +583,7 @@ function Page() {
                         </div>
                     )}
 
-                    
+
                 </div>
             </div>
 
