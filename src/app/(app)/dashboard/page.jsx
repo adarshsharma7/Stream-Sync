@@ -125,6 +125,7 @@ function Page() {
 
 
         if (response.data.data?.subscriptions.length > 0) {
+
           const filtered = response.data.data.subscriptions
             .filter(sub => sub.stories.length > 0)
             .map(sub => ({
@@ -133,14 +134,17 @@ function Page() {
               avatar: sub.avatar,
               stories: sub.stories
             }));
+          // console.log("filtereddd", filtered);
           if (filtered.length === 0) {
             setNoStoryMsg("No stories");
           }
           setStories(filtered);
-          console.log("ye hai filtered", filtered);
+        } else {
+          setNoStoryMsg("No subscriptions yet (Subscribe to see their stories)");
         }
       } catch (error) {
         console.log("Error fetching stories:", error);
+        setNoStoryMsg("Error fetching stories");
       }
     };
 
@@ -402,7 +406,7 @@ function Page() {
       {/* Video List */}
       <div className='flex-1 overflow-y-auto p-4 '>
 
-        <div  className={`storiesBox ${searchTerm!=='' ? "hidden" : "flex"} w-full h-[80px] border-2 border-gray-300 rounded-lg gap-4 mb-4 items-center px-2 py-2 bg-white shadow-md`}>
+        <div className={`storiesBox ${searchTerm !== '' ? "hidden" : "flex"} w-full h-[80px] border-2 border-gray-300 rounded-lg gap-4 mb-4 items-center px-2 py-2 bg-white shadow-md`}>
 
           <div className='flex items-center justify-center relative'>
             <div
