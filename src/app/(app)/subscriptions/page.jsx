@@ -54,37 +54,44 @@ function Page() {
 
             {/* Top Section: Subscribed Users */}
             <div className='flex gap-6 w-full h-[120px] overflow-x-auto border-b-2 border-gray-300 pb-4'>
-                {subscriptionsUser.length > 0 ? subscriptionsUser.map((user) => user.subscriptions.map((user, index) => (
-                    <div
-                        onClick={() => router.push(`/subscriptionprofile/${user.username}`)}
-                        key={index}
-                        className='cursor-pointer flex flex-col items-center'
-                    >
-                        <div className='w-12 h-12 rounded-full border-2 border-red-600 overflow-hidden flex justify-center items-center'>
-                            {user.avatar ? (
-                                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                                <Skeleton className="w-full h-full bg-slate-400" />
-                            )}
-                        </div>
-                        <div className='text-center text-sm mt-1'>
-                            {user.username ? (
-                                <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{user.username}</p>
-                            ) : (
-                                <Skeleton className="w-20 h-4 bg-slate-300" />
-                            )}
-                        </div>
-                    </div>
-                ))) : (
-
+                {subscriptionsUser.length > 0 ? (
+                    subscriptionsUser.map((user) =>
+                        user.subscriptions.length === 0 ? (
+                            <h1 key={user.id}>No Subscription</h1>
+                        ) : (
+                            user.subscriptions.map((subscription, index) => (
+                                <div
+                                    onClick={() => router.push(`/subscriptionprofile/${subscription.username}`)}
+                                    key={index}
+                                    className='cursor-pointer flex flex-col items-center'
+                                >
+                                    <div className='w-12 h-12 rounded-full border-2 border-red-600 overflow-hidden flex justify-center items-center'>
+                                        {subscription.avatar ? (
+                                            <img src={subscription.avatar} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Skeleton className="w-full h-full bg-slate-400" />
+                                        )}
+                                    </div>
+                                    <div className='text-center text-sm mt-1'>
+                                        {subscription.username ? (
+                                            <p className='text-gray-700 text-ellipsis overflow-hidden whitespace-nowrap'>{subscription.username}</p>
+                                        ) : (
+                                            <Skeleton className="w-20 h-4 bg-slate-300" />
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )
+                    )
+                ) : (
                     <div className='cursor-pointer flex flex-col items-center'>
                         <div className='w-12 h-12 rounded-full border-2 overflow-hidden flex justify-center items-center'>
                             <Skeleton className="w-full h-full bg-slate-400" />
                         </div>
                         <Skeleton className="w-20 h-4 mt-1 bg-slate-300" />
                     </div>
-
                 )}
+
             </div>
 
             {/* Bottom Section: Videos from Subscriptions */}
