@@ -3,22 +3,22 @@ import mongoose from 'mongoose';
 const messageSchema = new mongoose.Schema({
   sender: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
+    ref: 'User',
     required: true
   },
-  msgStatus:{
+  msgStatus: {
     type: String,
     required: true,
-    enum: ['read', 'delivered','sent']
+    enum: ['read', 'delivered', 'sent']
   },
   content: {
     type: String,
     required: true
   },
   videoData: {
-    title: { 
+    title: {
       type: String,
-      default: null 
+      default: null
     },
     ownerUsername: {
       type: String,
@@ -26,24 +26,34 @@ const messageSchema = new mongoose.Schema({
     },
     avatar: {
       type: String,
-      default: null 
+      default: null
     },
     thumbnail: {
       type: String,
-      default: null 
+      default: null
     }
   },
-  edited:{
-  type:Boolean,
-  default:false
+  repliedContent: {
+    msgId: {
+      type: String,
+      default: ''
+    },
+    content: {
+      type: String,
+      default: ''
+    }
   },
-  delForMe:{
-  type:Boolean,
-  default:false
+  edited: {
+    type: Boolean,
+    default: false
   },
-  replies:{
+  delForMe: {
+    type: Boolean,
+    default: false
+  },
+  replies: {
     type: String,
-    default: null 
+    default: null
   },
   timestamp: { type: Date, default: Date.now }
 });

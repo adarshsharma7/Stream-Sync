@@ -39,6 +39,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     const [uniqueChatId, setUniqueChatId] = useState('');
     const [inChat, setInChat] = useState(false);
     const [isGroup, setIsGroup] = useState(true);
+    const [replyMsg, setReplyMsg] = useState({ msgId: '', content: '' });
+    const [highlightedReplyId, setHighlightedReplyId] = useState(null);
 
     // let debounceTyping=useDebounceCallback(setUserTyping,2000)
 
@@ -55,6 +57,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
     const removeFrndPopupRef = useRef(null)
     const chatContainerRef = useRef(null);
     const updateMsgref = useRef(null);
+    const replyMsgRef = useRef(null);
 
     // Scroll to the bottom when the chat opens or when new messages are added
     useEffect(() => {
@@ -70,6 +73,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         ) {
             setUpdateMsgPopup(false)
             setRemoveFrndPopup(false);
+
+        }
+        if ((replyMsgRef.current && !replyMsgRef.current.contains(event.target))) {
+            setReplyMsg({
+                msgId: '',
+                content: ''
+            })
         }
     };
     useEffect(() => {
@@ -196,9 +206,9 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
-            const { message, msgSenderId, username, videodata } = data;
+            const { message, msgSenderId, username, videodata, replyMsg } = data;
             if (msgSenderId !== user._id) {
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, content: message, videodata, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, repliedContent: replyMsg, content: message, videodata, timestamp: new Date() }]);
             }
 
         });
@@ -275,9 +285,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
             // Add the sent message to the messages array
-            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', content: userTyping, timestamp: new Date() }]);
+            setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', repliedContent: { msgId: replyMsg.msgId, content: replyMsg.content }, content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
-            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
+            let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, replyMsg, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
+
+            setReplyMsg({
+                msgId: '',
+                content: ''
+            })
 
             setMessages((prevMessages) =>
                 prevMessages.map(msg =>
@@ -294,14 +309,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
     const removeFrnd = async (deleteGroup) => {
         try {
-          
+
             let response = await axios.post("/api/users/deletefrnd", { chatId, deleteGroup })
             if (!isGroup) {
                 setChatFrndIds((prev) => prev.filter((prevVal) => prevVal !== chatId))
             }
             let updatedChat = [...response.data.chatData, ...response.data.groupData]
-            console.log("updatedChat",updatedChat);
-            
+            console.log("updatedChat", updatedChat);
+
             setChats(updatedChat)
             setIsChatOpen(false)
 
@@ -353,6 +368,27 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
     }
 
+
+    const handleReplyMsgClick = (replyId) => {
+
+
+        const clickedReply = messages.find(reply => reply._id === replyId);
+
+        if (clickedReply && clickedReply.repliedContent.msgId !== '') {
+            const firstReplyIndex = messages.findIndex(reply => reply._id === clickedReply.repliedContent.msgId);
+
+            setHighlightedReplyId(`reply-${firstReplyIndex}`);
+            console.log("firstReplyIndex", firstReplyIndex);
+            // Scroll to the comment
+            document.getElementById(`reply-${firstReplyIndex}`)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Remove the highlight after 3 seconds
+            setTimeout(() => setHighlightedReplyId(null), 2000);
+        }
+    };
     return (
         <div className="flex flex-col h-full w-full bg-gray-900 text-gray-100 shadow-lg rounded-lg">
             {/* Header */}
@@ -408,7 +444,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                             <Button variant="outline"
                                 onClick={() => {
                                     setRemoveFrndLoading(true)
-                                    removeFrnd( isGroup && user.username === username ? true : false )
+                                    removeFrnd(isGroup && user.username === username ? true : false)
                                 }}
                                 disabled={removeFrndLoading}
                                 className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg"
@@ -435,14 +471,21 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                     <div className="text-center text-red-400">{error}</div>
                 ) : (
                     messages.map((msg, index) => (
-                        <div key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2 `}>
+                        <div id={`reply-${index}`} key={index} className={`${msg.sender._id === user._id && msg.delForMe ? "hidden" : ''} flex flex-col mb-2   ${highlightedReplyId === `reply-${index}` ? 'bg-yellow-200' : ''}`}>
+
                             <div
 
                                 className={`relative flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}
                             >
 
-                                <div className='flex flex-col border-2 border-slate-500 rounded-lg max-w-[50%]'>
-
+                                <div className={`flex flex-col border-2 border-slate-500 rounded-lg max-w-[50%]`}>
+                                    {
+                                        msg.repliedContent.content && (
+                                            <div onClick={() => handleReplyMsgClick(msg._id)} className='cursor-pointer text-sm text-ellipsis break-words'>
+                                                <p>{msg.repliedContent.content}</p>
+                                            </div>
+                                        )
+                                    }
                                     {msg.videoData?.title !== null && msg.videoData?.title !== undefined && (
                                         <div className='flex flex-col rounded-lg overflow-hidden shadow-lg'>
                                             {/* Video Thumbnail */}
@@ -484,14 +527,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                         className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100 '}`}
 
                                     >
-                                        {msg.sender._id === user._id && (
+                                     
                                             <div className='cursor-pointer absolute right-0' onClick={() => {
                                                 setUniqueIndexforUpdateMsgPopup(index)
                                                 setUpdateMsgPopup(!updateMsgPopup)
                                             }
                                             }><RxDotsVertical /></div>
-                                        )
-                                        }
+                                      
                                         {updateMsgPopup && index == uniqueIndexforUpdateMsgPopup && (
                                             <div className='flex flex-col justify-center items-center text-black' ref={updateMsgref} style={{
                                                 position: 'absolute',
@@ -506,22 +548,39 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                                 {/* <Button variant="outline" onClick={() => deleteMsgForMe()}>
                                                 Delete for you
                                             </Button> */}
+
                                                 <Button variant="outline" onClick={() => {
-                                                    setUpdateMsgPopup(false)
-                                                    setUserTyping(msg.content)
-                                                    setEditedContent(msg.content)
-                                                    setIsMsgEditableId(msg._id)
+                                                    setReplyMsg({
+                                                        msgId: msg._id,
+                                                        content: msg.content
+                                                    })
                                                 }}>
-                                                    Edit Message
+                                                    Reply
                                                 </Button>
+                                                {msg.sender._id === user._id  && (<>
+                                                    <Button variant="outline" onClick={() => {
+                                                        setUpdateMsgPopup(false)
+                                                        setUserTyping(msg.content)
+                                                        setEditedContent(msg.content)
+                                                        setIsMsgEditableId(msg._id)
+                                                    }}>
+                                                        Edit Message
+                                                    </Button>
 
-                                                <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
-                                                    Delete for both
-                                                </Button>
+                                                    <Button variant="outline" onClick={() => deleteMsgForBoth(msg._id)}>
+                                                        Delete for both
+                                                    </Button>
 
-                                                <Button variant="outline" onClick={() => deleteMsgForMe(msg._id)}>
-                                                    Delete for Me
-                                                </Button>
+                                                    <Button variant="outline" onClick={() => deleteMsgForMe(msg._id)}>
+                                                        Delete for Me
+                                                    </Button>
+                                                </>
+
+                                                )
+
+                                                }
+
+
 
                                             </div>
                                         )}
@@ -594,7 +653,14 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
             {/* Input */}
-            <div className="p-3 md:mb-24 bg-gray-800 border-t border-gray-700">
+            <div ref={replyMsgRef} className="p-3 md:mb-24 bg-gray-800 border-t border-gray-700">
+
+                {replyMsg.msgId &&
+                    <div className='break-words text-ellipsis text-sm bg-gray-500'>
+                        <p>{replyMsg.content}</p>
+                    </div>
+                }
+
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(async (data) => {
 

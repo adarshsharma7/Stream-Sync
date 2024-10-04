@@ -25,9 +25,10 @@ export async function POST(request) {
     }
 
     try {
-        const { message, chatId, msgStatus,videoData } = await request.json();
-        console.log("video data h ye",videoData);
+        const { message, replyMsg, chatId, msgStatus, videoData } = await request.json();
+        console.log("replyMsg",replyMsg);
         
+
 
         await dbConnect();
 
@@ -35,13 +36,13 @@ export async function POST(request) {
         const chat = await Chat.findById(chatId);
 
         const HandleGroupChat = async (chat, isLink) => {
-            let ab = chat.messages.push({ sender: _user._id, msgStatus, content: message ,videoData});
+            let ab = chat.messages.push({ sender: _user._id, msgStatus, content: message, videoData, repliedContent:replyMsg });
             await chat.save();
 
             // Notify all participants of the group chat
 
             let uniqueChatId = chat._id.toString()
-            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: _user._id, username: sender.username,videoData });
+            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: _user._id, username: sender.username, videoData, replyMsg });
 
 
             for (let participantId of chat.participants) {
@@ -96,7 +97,7 @@ export async function POST(request) {
             }
             // Trigger the Pusher event for real-time updates
             let uniqueChatId = chat._id.toString()
-            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: sender._id, username: sender.username,videoData });
+            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: sender._id, username: sender.username, videoData, replyMsg });
 
 
 
@@ -126,7 +127,7 @@ export async function POST(request) {
             }
 
 
-            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message,videoData });
+            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message, videoData, repliedContent:replyMsg });
             await chat.save();
 
             if (!isLink) {
