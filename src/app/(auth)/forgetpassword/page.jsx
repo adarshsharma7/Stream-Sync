@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router'; // Next.js router
 import axios from 'axios'; 
