@@ -3,6 +3,9 @@ import { dbConnect } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
 import { usernameSchemaType } from "@/Schemas/signUpSchemas";
 
+export const config = {
+  runtime: 'edge', // Use 'edge' runtime for dynamic server usage
+};
 
 export async function GET(request:Request){
     await dbConnect()
