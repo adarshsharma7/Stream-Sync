@@ -4,7 +4,7 @@ import User from '@/models/userModel';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/options";
 import Pusher from 'pusher';
-import { log } from 'console';
+
 
 const pusher = new Pusher({
     appId: process.env.PUSHER_APP_ID,

@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 export { default } from 'next-auth/middleware';
 
 export const config = {
-   matcher: ['/dashboard/:path*', '/sign-in', '/sign-up', '/', '/verify/:path*','/profile','/liked-videos','/subscriptionprofile/:path*','/videoplay/:path*','/watch-history','/watch-later','/subscriptions','/upload','/uploaded-videos'],
+   matcher: ['/dashboard/:path*', '/sign-in', '/sign-up', '/', '/verify/:path*','/profile','/liked-videos','/subscriptionprofile/:path*','/videoplay/:path*','/watch-history','/watch-later','/subscriptions','/upload','/uploaded-videos','/forgetpassword'],
  
 };
 

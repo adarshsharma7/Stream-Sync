@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide a password"],
   },
+  forgetPasswordToken: {
+    type: String,
+    default:null
+  },
+  forgetPasswordTokenExpiry: {
+    type: Date,
+    default:null
+  },
   stories: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Stories"
@@ -66,14 +74,14 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
   },
-  group:[
+  group: [
     {
       avatar: String,
-      username:String,
+      username: String,
       _id: String,
-      groupId:{
-        type:mongoose.Schema.Types.ObjectId,
-         ref: "Chat"
+      groupId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat"
       },
       members: []
     }

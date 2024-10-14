@@ -89,7 +89,7 @@ export default function SignUpForm() {
 
 
       setIsSubmitting(true);
-      console.log(data.avatar);
+      // console.log(data.avatar);
 
       //  const avatarBase64 = await fileToBase64(data.avatar[0]);
 

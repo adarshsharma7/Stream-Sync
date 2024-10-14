@@ -63,11 +63,12 @@ export async function POST(request) {
             if (!chat) {
                 return Response.json({
                     success: true,
-                    message: "no message found for wdit message"
+                    message: "no message found for edit message"
                 }, { status: 400 });
             }
             let uniqueChatId = chat._id.toString()
             // Trigger the Pusher event for real-time updates
+         
             await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });
             const updatedMessages = chat.messages.map((message) => {
                 if (message._id.toString() == msgId.toString()) {

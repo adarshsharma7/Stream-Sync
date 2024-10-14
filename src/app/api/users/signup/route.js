@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { uploadOnCloudinary } from '@/utils/cloudinary';
 import { NextResponse } from 'next/server';
 
+
 export async function POST(request) {
   await dbConnect();
   

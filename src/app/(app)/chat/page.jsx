@@ -731,7 +731,7 @@ function Page() {
             </div>
 
 
-            {
+            { 
                 suggestions && (
                     <div ref={searchPopupef} className='absolute top-14 w-full max-h-[300px] border border-gray-300 rounded-lg bg-white shadow-lg overflow-y-auto p-3'>
                         {usernameFetchingMessage ? (

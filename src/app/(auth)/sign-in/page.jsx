@@ -20,9 +20,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { signInValidation } from '@/Schemas/sign-inSchemas';
+import axios from 'axios';
 
 export default function SignInForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [credential, setCredential] = useState('');
+  const [forgetPassLoading, setForgetPassLoading] = useState(false);
 
   const router = useRouter();
 
@@ -66,6 +69,24 @@ export default function SignInForm() {
     }
   };
 
+const forgetPassword=async()=>{
+  try {
+    setForgetPassLoading(true)
+    const response=await axios.post('api/users/forgetPassword',{credential})
+    if(response.data.success){
+      toast({
+        title: 'Success',
+        description: response.data.message,
+   });
+    }
+  } catch (error) {
+    
+  }finally{
+    setForgetPassLoading(false)
+  }
+}
+
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-white">
     <div className="w-full max-w-sm p-8 space-y-6 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
@@ -83,6 +104,8 @@ export default function SignInForm() {
                 <FormLabel className="text-sm text-gray-700">Email/Username</FormLabel>
                 <Input
                   {...field}
+                  value={credential}
+                  onChange={(e)=>{setCredential(e.target.value)}}
                   placeholder="Enter your email or username"
                   className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
                 />
@@ -106,6 +129,12 @@ export default function SignInForm() {
               </FormItem>
             )}
           />
+          {forgetPassLoading ? ( 
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : ( 
+            <button className='text-blue-700' type='button' onClick={forgetPassword}>Forget Password ?</button>
+            )}
+         
           <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
