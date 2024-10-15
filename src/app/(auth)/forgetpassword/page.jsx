@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 import axios from 'axios'; 
 
-export default function ForgetPassword() {
-
+// The ForgetPassword component itself
+function ForgetPasswordComponent() {
   const searchParams = useSearchParams(); // Get search params
   const token = searchParams.get('token'); // Extract token from URL query params
 
@@ -83,5 +83,14 @@ export default function ForgetPassword() {
         {password.newPassword === password.confirmPassword ? "Change Password" : ""}
       </button>
     </div>
+  );
+}
+
+// The main export with Suspense boundary
+export default function ForgetPassword() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ForgetPasswordComponent />
+    </Suspense>
   );
 }
