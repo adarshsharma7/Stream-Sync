@@ -3,7 +3,7 @@ import User from "@/models/userModel";
 import { usernameSchemaType } from "@/Schemas/signUpSchemas";
 
 // Set the runtime for the API route
-// export const runtime = 'edge';
+ export const runtime = 'edge';
 
 export async function GET(request) {
   await dbConnect();
