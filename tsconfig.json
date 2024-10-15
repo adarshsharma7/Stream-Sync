@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/utils/getDataFromToken.js", "src/app/api/users/getallvideos/route.js", "src/app/getallvideos/page.jsx", "src/dbConfig/dbConfig.js", "src/Schemas/acceptMessagesSchemas.js", "src/Schemas/messageSchemas.js", "src/Schemas/sign-inSchemas.js", "src/Schemas/signUpSchemas.js", "src/Schemas/verifySchema.js", "src/app/api/users/signup/route.js", "src/utils/mailer.js", "src/app/verify/[username]/page.jsx", "src/app/(app)/upload/page.jsx", "src/app/api/videos/videoupload/route.js", "src/app/api/videos/getvideobyid/route.js", "src/app/(app)/videoplay/[videoid]/page.jsx", "src/app/api/users/profile/route.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/utils/getDataFromToken.js", "src/app/api/users/getallvideos/route.js", "src/app/getallvideos/page.jsx", "src/dbConfig/dbConfig.js", "src/Schemas/acceptMessagesSchemas.js", "src/Schemas/messageSchemas.js", "src/Schemas/sign-inSchemas.js", "src/Schemas/signUpSchemas.js", "src/Schemas/verifySchema.js", "src/app/api/users/signup/route.js", "src/utils/mailer.js", "src/app/verify/[username]/page.jsx", "src/app/(app)/upload/page.jsx", "src/app/api/videos/videoupload/route.js", "src/app/api/videos/getvideobyid/route.js", "src/app/(app)/videoplay/[videoid]/page.jsx", "src/app/api/users/profile/route.js", "src/app/api/users/check-username/route.js"],
   "exclude": ["node_modules"]
 }
