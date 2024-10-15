@@ -15,6 +15,12 @@ export async function POST(req){
                 message: "Email or Username not Exist"
             }, { status: 400 });
         }
+        if(existedUser.forgetPasswordTokenExpiry>Date.now() ){
+          return Response.json({
+            success: false,
+            message: "Email is already sent for change password"
+        }, { status: 200 });
+        }
         let hashedToken = await bcrypt.hash(existedUser._id?.toString(), 10);
         existedUser.forgetPasswordToken=hashedToken
         existedUser.forgetPasswordTokenExpiry=Date.now() + 3600000 

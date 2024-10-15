@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router'; // Next.js router
+import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 import axios from 'axios'; 
 
 export default function ForgetPassword() {
-  
-  const router = useRouter(); 
-  const { token } = router.query; // Access the token from query parameters
-  
+
+  const searchParams = useSearchParams(); // Get search params
+  const token = searchParams.get('token'); // Extract token from URL query params
+
   const [password, setPassword] = useState({
     newPassword: "",
     confirmPassword: ""
@@ -43,10 +43,14 @@ export default function ForgetPassword() {
     }
   }, [password.confirmPassword]);
 
+  if (!token) {
+    return <p>Loading...</p>; // Optionally show loading if token is missing
+  }
+
   return (
     <div className="w-full h-screen flex justify-center items-center flex-col gap-3 bg-slate-500">
       <div>
-        <img src="/images/download.jpeg" alt="sprcImg" />
+        <img src="/images/download.jpeg" alt="YoutubeImg" />
       </div>
       <h1 className={`text-center ${message || processing ? "" : "invisible"}`}>
         {processing ? "Processing..." : message ? message : "a"}

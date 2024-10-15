@@ -79,8 +79,15 @@ const forgetPassword=async()=>{
         description: response.data.message,
    });
     }
-  } catch (error) {
     
+    if(response.data.message == 'Email is already sent for change password'){
+      toast({
+        title: 'Success',
+        description: response.data.message,
+   });
+    }
+  } catch (error) {
+    console.log("something wrong",error);
   }finally{
     setForgetPassLoading(false)
   }

@@ -106,24 +106,24 @@ export default function SignUpForm() {
         },
       });
       // const response = await axios.post('/api/users/signup', payload,{headers: { 'Content-Type': 'application/json' } });
-     
-      
-   
-    
-       if(response.data.success){
-          toast({
-        title: 'Success',
-        description: response.data.message,
-   });
+
+
+
+
+      if (response.data.success) {
+        toast({
+          title: 'Success',
+          description: response.data.message,
+        });
         router.replace(`/verify/${username}`);
-   
-       }else{
+
+      } else {
         toast({
           title: 'false',
           description: response.data.message,
         });
-       }
-    
+      }
+
 
     } catch (error) {
       console.error('Error during sign-up:', error);
@@ -226,7 +226,7 @@ export default function SignUpForm() {
                     <Input
                       type="file"
                       placeholder="Upload Video"
-                    
+
                       {...form.register("avatar")}
                       className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
                     />
