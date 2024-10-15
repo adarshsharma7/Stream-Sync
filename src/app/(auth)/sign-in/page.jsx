@@ -44,7 +44,7 @@ export default function SignInForm() {
     setIsSubmitting(true)
     const result = await signIn('credentials', {
       redirect: false,
-      identifier: data.identifier,
+      identifier: credential,
       password: data.password,
     });
     setIsSubmitting(false)
@@ -110,7 +110,6 @@ const forgetPassword=async()=>{
               <FormItem>
                 <FormLabel className="text-sm text-gray-700">Email/Username</FormLabel>
                 <Input
-                  {...field}
                   value={credential}
                   onChange={(e)=>{setCredential(e.target.value)}}
                   placeholder="Enter your email or username"
