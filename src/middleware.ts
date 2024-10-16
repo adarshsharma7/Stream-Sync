@@ -15,6 +15,7 @@ export async function middleware(request: NextRequest) {
    // Allow access to public routes without authentication
    const publicPaths = ['/sign-in', '/sign-up', '/verify', '/forgetpassword'];
    const isPublicPath = publicPaths.some((path) => url.pathname.startsWith(path));
+   
  
    // If the user is not authenticated and not on a public path, redirect to sign-in
    if (!token && !isPublicPath) {
@@ -24,7 +25,7 @@ export async function middleware(request: NextRequest) {
    }
  
    // If the user is authenticated and trying to access public paths, redirect to dashboard
-   if (token && isPublicPath) {
+   if (token && isPublicPath && !url.pathname.startsWith('/forgetpassword')) {
     if (url.pathname !== '/dashboard') {
      return NextResponse.redirect(new URL('/dashboard', request.url));
     }

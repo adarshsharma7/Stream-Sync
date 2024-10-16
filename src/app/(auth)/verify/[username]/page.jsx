@@ -21,15 +21,16 @@ import * as z from 'zod';
 export default function VerifyAccount() {
   const router = useRouter();
   const params = useParams();
+  const username = decodeURIComponent(params.username);
   const { toast } = useToast();
   const form = useForm({
     resolver: zodResolver(verifySchema),
   });
-
+      
   const onSubmit = async (data) => {
     try {
       const response = await axios.post(`/api/users/verify-code`, {
-        username: params.username,
+        username: username,
         code: data.code,
       });
 

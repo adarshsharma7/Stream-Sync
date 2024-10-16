@@ -55,7 +55,15 @@ export default function SignInForm() {
           description: 'Incorrect username or password',
           variant: 'destructive',
         });
-      } else {
+      } else if(result.error=='Error: Please verify your account before login') {
+        toast({
+          title: 'Error',
+          description: result.error,
+          variant: 'destructive',
+        });
+        
+        router.replace(`/verify/${credential}`);
+      }else{
         toast({
           title: 'Error',
           description: result.error,

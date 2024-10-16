@@ -2,6 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from 'bcryptjs'
 import { dbConnect } from "@/dbConfig/dbConfig";
 import User from "@/models/userModel";
+import { sendVerificationEmail } from '@/helper/sendVerificationCode';
 
 export const authOptions={
 providers:[
@@ -22,6 +23,15 @@ providers:[
                     throw new Error('No user found');
                 }
                 if(!user.isVerified){
+                  let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+                  const result = await sendVerificationEmail(user.email, user.username, verifyCode);
+                     if (!result.success) {   
+                      throw new Error(`Error sending verification code: ${result.message}`);     
+                     }
+                     user.verifyCode=verifyCode,
+                     user.verifyCodeExpiry=new Date(Date.now() + 3600000),
+                     await user.save()
+
                     throw new Error('Please verify your account before login');
                 }
                 const isPasswordCorrect=await bcrypt.compare(credentials.password,user.password)
