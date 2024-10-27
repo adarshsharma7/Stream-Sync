@@ -64,6 +64,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
+        console.log("messege update aur initiall time pr  messages ye hai bhai ",messages);
     }, [messages]);
 
 
@@ -150,7 +151,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
                     setUniqueChatId(response.data.uniqueChatId.toString())
-                    console.log("is group", response.data.isGroup);
+                    // console.log("is group", response.data.isGroup);
 
                     setIsGroup(response.data.isGroup)
 
@@ -206,13 +207,17 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         // Subscribe to the private channel to receive messages
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
-            const { message, msgSenderId, username, videodata, replyMsg } = data;
+
+            const { msgId,message, msgSenderId, username, videodata, replyMsg } = data;
             if (msgSenderId !== user._id) {
-                setMessages((prevMessages) => [...prevMessages, { sender: { _id: chatId, username }, repliedContent: replyMsg, content: message, videodata, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, {_id:msgId , edited:false, sender: { _id: chatId, username }, repliedContent: replyMsg, content: message, videodata, timestamp: new Date() }]);
             }
+          
+            
 
         });
         const statusChannel = pusher.subscribe(`private-${uniqueChatId}`);
+        // console.log("frontend pr unique id :",uniqueChatId);
         const statusUpdateChannel = pusher.subscribe(`private-${chatId}`);
         statusUpdateChannel.bind('userStatusUpdate', function (data) {
             setUserStatus(data.status)
@@ -248,7 +253,12 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             setMessages((prev) => prev.filter((prevObj) => prevObj._id !== msgId))
         })
         statusChannel.bind('messagesEdit', function (data) {
+            // console.log("m edit msg k andr huuu");
+            
             const { msgId, msgContent } = data
+            // console.log("ye hai bhai msgId jo backend se aayi hai ab m match kraunga" ,msgId );
+            // console.log("aur edit k baad m ye content kr dunga " ,msgContent );
+            // console.log("abhi ye hai bhai messages edit se pahle ", messages);
             setMessages((prev) => prev.map((prevObj) => {
                 if (prevObj._id == msgId) {
                     return {
@@ -260,6 +270,8 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                 }
                 return prevObj
             }))
+            console.log("ab ye hi bhai messages edit k baad to ", messages);
+            
         })
 
         // Cleanup function to unsubscribe from Pusher channels
@@ -287,6 +299,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             // Add the sent message to the messages array
             setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', repliedContent: { msgId: replyMsg.msgId, content: replyMsg.content }, content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
+
             let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, replyMsg, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
             setReplyMsg({

@@ -67,6 +67,10 @@ export async function POST(request) {
                 }, { status: 400 });
             }
             let uniqueChatId = chat._id.toString()
+            // console.log("backend unique id :",uniqueChatId);
+            // console.log("ye hai msgId too bhai  :",msgId);
+            // console.log("ye hai ji msgContent  :",msgContent);
+            
             // Trigger the Pusher event for real-time updates
          
             await pusher.trigger(`private-${uniqueChatId}`, 'messagesEdit', { msgId, msgContent });

@@ -26,10 +26,8 @@ export async function POST(request) {
 
     try {
         const { message, replyMsg, chatId, msgStatus, videoData } = await request.json();
-        console.log("replyMsg",replyMsg);
+        // console.log("replyMsg",replyMsg);
         
-
-
         await dbConnect();
 
         const sender = await User.findById(_user._id);
@@ -42,7 +40,7 @@ export async function POST(request) {
             // Notify all participants of the group chat
 
             let uniqueChatId = chat._id.toString()
-            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: _user._id, username: sender.username, videoData, replyMsg });
+            pusher.trigger(`private-${uniqueChatId}`, 'newmsg', {msgId: chat.messages[ab - 1]._id, message, msgSenderId: _user._id, username: sender.username, videoData, replyMsg });
 
 
             for (let participantId of chat.participants) {
@@ -95,9 +93,14 @@ export async function POST(request) {
             if (!chat) {
                 chat = new Chat({ participants: [sender._id, recipient._id] });
             }
+
+            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message, videoData, repliedContent:replyMsg });
+            await chat.save();
+
             // Trigger the Pusher event for real-time updates
             let uniqueChatId = chat._id.toString()
-            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', { message, msgSenderId: sender._id, username: sender.username, videoData, replyMsg });
+        
+            await pusher.trigger(`private-${uniqueChatId}`, 'newmsg', {  msgId: chat.messages[ab - 1]._id, message, msgSenderId: sender._id, username: sender.username, videoData, replyMsg });
 
 
 
@@ -125,10 +128,6 @@ export async function POST(request) {
                     Id: sender._id
                 });
             }
-
-
-            let ab = chat.messages.push({ sender: sender._id, msgStatus, content: message, videoData, repliedContent:replyMsg });
-            await chat.save();
 
             if (!isLink) {
                 return {
