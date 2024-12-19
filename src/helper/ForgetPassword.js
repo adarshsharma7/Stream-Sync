@@ -1,26 +1,25 @@
+// ForgetPasswordVerification.js
 
-import ForgetPassword from "../../email/ForgetPasswordTemplate";
-import { resend } from '@/lib/resend'
-import { Resend } from 'resend';
+import forgetPasswordHtml from "../../email/ForgetPasswordTemplate";
+import {transport}from '@/lib/resend'
 
-export async function ForgetPasswordVerification(
-  email,
-  username,
-  hashedToken,
-) {
+export async function ForgetPasswordVerification(email, username, hashedToken) {
   try {
+  
+    // Generate the password reset link (assuming you use a route to handle the reset)
+    const resetLink = `https://youtube-clone-iota-ecru-26.vercel.app/forgetpassword?token=${hashedToken}`;
 
-    await new Resend(process.env.RESEND_API_KEY).emails.send({
-      from: 'onboarding@resend.dev',
-      to: email,
-      subject: 'Forget password Link',
-      react: ForgetPassword({ username, otp: hashedToken }),
+    // Send the email
+    await transport.sendMail({
+      from: 'adarshsharma7p@gmail.com', // Sender address
+      to: email, // Recipient email address
+      subject: 'Reset Your Password', // Subject line
+      html: forgetPasswordHtml(username, resetLink), // HTML content from template
     });
-    return { success: true, message: 'Password Change Link email sent successfully.' };
+
+    return { success: true, message: 'Password reset email sent successfully.' };
   } catch (emailError) {
-    console.log("hasedToken ",hashedToken);
-    
-    console.error('Error sending password change email:', emailError);
-    return { success: false, message: 'Failed to send password change email.' };
+    console.error('Error sending password reset email:', emailError);
+    return { success: false, message: 'Failed to send password reset email.' };
   }
 }

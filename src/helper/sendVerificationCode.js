@@ -1,7 +1,6 @@
 
-import VerificationEmail from "../../email/EmailTemplate";
-import { resend } from '@/lib/resend'
-import { Resend } from 'resend';
+import verifyEmailHtml from "../../email/EmailTemplate";
+import {transport}from '@/lib/resend'
 
 export async function sendVerificationEmail(
   email,
@@ -9,12 +8,15 @@ export async function sendVerificationEmail(
   verifyCode,
 ) {
   try {
-    await new Resend(process.env.RESEND_API_KEY).emails.send({
-      from: 'onboarding@resend.dev',
-      to: email,
-      subject: 'Mystery Message Verification Code',
-      react: VerificationEmail({ username, otp: verifyCode }),
+
+
+    await transport.sendMail({
+        from: 'adarshsharma7p@gmail.com',
+        to: `${email}`,
+        subject: 'Sync Draw Verification Code',
+        html:verifyEmailHtml(username,verifyCode),
     });
+
     return { success: true, message: 'Verification email sent successfully.' };
   } catch (emailError) {
     console.error('Error sending verification email:', emailError);
