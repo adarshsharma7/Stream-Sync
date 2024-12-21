@@ -103,25 +103,25 @@ const forgetPassword=async()=>{
 
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
-    <div className="w-full max-w-sm p-8 space-y-6 bg-gray-50 border border-gray-200 rounded-lg shadow-lg">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+    <div className="w-full max-w-sm p-8 space-y-6 bg-white border border-gray-200 rounded-xl shadow-xl">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-2">Sign in to your account</h1>
-        <p className="text-gray-600 mb-6">Continue To Watch Videos</p>
+        <h1 className="text-3xl font-bold text-gray-800 mb-3">Welcome Back!</h1>
+        <p className="text-gray-500">Sign in to continue watching amazing videos</p>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           <FormField
             name="identifier"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm text-gray-700">Email/Username</FormLabel>
+                <FormLabel className="text-sm font-medium text-gray-700">Email or Username</FormLabel>
                 <Input
                   value={credential}
-                  onChange={(e)=>{setCredential(e.target.value)}}
+                  onChange={(e) => { setCredential(e.target.value); }}
                   placeholder="Enter your email or username"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <FormMessage />
               </FormItem>
@@ -132,45 +132,48 @@ const forgetPassword=async()=>{
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm text-gray-700">Password</FormLabel>
+                <FormLabel className="text-sm font-medium text-gray-700">Password</FormLabel>
                 <Input
                   type="password"
                   {...field}
                   placeholder="Enter your password"
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:outline-none focus:border-blue-500"
+                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <FormMessage />
               </FormItem>
             )}
           />
-          {forgetPassLoading ? ( 
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : ( 
-            <button className='text-blue-700' type='button' onClick={forgetPassword}>Forget Password ?</button>
-            )}
-         
-          <Button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700" disabled={isSubmitting}>
+          {forgetPassLoading ? (
+            <div className="flex justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <button className="text-sm text-blue-600 hover:underline" type="button" onClick={forgetPassword}>Forgot Password?</button>
+          )}
+
+          <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-medium hover:shadow-lg" disabled={isSubmitting}>
             {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait
-              </>
+              <div className="flex items-center justify-center">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Signing in...
+              </div>
             ) : (
               'Sign in'
             )}
           </Button>
         </form>
       </Form>
-      <div className="text-center mt-4">
+      <div className="text-center mt-5">
         <p className="text-gray-600">
-          Not a member yet?{' '}
-          <Link href="/sign-up" className="text-blue-600 hover:text-blue-800">
-            Sign up
+          New here?{' '}
+          <Link href="/sign-up" className="text-blue-600 font-medium hover:underline">
+            Create an account
           </Link>
         </p>
       </div>
     </div>
   </div>
+
   
   );
 }
