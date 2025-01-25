@@ -13,7 +13,7 @@ export async function sendVerificationEmail(
     await transport.sendMail({
         from: 'adarshsharma7p@gmail.com',
         to: `${email}`,
-        subject: 'Sync Draw Verification Code',
+        subject: 'Youtube-clone',
         html:verifyEmailHtml(username,verifyCode),
     });
 
