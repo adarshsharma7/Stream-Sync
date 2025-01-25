@@ -583,7 +583,7 @@ function Page() {
 
                                                 <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                                             </div>
-                                            {videoComment.owner._id == user?._id && (
+                                            {videoComment.owner?._id == user?._id && (
                                                 <p className='cursor-pointer' onClick={() => {
                                                     setUniqueComment(index);
                                                     setCommentDeletePopup(true);

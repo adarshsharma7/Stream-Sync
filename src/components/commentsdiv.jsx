@@ -217,15 +217,15 @@ function CommentsDiv({
             <div className='flex gap-3 items-center w-full'>
               <div className='flex justify-between w-full'>
                 <div className='flex gap-1 items-center'>
-                  <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner.username}`)} className='flex items-center'>
+                  <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner?.username}`)} className='flex items-center'>
                     <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
-                      <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
+                      <img src={videoComment.owner?.avatar} alt="" className="object-cover w-full h-full" />
                     </div>
-                    <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
+                    <p className="font-medium text-gray-800">@{videoComment.owner?.username}</p>
                   </div>
                   <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                 </div>
-                {videoComment.owner._id == user._id && (
+                {videoComment.owner?._id == user._id && (
                   <p onClick={() => {
                     UniqueComment.setUniqueComment(index);
                     setCommentDeletePopup(true)
