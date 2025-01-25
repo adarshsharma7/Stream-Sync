@@ -468,16 +468,16 @@ function Page() {
                             </div>
                             <div className='md:flex md:justify-between'>
                                 <div className='no-select flex justify-between items-center md:gap-4 mb-2 md:mb-9'>
-                                    <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner.username}`)} className='cursor-pointer flex gap-2 items-center'>
+                                    <div onClick={() => router.push(`/subscriptionprofile/${videoData.owner?.username}`)} className='cursor-pointer flex gap-2 items-center'>
                                         <div className='w-12 h-12 overflow-hidden flex justify-center items-center rounded full border-2 border-yellow-700 '>
-                                            <img src={videoData.owner.avatar} alt="dp" />
+                                            <img src={videoData.owner?.avatar} alt="dp" />
                                         </div>
                                         <div className='flex flex-col'>
-                                            <h3>{videoData.owner.username}</h3>
+                                            <h3>{videoData.owner?.username}</h3>
                                             <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
                                         </div>
                                     </div>
-                                    <div className='subscribeButtonBox' onClick={() => subscribe(videoData.owner._id, state, dispatch)}>
+                                    <div className='subscribeButtonBox' onClick={() => subscribe(videoData.owner?._id, state, dispatch)}>
                                         <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
                                             {state.isSubscribe ? (
                                                 <>
@@ -505,7 +505,7 @@ function Page() {
                                     <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
                                 </div>
 
-                                {showSharePopup && <SharePopup videoId={videoId} onClose={(isSent) => closeSharePopup(isSent)} videoData={{ title: videoData.title, ownerUsername: videoData.owner.username, avatar: videoData.owner.avatar, thumbnail: videoData.thumbnail }} />}
+                                {showSharePopup && <SharePopup videoId={videoId} onClose={(isSent) => closeSharePopup(isSent)} videoData={{ title: videoData.title, ownerUsername: videoData.owner?.username, avatar: videoData.owner?.avatar, thumbnail: videoData.thumbnail }} />}
                                 {isReportOpen && <ReportPopup isOpen={isReportOpen} videoId={videoId} onClose={closeReportPopup} />}
                             </div>
                             <div onClick={() => setCommentBox(true)} className='commentBox border-2 border-black h-[60%] rounded-2xl flex flex-col p-2 gap-2 cursor-pointer'>
@@ -516,9 +516,9 @@ function Page() {
                                 {comments.length > 0 ? (
                                     <div className='flex gap-1 items-center '>
                                         <div className='h-5 w-5 rounded-full border-2 overflow-hidden border-black'>
-                                            <img src={comments[0].owner.avatar} alt="" />
+                                            <img src={comments[0].owner?.avatar} alt="" />
                                         </div>
-                                        <div>@{comments[0].owner.username}</div>
+                                        <div>@{comments[0].owner?.username}</div>
                                         <div className='text-ellipsis overflow-hidden whitespace-nowrap'>{comments[0].content}</div>
                                     </div>
                                 ) : (
@@ -574,11 +574,11 @@ function Page() {
 
                                         <div className='flex justify-between w-full'>
                                             <div className='flex gap-1 items-center'>
-                                                <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner.username}`)} className='flex items-center cursor-pointer'>
+                                                <div onClick={() => router.push(`/subscriptionprofile/${videoComment.owner?.username}`)} className='flex items-center cursor-pointer'>
                                                     <div className='mr-3 h-10 w-10 rounded-full overflow-hidden border-2 border-gray-200'>
-                                                        <img src={videoComment.owner.avatar} alt="" className="object-cover w-full h-full" />
+                                                        <img src={videoComment.owner?.avatar} alt="" className="object-cover w-full h-full" />
                                                     </div>
-                                                    <p className="font-medium text-gray-800">@{videoComment.owner.username}</p>
+                                                    <p className="font-medium text-gray-800">@{videoComment.owner?.username}</p>
                                                 </div>
 
                                                 <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
@@ -865,11 +865,11 @@ function Page() {
                                     <img src={video.thumbnail} alt="thumbnail" className='w-full h-full object-cover' />
                                 </div>
                                 <div className='userDetailsBox flex gap-2 p-1'>
-                                    <div className='w-8 h-8 rounded-full overflow-hidden border-2 '> <img src={`${video.owner.avatar}`} alt="dp" /></div>
+                                    <div className='w-8 h-8 rounded-full overflow-hidden border-2 '> <img src={`${video.owner?.avatar}`} alt="dp" /></div>
                                     <div className='border-2  w-full'>{video.title}</div>
                                 </div>
                                 <div className='w-full'>
-                                    <p>{video.owner.username}</p>
+                                    <p>{video.owner?.username}</p>
                                 </div>
                                 <div className='flex gap-2'>
                                     <div>{video.views} views</div>
