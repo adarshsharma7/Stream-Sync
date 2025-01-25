@@ -534,7 +534,7 @@ function Page() {
                   <div className='flex items-center gap-2 mb-2 overflow-hidden'>
                     <div className='overflow-hidden h-10 w-10 rounded-full relative'>
                       <Image
-                        src={video.owner.avatar}
+                        src={video.owner?.avatar}
                         alt="dp"
                         fill
                         sizes="40px" // Adjust according to your requirements
@@ -544,7 +544,7 @@ function Page() {
 
                     <div>
                       <h2 className='text-lg font-semibold text-gray-900'>{video.title}</h2>
-                      <p className='text-sm text-gray-600'>{video.owner.username}</p>
+                      <p className='text-sm text-gray-600'>{video.owner?.username}</p>
                     </div>
                   </div>
                   <div className='text-sm text-gray-600 flex justify-between'>
