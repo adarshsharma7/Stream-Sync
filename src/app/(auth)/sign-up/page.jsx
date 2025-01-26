@@ -252,7 +252,7 @@ export default function SignUpForm() {
             )}
           />
   
-          <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-lg font-medium hover:shadow-lg" disabled={isSubmitting}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-lg font-medium hover:shadow-lg" disabled={isSubmitting || usernameMessage === 'Username is available'}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
