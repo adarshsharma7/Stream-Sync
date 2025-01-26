@@ -85,7 +85,7 @@ export default function SignUpForm() {
   }, [username]);
 
   const onSubmit = async (data) => {
-  
+    try {
 
 
       setIsSubmitting(true);
@@ -98,7 +98,7 @@ export default function SignUpForm() {
       formData.append('email', data.email);
       formData.append('password', data.password);
       formData.append('fullName', data.fullName);
-      formData.append('avatar', data.avatar[0]);
+     if(data.avatar) formData.append('avatar', data.avatar[0]);
 
       const response = await axios.post('/api/users/signup', formData, {
         headers: {
@@ -115,17 +115,32 @@ export default function SignUpForm() {
           title: 'Success',
           description: response.data.message,
         });
-        setIsSubmitting(false);
         router.replace(`/verify/${username}`);
 
       } else {
         toast({
-          title: 'false',
+          title: 'error',
           description: response.data.message,
         });
-        setIsSubmitting(false);
       }
 
+
+    } catch (error) {
+      console.error('Error during sign-up:', error);
+
+      const axiosError = error;
+
+      // Default error message
+      let errorMessage = axiosError.response?.data.message || 'There was a problem with your sign-up. Please try again.';
+
+      toast({
+        title: 'Sign Up Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
