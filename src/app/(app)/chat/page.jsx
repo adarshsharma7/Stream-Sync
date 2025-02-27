@@ -15,6 +15,8 @@ import { MdOutlineDeleteSweep } from "react-icons/md";
 import ChatOpen from '@/components/chatOpen'
 import { FaPlus } from "react-icons/fa6";
 import { Button } from '@/components/ui/button';
+import { FaYoutube } from "react-icons/fa";
+import AnimatedLogo from "../../../helper/AnimatedLogo"
 
 
 
@@ -129,7 +131,7 @@ function Page() {
             } catch (error) {
                 console.log(error);
 
-            }finally{
+            } finally {
                 setFindingChat(false)
             }
 
@@ -467,7 +469,10 @@ function Page() {
     return (
         <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900 overflow-y-hidden'>
             <div className='flex w-full h-[8%] border-2 border-red-500 justify-between items-center px-2'>
-                <h1 className='text-xl font-semibold'>YouChat</h1>
+                <div>
+                    <AnimatedLogo showChatText={true}/>
+                </div>
+
                 <div className='flex gap-2 items-center'>
                     <div className='flex items-center gap-3 h-full' ref={searchRef}>
                         <div
@@ -594,14 +599,14 @@ function Page() {
             <div className='w-full h-full md:flex border border-gray-300'>
                 {/* Chat List */}
                 <div className='md:w-1/3 h-full border-r border-gray-300 bg-gray-50 flex flex-col gap-2 overflow-y-auto p-4'>
-                    {findingChat ? (  
+                    {findingChat ? (
                         <div className='flex justify-center items-center h-full text-blue-600'>
-                           <Loader2 className="h-6 w-6 animate-spin" />
+                            <Loader2 className="h-6 w-6 animate-spin" />
                         </div>
-                        ) : chats?.length == 0 ? (
+                    ) : chats?.length == 0 ? (
                         <div className='flex flex-col justify-center items-center h-full text-gray-600'>
-                           <h1>No Chats</h1> 
-                           <h3 className='text-gray-500'>(search for add friends)</h3> 
+                            <h1>No Chats</h1>
+                            <h3 className='text-gray-500'>(search for add friends)</h3>
                         </div>
                     ) : chats.map((chat, index) => (
                         //for Group
@@ -731,7 +736,7 @@ function Page() {
             </div>
 
 
-            { 
+            {
                 suggestions && (
                     <div ref={searchPopupef} className='absolute top-14 w-full max-h-[300px] border border-gray-300 rounded-lg bg-white shadow-lg overflow-y-auto p-3'>
                         {usernameFetchingMessage ? (

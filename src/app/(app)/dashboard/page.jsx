@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
+import { motion } from "framer-motion";
 import { FaYoutube } from "react-icons/fa";
 import { CiSearch } from "react-icons/ci";
 import { IoClose, IoMic } from "react-icons/io5";
@@ -17,6 +18,7 @@ import StoryPopup from '@/components/storyPopup';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
+import AnimatedLogo from "../../../helper/AnimatedLogo"
 import Pusher from 'pusher-js';
 
 
@@ -347,15 +349,15 @@ function Page() {
     <div className='h-screen w-full flex flex-col bg-gray-50'>
       {/* Header */}
       <div className='h-14 bg-white shadow-md flex justify-between px-4 items-center'>
-        <div className='flex items-center'>
-          <FaYoutube className='text-red-600 text-4xl' />
-          <h1 className='text-2xl font-semibold text-gray-800 ml-2'>YouTube</h1>
-          {uploadProcessing && (
-            <p className='ml-4 text-blue-600 font-medium bg-blue-100 rounded-full px-3 py-1 text-sm'>
-              {`${uploadProcessCount}/${totalQueueFiles} Story Uploading...`}
-            </p>
-          )}
-        </div>
+
+      <div>
+  <AnimatedLogo 
+    uploadProcessing={uploadProcessing}
+    uploadProcessCount={uploadProcessCount}
+    totalQueueFiles={totalQueueFiles}
+  />
+</div>
+
         <div className='flex items-center gap-3 h-full' ref={searchRef}>
           <div className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`} onClick={() => setSearchVisible(true)}>
             <CiSearch className='text-2xl text-gray-600 cursor-pointer' />
