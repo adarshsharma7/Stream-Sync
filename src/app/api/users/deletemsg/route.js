@@ -42,7 +42,7 @@ export async function POST(request) {
             for (let participantId of isChat.participants) {
 
                 const recipient = await User.findById(participantId);
-                if (recipient.isMyChatOpen.toString() !== uniqueChatId) {
+                if (recipient.isMyChatOpen?.toString() !== uniqueChatId) {
 
                     if (recipient.newMsgNotificationDot.length > 0) {
                         recipient.newMsgNotificationDot.forEach((notification, index) => {

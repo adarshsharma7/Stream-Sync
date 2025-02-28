@@ -47,7 +47,7 @@ export async function POST(request) {
                 const recipient = await User.findById(participantId);
 
                 // Check if recipient's isMyChatOpen doesn't match the chatId
-                if (recipient.isMyChatOpen.toString() !== uniqueChatId) {
+                if (recipient.isMyChatOpen?.toString() !== uniqueChatId) {
                     // Find or update notification for that recipient
                     const notificationIndex = recipient.newMsgNotificationDot.findIndex(
                         (notification) => notification.Id.toString() === uniqueChatId
@@ -168,6 +168,7 @@ export async function POST(request) {
 
 
     } catch (error) {
+       
         console.error("Error sending message:", error);
 
         return Response.json({
