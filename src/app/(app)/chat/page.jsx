@@ -826,7 +826,7 @@ function Page() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && notifi.msg !== "remove" && notifi.msg !== "urnowfrnd" && !chatFrndIds.includes(notifi.owner._id) ? (
+                                    {notifi.msg !== "declined" && notifi.msg !== "accept" && notifi.msg !== "remove" && notifi.msg !== "urnowfrnd" && !chatFrndIds.includes(notifi.owner?._id) ? (
                                         <div className="flex gap-2 items-center">
                                             <button className="text-green-500" onClick={() => {
                                                 setNotifications((prevNotification) =>
@@ -846,7 +846,7 @@ function Page() {
                                                 <IoCloseCircle />
                                             </button>
                                         </div>
-                                    ) : chatFrndIds.includes(notifi.owner._id) && notifi.msg == "urnowfrnd" && (
+                                    ) : chatFrndIds.includes(notifi.owner?._id) && notifi.msg == "urnowfrnd" && (
                                         <FaUserShield className="text-gray-500" />
                                     )}
                                     <MdOutlineDeleteSweep className="cursor-pointer text-gray-400 hover:text-gray-600 transition" onClick={() => deleteNotification(notifi._id)} />
