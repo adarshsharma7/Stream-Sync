@@ -299,6 +299,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             // Add the sent message to the messages array
             setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', repliedContent: { msgId: replyMsg.msgId, content: replyMsg.content }, content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
+            
 
             let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, replyMsg, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
