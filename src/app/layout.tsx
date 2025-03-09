@@ -8,10 +8,11 @@ import { UserProvider } from '@/context/context'
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "YouTube Clone - Enhanced Video Sharing Platform",
+  title: "Stream Sync - Enhanced Video Sharing Platform",
   description: "Experience an upgraded video platform with advanced features like real-time chat, stories, video comments search, and direct sharing. Enjoy a seamless video-sharing and interactive experience, built with modern web technologies.",
-  keywords: "YouTube Clone, video sharing platform, real-time chat, stories, video comments search, direct video sharing, interactive video app, modern web application, enhanced YouTube features",
+  keywords: "Stream Sync, video sharing platform, real-time chat, stories, video comments search, direct video sharing, interactive video app, modern web application, enhanced video features",
   author: "Adarsh Sharma",
+    
 };
 
 
