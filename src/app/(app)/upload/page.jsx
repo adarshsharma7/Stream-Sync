@@ -1,24 +1,25 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import { Loader2 } from 'lucide-react';
+import React, { useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useDropzone } from "react-dropzone";
+import axios from "axios";
+import { uploadVideoSchema } from "@/Schemas/uploadVideoSchema";
+import { uploadToCloudinary } from "@/components/uploadtocloudinary";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { uploadVideoSchema } from '@/Schemas/uploadVideoSchema';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+// import { Progress } from "@radix-ui/react-progress";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
-    FormMessage
-} from '@/components/ui/form';
-import {uploadToCloudinary} from "@/components/uploadtocloudinary"
+    FormMessage,
+} from "@/components/ui/form";
 
 function Page() {
     const [isLoading, setIsLoading] = useState(false);
@@ -26,56 +27,68 @@ function Page() {
     const [messageType, setMessageType] = useState("");
     const [thumbnailProgress, setThumbnailProgress] = useState(0);
     const [videoProgress, setVideoProgress] = useState(0);
+    const [videoFile, setVideoFile] = useState(null);
+    const [thumbnailFile, setThumbnailFile] = useState(null);
 
     const form = useForm({
         resolver: zodResolver(uploadVideoSchema),
         defaultValues: {
-            description: "",
             title: "",
-            videoFile: null,
-            thumbnail: null,
-        }
+            description: "",
+        },
     });
 
+    // Drag & Drop Handlers
+    const onDropVideo = useCallback((acceptedFiles) => {
+        setVideoFile(acceptedFiles[0]);
+    }, []);
+
+    const onDropThumbnail = useCallback((acceptedFiles) => {
+        setThumbnailFile(acceptedFiles[0]);
+    }, []);
+
+    const { getRootProps: getVideoProps, getInputProps: getVideoInputProps } = useDropzone({
+        onDrop: onDropVideo,
+        accept: "video/*",
+    });
+
+    const { getRootProps: getThumbnailProps, getInputProps: getThumbnailInputProps } = useDropzone({
+        onDrop: onDropThumbnail,
+        accept: "image/*",
+    });
 
     const onSubmit = async (data) => {
+        if (!videoFile || !thumbnailFile) {
+            setMessage("Please upload both a video and a thumbnail.");
+            setMessageType("error");
+            return;
+        }
+
         setIsLoading(true);
-        setMessage(""); // Clear previous messages
+        setMessage("");
 
         try {
             // Upload Thumbnail
-            // console.log("Image ho rahi hai upload");
-            const thumbnailResponse = await uploadToCloudinary(data.thumbnail[0], setThumbnailProgress, 'image');
+            const thumbnailResponse = await uploadToCloudinary(thumbnailFile, setThumbnailProgress, "image");
             const thumbnailUrl = thumbnailResponse.secure_url;
-            // console.log("Image hogai ye raha link bhai",thumbnailUrl);
-            
 
             // Upload Video
-            // console.log("ab video hogi upload");
-            
-            const videoResponse = await uploadToCloudinary(data.videoFile[0], setVideoProgress, 'video');
+            const videoResponse = await uploadToCloudinary(videoFile, setVideoProgress, "video");
             const videoUrl = videoResponse.secure_url;
-            // console.log("video hogai ye raha link bhai",videoUrl);
-            
-             
 
             const payload = {
-                   title: data.title,
-                   description: data.description,
-                   videoFile: videoUrl,
-                   thumbnail: thumbnailUrl,
-                 };
+                title: data.title,
+                description: data.description,
+                videoFile: videoUrl,
+                thumbnail: thumbnailUrl,
+            };
 
-                 let response = await axios.post("/api/videos/videoupload", payload, {
-                    headers: { 'Content-Type': 'multipart/application/json' }
-                })
+            let response = await axios.post("/api/videos/videoupload", payload, {
+                headers: { "Content-Type": "application/json" },
+            });
 
-           
-            setMessage(response.data.message)
-            if (response.data.success) {
-                setMessageType("success") // Set message type for styling
-            }
-
+            setMessage(response.data.message);
+            setMessageType(response.data.success ? "success" : "error");
         } catch (error) {
             setMessage("An error occurred while uploading.");
             setMessageType("error");
@@ -85,62 +98,72 @@ function Page() {
     };
 
     return (
-        <div className="w-full h-screen flex flex-col bg-gray-100">
+        <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
+            {/* Header */}
             <div className="bg-white shadow-md py-4 px-6 border-b border-gray-200">
-                <h1 className="text-2xl font-bold text-gray-900">Upload Your Video</h1>
+                <h1 className="text-3xl font-semibold text-gray-900">Upload Your Video</h1>
                 <p className="text-gray-600">Share your latest video with the world.</p>
             </div>
-            <div className="flex-grow flex justify-center items-center p-4">
 
+            {/* Upload Form */}
+            <div className="flex-grow flex justify-center items-center p-6">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-lg space-y-8">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        className="w-full max-w-3xl bg-white p-8 rounded-xl shadow-xl space-y-6"
+                    >
 
-                        <FormField
-                            control={form.control}
-                            name="videoFile"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel className="text-lg font-semibold">Upload Video</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="file"
-                                            placeholder="Upload Video"
-                                            {...form.register("videoFile")}
-                                            className="border border-gray-300 rounded-md shadow-sm"
-                                        />
-                                    </FormControl>
-                                    <FormDescription className="text-sm text-gray-600">This is your public video.</FormDescription>
-                                    <FormMessage />
-                                    {videoProgress > 0 && (
-                                        <div className="mt-2 text-blue-600">{`Video Upload Progress: ${videoProgress}%`}</div>
+                        {/* Drag & Drop Video Upload */}
+                        <div>
+                            <div {...getVideoProps()} className={`${videoProgress > 0 ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"} relative border border-gray-300 p-6 text-center  rounded-xl shadow-md bg-white transition hover:shadow-lg`} >
+                                <input {...getVideoInputProps()}   accept="video/*" disabled={videoProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <div className="relative z-10">
+                                    {videoFile ? (
+                                        <p className="text-lg font-semibold text-blue-600">{videoFile.name}</p>
+                                    ) : (
+                                        <p className="text-gray-600">Drag & Drop Video Here or Click to Upload</p>
                                     )}
-                                </FormItem>
+                                </div>
+                                {/* Glassmorphic Progress Overlay */}
+                                {videoProgress > 0 && (
+                                    <div className="absolute inset-0 bg-blue-500/20 backdrop-blur-lg rounded-xl"
+                                        style={{ width: `${videoProgress}%` }}
+                                    />
+                                )}
+                            </div>
+                            {videoProgress > 0 && (
+                                <p className="text-sm text-blue-700" >{videoProgress}%</p>
                             )}
-                        />
 
-                        <FormField
-                            control={form.control}
-                            name="thumbnail"
-                            render={() => (
-                                <FormItem>
-                                    <FormLabel className="text-lg font-semibold">Upload Thumbnail</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="file"
-                                            placeholder="Upload Thumbnail"
-                                            {...form.register("thumbnail")}
-                                            className="border border-gray-300 rounded-md shadow-sm"
-                                        />
-                                    </FormControl>
-                                    <FormDescription className="text-sm text-gray-600">Upload the thumbnail image (Max 5 MB).</FormDescription>
-                                    <FormMessage />
-                                    {thumbnailProgress > 0 && (
-                                        <div className="mt-2 text-blue-600">{`Thumbnail Upload Progress: ${thumbnailProgress}%`}</div>
+
+                        </div>
+
+                        {/* Drag & Drop Thumbnail Upload */}
+                        <div>
+                            <div {...getThumbnailProps()} className={`${videoProgress > 0 ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"} relative border border-gray-300 p-6 text-center cursor-pointer rounded-xl shadow-md bg-white transition hover:shadow-lg`}>
+                                <input {...getThumbnailInputProps()} accept="image/*" disabled={thumbnailProgress > 0}  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <div className="relative z-10">
+                                    {thumbnailFile ? (
+                                        <p className="text-lg font-semibold text-green-600">{thumbnailFile.name}</p>
+                                    ) : (
+                                        <p className="text-gray-600">Drag & Drop Thumbnail Here or Click to Upload</p>
                                     )}
-                                </FormItem>
-                            )}
-                        />
+                                </div>
+                                {/* Glassmorphic Progress Overlay */}
+                                {thumbnailProgress > 0 && (
+                                    <div className="absolute inset-0 bg-green-500/20 backdrop-blur-lg rounded-xl"
+                                        style={{ width: `${thumbnailProgress}%` }}
+                                    />
+                                )}
 
+                            </div>
+                            {thumbnailProgress > 0 && (
+                                <p className="text-sm text-blue-700" >{thumbnailProgress}%</p>
+                            )}
+
+                        </div>
+
+                        {/* Title Input */}
                         <FormField
                             control={form.control}
                             name="title"
@@ -148,14 +171,14 @@ function Page() {
                                 <FormItem>
                                     <FormLabel className="text-lg font-semibold">Title</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Title (required)" {...field} className="border border-gray-300 rounded-md shadow-sm" />
+                                        <Input placeholder="Title (required)" {...field} className="border border-gray-300 rounded-md shadow-sm p-2" />
                                     </FormControl>
-                                    <FormDescription className="text-sm text-gray-600">This is your public title.</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
+                        {/* Description Input */}
                         <FormField
                             control={form.control}
                             name="description"
@@ -163,41 +186,39 @@ function Page() {
                                 <FormItem>
                                     <FormLabel className="text-lg font-semibold">Description</FormLabel>
                                     <FormControl>
-                                        <Textarea
-                                            placeholder="Tell viewers about your video"
-                                            className="resize-none border border-gray-300 rounded-md shadow-sm"
-                                            {...field}
-                                        />
+                                        <Textarea placeholder="Tell viewers about your video" className="resize-none border border-gray-300 rounded-md shadow-sm p-2" {...field} />
                                     </FormControl>
-                                    <FormDescription className="text-sm text-gray-600">This is your public description.</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <div className="flex justify-center flex-col items-center">
-                            {message && (
-                                <div className={`w-full max-w-xl p-4 mb-4 text-center ${messageType === 'success' ? 'bg-green-100 text-green-800 border-green-400' : 'bg-red-100 text-red-800 border-red-400'} border rounded-md`}>
-                                    {message}
-                                </div>
-                            )}
+                        {/* Message Alert */}
+                        {message && (
+                            <div className={`p-4 text-center rounded-md ${messageType === "success" ? "bg-green-100 text-green-800 border-green-400" : "bg-red-100 text-red-800 border-red-400"} border`}>
+                                {message}
+                            </div>
+                        )}
+
+                        {/* Upload Button */}
+                        <div className="flex justify-center">
                             {isLoading ? (
-                                <Button disabled className="bg-gray-400 text-white hover:bg-gray-500">
+                                <Button disabled className="bg-gray-400 text-white flex items-center">
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Please wait
                                 </Button>
                             ) : (
-                                <Button type="submit" disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700">
+                                <Button type="submit" disabled={isLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
                                     Upload
                                 </Button>
                             )}
                         </div>
-
                     </form>
                 </Form>
             </div>
         </div>
     );
+
 }
 
 export default Page;
