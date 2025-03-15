@@ -11,12 +11,13 @@ import Pusher from 'pusher-js';
 import { useSession } from 'next-auth/react';
 import { IoClose, IoCloseCircle } from "react-icons/io5";
 import { FaUserShield } from "react-icons/fa";
-import { MdOutlineDeleteSweep } from "react-icons/md";
+import { MdOutlineDeleteSweep, MdMessage } from "react-icons/md";
 import ChatOpen from '@/components/chatOpen'
 import { FaPlus } from "react-icons/fa6";
 import { Button } from '@/components/ui/button';
 import { FaYoutube } from "react-icons/fa";
 import AnimatedLogo from "../../../helper/AnimatedLogo"
+
 
 
 
@@ -470,7 +471,7 @@ function Page() {
         <div className='w-full h-screen flex flex-col relative border-2 border-b-rose-900 overflow-y-hidden'>
             <div className='flex w-full h-[8%] border-2 border-red-500 justify-between items-center px-2'>
                 <div>
-                    <AnimatedLogo showChatText={true}/>
+                    <AnimatedLogo showChatText={true} />
                 </div>
 
                 <div className='flex gap-2 items-center'>
@@ -719,8 +720,8 @@ function Page() {
                     </div>
                 )}
 
-                <div className='w-2/3 h-full hidden md:block border-l border-gray-300'>
-                    {isChatOpen && (
+                <div className="w-2/3 h-full hidden md:flex items-center justify-center border-l border-gray-300">
+                    {isChatOpen ? (
                         <ChatOpen
                             avatar={chatOpen.avatar}
                             username={chatOpen.username}
@@ -731,8 +732,16 @@ function Page() {
                             setChatFrndIds={setChatFrndIds}
                             addMemberToGroup={addMemberToGroup}
                         />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-center text-gray-400">
+                            <MdMessage className="text-blue-500 text-6xl mb-4" />
+                            <h1 className="text-xl font-semibold">
+                                Start a new conversation or select one to reply
+                            </h1>
+                        </div>
                     )}
                 </div>
+
             </div>
 
 
