@@ -119,7 +119,8 @@ function Page() {
                                 <input {...getVideoInputProps()}   accept="video/*" disabled={videoProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {videoFile ? (
-<p className="text-lg font-semibold text-blue-600 w-full max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+
+<p className="text-lg font-semibold text-blue-600 w-full max-w-[200px] truncate">
   {videoFile.name}
 </p>
                                         
@@ -147,7 +148,8 @@ function Page() {
                                 <input {...getThumbnailInputProps()} accept="image/*" disabled={thumbnailProgress > 0}  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {thumbnailFile ? (
-                                      <p className="text-lg font-semibold text-green-600 w-full max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+                                      
+<p className="text-lg font-semibold text-green-600 w-full max-w-[200px] truncate">
   {thumbnailFile.name}
 </p>
                                     ) : (
