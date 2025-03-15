@@ -119,7 +119,10 @@ function Page() {
                                 <input {...getVideoInputProps()}   accept="video/*" disabled={videoProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {videoFile ? (
-                                        <p className="text-lg font-semibold text-blue-600">{videoFile.name}</p>
+<p className="text-lg font-semibold text-blue-600 w-full max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+  {videoFile.name}
+</p>
+                                        
                                     ) : (
                                         <p className="text-gray-600">Drag & Drop Video Here or Click to Upload</p>
                                     )}
@@ -144,7 +147,9 @@ function Page() {
                                 <input {...getThumbnailInputProps()} accept="image/*" disabled={thumbnailProgress > 0}  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {thumbnailFile ? (
-                                        <p className="text-lg font-semibold text-green-600">{thumbnailFile.name}</p>
+                                      <p className="text-lg font-semibold text-green-600 w-full max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+  {thumbnailFile.name}
+</p>
                                     ) : (
                                         <p className="text-gray-600">Drag & Drop Thumbnail Here or Click to Upload</p>
                                     )}
