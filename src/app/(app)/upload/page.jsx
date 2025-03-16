@@ -116,14 +116,20 @@ function Page() {
                         {/* Drag & Drop Video Upload */}
                         <div>
                             <div {...getVideoProps()} className={`${videoProgress > 0 ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"} relative border border-gray-300 p-6 text-center  rounded-xl shadow-md bg-white transition hover:shadow-lg`} >
-                                <input {...getVideoInputProps()}   accept="video/*" disabled={videoProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <input {...getVideoInputProps()} accept="video/*" disabled={videoProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {videoFile ? (
 
-<p className="text-lg font-semibold text-blue-600 w-full max-w-[200px] truncate">
-  {videoFile.name}
-</p>
-                                        
+
+                                        <p className="text-lg font-semibold text-blue-600 w-full break-words ">
+
+                                            {videoFile.name.length > 70
+                                                ? `${videoFile.name.slice(0, 58)}.....${videoFile.name.slice(-14)}`
+                                                : videoFile.name}
+
+                                        </p>
+
+
                                     ) : (
                                         <p className="text-gray-600">Drag & Drop Video Here or Click to Upload</p>
                                     )}
@@ -145,13 +151,15 @@ function Page() {
                         {/* Drag & Drop Thumbnail Upload */}
                         <div>
                             <div {...getThumbnailProps()} className={`${videoProgress > 0 ? "cursor-not-allowed pointer-events-none" : "cursor-pointer"} relative border border-gray-300 p-6 text-center cursor-pointer rounded-xl shadow-md bg-white transition hover:shadow-lg`}>
-                                <input {...getThumbnailInputProps()} accept="image/*" disabled={thumbnailProgress > 0}  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                <input {...getThumbnailInputProps()} accept="image/*" disabled={thumbnailProgress > 0} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 <div className="relative z-10">
                                     {thumbnailFile ? (
-                                      
-<p className="text-lg font-semibold text-green-600 w-full max-w-[200px] truncate">
-  {thumbnailFile.name}
-</p>
+
+                                        <p className="text-lg font-semibold text-green-600 w-full break-words">
+                                            {thumbnailFile?.name.length > 70
+                                                ? `${thumbnailFile.name.slice(0, 58)}.....${thumbnailFile.name.slice(-14)}`
+                                                : thumbnailFile?.name}
+                                        </p>
                                     ) : (
                                         <p className="text-gray-600">Drag & Drop Thumbnail Here or Click to Upload</p>
                                     )}
