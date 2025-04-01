@@ -40,11 +40,23 @@ function Page() {
 
     // Drag & Drop Handlers
     const onDropVideo = useCallback((acceptedFiles) => {
-        setVideoFile(acceptedFiles[0]);
+        const file = acceptedFiles[0];
+
+        if (!file.type.startsWith("video/")) {
+            alert("Only video files are allowed!");
+            return;
+        }
+        setVideoFile(file);
     }, []);
 
     const onDropThumbnail = useCallback((acceptedFiles) => {
-        setThumbnailFile(acceptedFiles[0]);
+        const file = acceptedFiles[0];
+
+        if (!file.type.startsWith("image/")) {
+            alert("Only image files are allowed!");
+            return;
+        }
+        setThumbnailFile(file);
     }, []);
 
     const { getRootProps: getVideoProps, getInputProps: getVideoInputProps } = useDropzone({
@@ -56,6 +68,7 @@ function Page() {
         onDrop: onDropThumbnail,
         accept: "image/*",
     });
+
 
     const onSubmit = async (data) => {
         if (!videoFile || !thumbnailFile) {
