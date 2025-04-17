@@ -116,7 +116,7 @@ function Page() {
 
                 setVideoData(videoResponse.data.data);
                 setComments(videoResponse.data.data.comments);
-              
+
                 setFilteredComments(videoResponse.data.data.comments)
                 dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: videoResponse.data.data.owner.subscribers })
                 setLikeCount(videoResponse.data.data.likes);
@@ -196,7 +196,7 @@ function Page() {
         return () => {
             document.removeEventListener('click', handleClickOutside, true);
         };
-    }, [videoData,user])
+    }, [videoData, user])
 
 
 
@@ -477,18 +477,31 @@ function Page() {
                                             <div className='subscribersBox text-sm'>{state.subscriberCount} subscriber</div>
                                         </div>
                                     </div>
-                                    <div className='subscribeButtonBox' onClick={() => subscribe(videoData.owner?._id, state, dispatch)}>
-                                        <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
+                                    <div
+                                        className="subscribeButtonBox transition duration-300 hover:scale-[1.02]"
+                                        onClick={() => subscribe(videoData.owner?._id, state, dispatch)}
+                                    >
+                                        <Button
+                                            type="button"
+                                            className={`w-full rounded-full px-6 py-2 text-sm font-semibold shadow-md transition-all duration-300 ${state.userSubscribe
+                                                    ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                    : "bg-black text-white "
+                                                }`}
+                                            disabled={state.isSubscribe}
+                                        >
                                             {state.isSubscribe ? (
                                                 <>
                                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                     Subscribing...
                                                 </>
+                                            ) : state.userSubscribe ? (
+                                                "Subscribed"
                                             ) : (
-                                                state.userSubscribe ? 'Subscribed' : 'Subscribe'
+                                                "Subscribe"
                                             )}
                                         </Button>
                                     </div>
+
                                 </div>
 
                                 <div className='buttonsBox flex gap-4 mb-2'>
@@ -740,7 +753,7 @@ function Page() {
 
 
                         <div className='ml-8 mt-4 max-h-[281px] overflow-y-auto'>
-                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form}  setFilteredComments={setFilteredComments}  replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
+                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form} setFilteredComments={setFilteredComments} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                         </div>
 
 

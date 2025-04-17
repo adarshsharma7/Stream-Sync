@@ -25,8 +25,8 @@ function Page() {
     const fetchedUser = async () => {
       try {
         let response = await axios.post("/api/users/userprofile", { username })
-   
-        
+
+
         setUser(response.data.data)
         dispatch({ type: "SET_SUBSCRIBER_COUNT", payload: response.data.data.subscribers })
         if (response.data.message) {
@@ -77,19 +77,31 @@ function Page() {
               </p>
 
             )}
-            <div className='subscribeButtonBox  ' onClick={() => subscribe(user?._id, state, dispatch)}>
-
-              <Button type="button" className={`${state.userSubscribe ? "bg-slate-300 " : ""} w-full rounded-full`} disabled={state.isSubscribe}>
+            <div
+              className="subscribeButtonBox transition duration-300 hover:scale-[1.02]"
+              onClick={() => subscribe(user?._id, state, dispatch)}
+            >
+              <Button
+                type="button"
+                className={`w-full rounded-full px-6 py-2 text-sm font-semibold shadow-md transition-all duration-300 ${state.userSubscribe
+                    ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    : "bg-black text-white "
+                  }`}
+                disabled={state.isSubscribe}
+              >
                 {state.isSubscribe ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Subscribing...
                   </>
+                ) : state.userSubscribe ? (
+                  "Subscribed"
                 ) : (
-                  state.userSubscribe ? 'Subscribed' : 'Subscribe'
+                  "Subscribe"
                 )}
               </Button>
             </div>
+
 
           </div>
 
