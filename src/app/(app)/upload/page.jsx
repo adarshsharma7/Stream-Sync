@@ -20,6 +20,9 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { useSession, signOut } from 'next-auth/react';
+import LoginRequiredText from "@/components/loginRequiredText"
+
 
 function Page() {
     const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +32,9 @@ function Page() {
     const [videoProgress, setVideoProgress] = useState(0);
     const [videoFile, setVideoFile] = useState(null);
     const [thumbnailFile, setThumbnailFile] = useState(null);
+
+    const { data: session } = useSession()
+    const _user = session?.user
 
     const form = useForm({
         resolver: zodResolver(uploadVideoSchema),
@@ -110,13 +116,21 @@ function Page() {
         }
     };
 
+
     return (
         <div className="w-full min-h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-300">
             {/* Header */}
-            <div className="bg-white shadow-md py-4 px-6 border-b border-gray-200">
-                <h1 className="text-3xl font-semibold text-gray-900">Upload Your Video</h1>
-                <p className="text-gray-600">Share your latest video with the world.</p>
+            <div className="flex justify-between items-center flex-wrap gap-4">
+                {/* Left Side */}
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-900">Upload Your Video</h1>
+                    <p className="text-gray-600">Share your latest video with the world.</p>
+                </div>
+
+                {/* Right Side */}
+                {!_user && <LoginRequiredText text="to upload videos." />}
             </div>
+
 
             {/* Upload Form */}
             <div className="flex-grow flex justify-center items-center p-6">
@@ -236,7 +250,7 @@ function Page() {
                                     Please wait
                                 </Button>
                             ) : (
-                                <Button type="submit" disabled={isLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                                <Button type="submit" disabled={isLoading || !_user} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
                                     Upload
                                 </Button>
                             )}

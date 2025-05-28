@@ -126,6 +126,7 @@ function Page() {
         };
 
         const like = async () => {
+            if (!user) return;
             try {
                 let response = await axios.post("/api/videos/getlike", { videoId: videoId })
                 if (response.data.message == "Liked") {
@@ -157,6 +158,7 @@ function Page() {
         }
 
         const getWatchLaterVideos = async () => {
+            if (!user) return;
             let response = await axios.post("/api/videos/getwatchlatervideo", { videoId })
             if (response.data.message == "Already added to watch later") {
                 setIsWatchLater(true)
@@ -386,6 +388,16 @@ function Page() {
 
         }
     };
+    const requireLogin = (action) => {
+        if (!user) {
+            // ✅ Replace below with your popup logic or redirect
+            alert("Please login to continue."); // or setShowLoginPopup(true)
+            router.push('/sign-in');
+            return;
+        }
+       return action();
+    };
+
 
 
 
@@ -479,13 +491,13 @@ function Page() {
                                     </div>
                                     <div
                                         className="subscribeButtonBox transition duration-300 hover:scale-[1.02]"
-                                        onClick={() => subscribe(videoData.owner?._id, state, dispatch)}
+                                        onClick={() => requireLogin(() => subscribe(videoData.owner?._id, state, dispatch))}
                                     >
                                         <Button
                                             type="button"
                                             className={`w-full rounded-full px-6 py-2 text-sm font-semibold shadow-md transition-all duration-300 ${state.userSubscribe
-                                                    ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                                                    : "bg-black text-white "
+                                                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                : "bg-black text-white "
                                                 }`}
                                             disabled={state.isSubscribe}
                                         >
@@ -506,15 +518,15 @@ function Page() {
 
                                 <div className='buttonsBox flex gap-4 mb-2'>
                                     <div className='flex gap-1 rounded-full border-2 px-3 md:h-12 text-2xl cursor-pointer items-center border-slate-400 justify-between'>
-                                        <div className='mr-2 ' onClick={() => like()} >{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
+                                        <div className='mr-2 ' onClick={() => requireLogin(() => like())} >{liked ? <AiFillLike /> : <AiOutlineLike />}</div>
                                         <div className='h-full outline-1 outline-double outline-slate-400 '></div>
                                         <p className='text-[18px] ml-1'>{likeCount}</p>
                                     </div>
                                     <div onClick={() => setShowSharePopup(true)} className=' md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><FaRegShareSquare /></div>
-                                    <div onClick={() => {
+                                    <div onClick={() => requireLogin(() => {
                                         setIsWatchLater(!isWatchLater)
                                         debouncedWatchLater()
-                                    }} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}</div>
+                                    })} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'>{isWatchLater ? <MdWatchLater /> : <MdOutlineWatchLater />}</div>
                                     <div onClick={() => setIsReportOpen(true)} className='md:h-12 flex justify-center items-center rounded-full border-2 px-3 py-1 text-2xl cursor-pointer border-slate-400'><GoReport /></div>
                                 </div>
 
@@ -609,17 +621,17 @@ function Page() {
                                                 className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
                                             >
                                                 <button
-                                                    onClick={() => commentDelete(videoComment._id, videoComment.content)}
+                                                    onClick={() => requireLogin(() => commentDelete(videoComment._id, videoComment.content))}
                                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
                                                 >
                                                     Delete
                                                 </button>
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={() => requireLogin(() => {
                                                         setEditingCommentId(videoComment._id);
                                                         setEditedContent(videoComment.content);
                                                         setCurrentCommentContent(videoComment.content);
-                                                    }}
+                                                    })}
                                                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
                                                 >
                                                     Edit
@@ -632,7 +644,7 @@ function Page() {
                                     </div>
                                     <div className="flex mt-2 space-x-4 justify-between">
                                         <div className='flex gap-1'>
-                                            <button onClick={() => likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                                            <button onClick={() => requireLogin(() => likeComment(videoComment._id, videoComment.likes?.length))} className="text-blue-500 hover:underline">
                                                 {commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                                             </button>
                                             <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
@@ -660,14 +672,16 @@ function Page() {
                     <div className='fixed bottom-0 md:mb-[90px] left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(async (data) => {
+                                requireLogin(async () => {
 
-                                if (editingCommentId) {
-                                    await saveEditedComment();
-                                } else {
-                                    await sendComment(data);
-                                }
-                                form.reset();//Reset the full Form input field after submitting
-                                // form.setValue("comment", ""); // Reset the indivisual input field after submitting
+                                    if (editingCommentId) {
+                                        await saveEditedComment();
+                                    } else {
+                                        await sendComment(data);
+                                    }
+                                    form.reset();//Reset the full Form input field after submitting
+                                    // form.setValue("comment", ""); // Reset the indivisual input field after submitting
+                                });
                             })} className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100">
                                 <div className="flex-grow">
                                     <FormField

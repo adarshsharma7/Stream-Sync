@@ -56,6 +56,16 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
     }
   }, [comments]);
 
+    const requireLogin = (action) => {
+    if (!user) {
+      // ✅ Replace below with your popup logic or redirect
+      alert("Please login to continue."); // or setShowLoginPopup(true)
+      router.push('/sign-in');
+      return;
+    }
+    return action();
+  };
+
   // useEffect(() => {
   //   // Find the specific comment by its ID in allComments.comments
   //   if(comments){
@@ -88,7 +98,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
 
     if (state.commentArray) {
       const replyLikedComments = state.commentArray.reduce((acc, comm) => {
-        if (comm.likes?.includes(user._id)) {
+        if (comm.likes?.includes(user?._id)) {
           acc.push(comm._id);
         }
         return acc;
@@ -106,7 +116,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
   const commentReplyDelete = async (commentReplyId, contentToDelete) => {
     try {
       const updatedReplies = state.commentArray.filter(
-        comment => !(comment.content === contentToDelete && comment.owner._id === user._id)
+        comment => !(comment.content === contentToDelete && comment.owner._id === user?._id)
       );
 
       dispatch({ type: "UPDATE_COMMENT_REPLY", payload: updatedReplies });
@@ -147,7 +157,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
               const updatedReplies = comment.replies.map((reply) => {
                 if (reply._id === commentId) { // Assuming you're targeting a specific reply
                   // Create a new likes array by filtering out the user._id
-                  const newLikes = reply.likes.filter(like => like !== user._id);
+                  const newLikes = reply.likes.filter(like => like !== user?._id);
 
                   // Return the updated reply with the new likes array
                   return {
@@ -187,7 +197,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
               const updatedReplies = comment.replies.map((reply) => {
                 if (reply._id === commentId) { // Assuming you're targeting a specific reply
                   // Create a new likes array and add the new like
-                  const newLikes = [...reply.likes, user._id];
+                  const newLikes = [...reply.likes, user?._id];
 
                   // Return the updated reply with the new likes array
                   return {
@@ -258,7 +268,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
                   </div>
                   <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                 </div>
-                {videoComment.owner._id == user._id && (
+                {videoComment.owner._id == user?._id && (
                   <p onClick={() => {
                     setUniqueComment(index);
                     setCommentReplyDeletePopup(true);
@@ -277,7 +287,8 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
                     Delete
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={() => { 
+
                       if (commentContent.editingCommentId) {
                         commentContent.setEditingCommentId(null);
                         commentContent.setEditedContent("");
@@ -300,14 +311,14 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
             </div>
             <div className="flex mt-2 space-x-4 justify-between">
               <div className='flex gap-1'>
-                <button onClick={() => replyLikeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                <button onClick={() => requireLogin(() => {replyLikeComment(videoComment._id, videoComment.likes?.length)})} className="text-blue-500 hover:underline">
                   {commentReplyLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                 </button>
                 <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                <button onClick={() => {
+                <button onClick={() => requireLogin(() => { 
                   replyToReplyConntent.setCommentReplytoReply({ Id: videoComment._id, username: videoComment.owner.username })
                   // Handle reply button click
-                }} className="ml-2 text-blue-500 hover:underline">Reply</button>
+                })} className="ml-2 text-blue-500 hover:underline">Reply</button>
               </div>
               <div>
                 <p className='text-sm text-gray-600 font-extralight'>

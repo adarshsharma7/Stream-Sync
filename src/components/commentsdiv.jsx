@@ -106,7 +106,7 @@ function CommentsDiv({
             : comment // Return the original comment if the ID doesn't match
         )
       );
-     setFilteredComments((prevComments) =>
+      setFilteredComments((prevComments) =>
         prevComments.map((comment) =>
           comment._id === comments[0]._id
             ? {
@@ -186,7 +186,7 @@ function CommentsDiv({
       //this is for updating instantly the length of comments reply in main comment section
       allComments.setComments((prevComments) =>
         prevComments.map(comment => {
-          if (comment._id === comments[0]._id) { 
+          if (comment._id === comments[0]._id) {
             // Update the replies array
             return {
               ...comment,
@@ -196,7 +196,7 @@ function CommentsDiv({
           return comment;
         })
       );
-    
+
       //this for adding new reply and showing instantly on a reply comment
       dispatch({ type: "UPDATE_COMMENT_REPLY", payload: [...state.commentArray, newCommentReply] });
       replyToReplyConntent?.setCommentReplytoReply({ Id: "", username: "" })
@@ -206,6 +206,15 @@ function CommentsDiv({
     } finally {
       setIsLoading(false);
     }
+  };
+  const requireLogin = (action) => {
+    if (!user) {
+      // ✅ Replace below with your popup logic or redirect
+      alert("Please login to continue."); // or setShowLoginPopup(true)
+      router.push('/sign-in');
+      return;
+    }
+    return action();
   };
 
 
@@ -225,7 +234,7 @@ function CommentsDiv({
                   </div>
                   <p className='text-sm font-light '>{videoComment.edited ? "edited" : ""}</p>
                 </div>
-                {videoComment.owner?._id == user._id && (
+                {videoComment.owner?._id == user?._id && (
                   <p onClick={() => {
                     UniqueComment.setUniqueComment(index);
                     setCommentDeletePopup(true)
@@ -239,23 +248,25 @@ function CommentsDiv({
                   className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
                 >
                   <button
-                    onClick={() => commentDelete(videoComment._id, videoComment.content)}
+                    onClick={() => requireLogin(() => {  commentDelete(videoComment._id, videoComment.content) })}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
                   >
                     Delete
                   </button>
                   <button
                     onClick={() => {
-                      if (replyContent.setEditingReplyCommentId) {
-                        replyContent.setEditingReplyCommentId(null);
-                        replyContent.setEditedReplyContent("");
-                        replyContent.setCurrentReplyCommentContent();
-                      }
+                      requireLogin(() => {
+                        if (replyContent.setEditingReplyCommentId) {
+                          replyContent.setEditingReplyCommentId(null);
+                          replyContent.setEditedReplyContent("");
+                          replyContent.setCurrentReplyCommentContent();
+                        }
 
 
-                      setEditingCommentId(videoComment._id);
-                      setEditedContent(videoComment.content);
-                      setCurrentCommentContent(videoComment.content);
+                        setEditingCommentId(videoComment._id);
+                        setEditedContent(videoComment.content);
+                        setCurrentCommentContent(videoComment.content);
+                      });
                     }}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-b-md"
                   >
@@ -269,7 +280,7 @@ function CommentsDiv({
             </div>
             <div className="flex mt-2 space-x-4 justify-between">
               <div className='flex gap-1'>
-                <button onClick={() => likeComment.likeComment(videoComment._id, videoComment.likes?.length)} className="text-blue-500 hover:underline">
+                <button onClick={() => requireLogin(() => { likeComment.likeComment(videoComment._id, videoComment.likes?.length) })} className="text-blue-500 hover:underline">
                   {likeComment.commentLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                 </button>
                 <p>{likeComment.commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
@@ -285,35 +296,36 @@ function CommentsDiv({
 
           </div>
         ))}
-      </div>
+      </div >
 
       <div ref={inputRef} className='fixed bottom-0 md:bottom-[85px] left-0 right-0 z-50 bg-white border-t border-2 border-gray-300'>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(async (data) => {
+              requireLogin(async () => {
+                let finalContent;
 
-              let finalContent;
-
-              // Concatenate the username if it's a reply to a reply
-              if (replyToReplyConntent.commentReplytoReply.username) {
-                finalContent = `@${replyToReplyConntent.commentReplytoReply.username} ${data.comment}`;
-              } else {
-                finalContent = data.comment;
-              }
-
-
-              if (editingCommentId) {
-                await saveEditedComment();
-              } else if (replyContent.editingReplyCommentId) {
-                await saveEditedReplyComment()
-              } else if (replyToReplyConntent.commentReplytoReply.Id) {
-                await sendReplyComment(finalContent, replyToReplyConntent.commentReplytoReply.Id);
-              } else {
-                await sendReplyComment(finalContent);
-              }
+                // Concatenate the username if it's a reply to a reply
+                if (replyToReplyConntent.commentReplytoReply.username) {
+                  finalContent = `@${replyToReplyConntent.commentReplytoReply.username} ${data.comment}`;
+                } else {
+                  finalContent = data.comment;
+                }
 
 
-              form.reset();
+                if (editingCommentId) {
+                  await saveEditedComment();
+                } else if (replyContent.editingReplyCommentId) {
+                  await saveEditedReplyComment()
+                } else if (replyToReplyConntent.commentReplytoReply.Id) {
+                  await sendReplyComment(finalContent, replyToReplyConntent.commentReplytoReply.Id);
+                } else {
+                  await sendReplyComment(finalContent);
+                }
+
+
+                form.reset();
+              });
             })
             }
             className="flex items-center rounded-lg border border-gray-300 p-2 bg-gray-100"

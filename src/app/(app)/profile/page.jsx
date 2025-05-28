@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { IoClose } from "react-icons/io5";
+import LoginRequired from "@/components/loginRequired"
 import { upload } from '@vercel/blob/client';
 
 function Page() {
@@ -172,30 +173,30 @@ function Page() {
 
     };
 
-    const forgetPassword=async()=>{
+    const forgetPassword = async () => {
         try {
-          setForgetPassLoading(true)
-          const response=await axios.post('api/users/forgetPassword',{credential:_user.email})
-          if(response.data.success){
-            toast({
-              title: 'Success',
-              description: response.data.message,
-         });
-          }
-          
-          if(response.data.message == 'Email is already sent for change password'){
-            toast({
-              title: 'Success',
-              description: response.data.message,
-         });
-          }
-        } catch (error) {
-          console.log("something wrong",error);
-        }finally{
-          setForgetPassLoading(false)
-        }
-      }
+            setForgetPassLoading(true)
+            const response = await axios.post('api/users/forgetPassword', { credential: _user.email })
+            if (response.data.success) {
+                toast({
+                    title: 'Success',
+                    description: response.data.message,
+                });
+            }
 
+            if (response.data.message == 'Email is already sent for change password') {
+                toast({
+                    title: 'Success',
+                    description: response.data.message,
+                });
+            }
+        } catch (error) {
+            console.log("something wrong", error);
+        } finally {
+            setForgetPassLoading(false)
+        }
+    }
+    if (!_user) return <LoginRequired featureName="profile" />;
 
     return (
         <div className="h-full w-full flex flex-col p-4 bg-gray-100 md:pb-16">

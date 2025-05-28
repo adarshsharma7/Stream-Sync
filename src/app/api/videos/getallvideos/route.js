@@ -9,17 +9,17 @@ export async function GET(){
     const session = await getServerSession(authOptions);
     const _user = session?.user;
 
-    if (!_user || !session) {
-        console.log("User is not authenticated");
-        return NextResponse.json({
-            success: false,
-            message: 'Not Authenticated',
-        }, { status: 400 });
-    }
+    // if (!_user || !session) {
+    //     console.log("User is not authenticated");
+    //     return NextResponse.json({
+    //         success: false,
+    //         message: 'Not Authenticated',
+    //     }, { status: 400 });
+    // }
     
 await dbConnect()
 try {
-    let user=await User.findById(_user._id)
+ let user = _user ? await User.findById(_user._id) : null;
     const allVideos=await Videos.aggregate([
         {
             $lookup:{
@@ -62,7 +62,7 @@ try {
         {
           success: true,
           data:allVideos,
-          currentUser:user.avatar
+          currentUser:_user && user.avatar
           
         },
         { status: 200 }

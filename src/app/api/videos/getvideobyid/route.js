@@ -9,21 +9,21 @@ import User from "@/models/userModel";
 export async function POST(request) {
     await dbConnect();
     const session = await getServerSession(authOptions);
-    const _user = session.user;
+    const _user = session?.user;
 
-    if (!_user || !session) {
-        return NextResponse.json({
-            success: false,
-            message: 'Not Authenticated',
-        }, { status: 400 });
-    }
+    // if (!_user || !session) {
+    //     return NextResponse.json({
+    //         success: false,
+    //         message: 'Not Authenticated',
+    //     }, { status: 400 });
+    // }
 
     try {
         const { videoId } = await request.json();
 
         // Find the video by ID and populate fields
         let video = await Videos.findById(videoId)
-        let user = await User.findById(_user._id)
+        let user = _user ? await User.findById(_user._id) : null;
 
 
         if (!video) {
@@ -36,7 +36,7 @@ export async function POST(request) {
         video.views++
         await video.save()
 
-        if (user.triggerWatchHistory) {
+        if (user?.triggerWatchHistory) {
             user.watchHistory.push(videoId)
             await user.save()
         }

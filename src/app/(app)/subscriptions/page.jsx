@@ -4,13 +4,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton';
+import LoginRequired from "@/components/loginRequired"
+import { useSession } from 'next-auth/react';
 
 function Page() {
     const [subscriptionsUser, setSubscriptionsUser] = useState([]);
     const [subscriptionsVideos, setSubscriptionsVideos] = useState([]);
     const [videosFetchingMessage, setVideosFetchingMessage] = useState("");
 
-
+    const { data: session } = useSession()
+    const _user = session?.user
     let router = useRouter()
 
 
@@ -48,6 +51,8 @@ function Page() {
         fetchSubscriptions();
 
     }, []);
+
+     if (!_user) return <LoginRequired featureName="subscriptions" />;
 
     return (
         <div className='h-screen w-full flex flex-col p-4 bg-gray-100'>

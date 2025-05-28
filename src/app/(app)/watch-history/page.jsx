@@ -12,7 +12,7 @@ import { useDebounceCallback } from '@react-hook/debounce'
 
 
 function Page() {
-const [videos, setVideos] = useState(null)
+  const [videos, setVideos] = useState(null)
   const { state } = useUser()
 
   const [isHistoryOn, setIsHistoryOn] = useState(true)
@@ -20,16 +20,15 @@ const [videos, setVideos] = useState(null)
 
   const router = useRouter()
 
-const debounceHistory=useDebounceCallback(async()=>{
-  
-  let response = await axios.post("/api/users/triggerhhistory", { history: isHistoryOn })
-  setIsHistoryOn(response.data.data)
-},2000)
+  const debounceHistory = useDebounceCallback(async () => {
+
+    let response = await axios.post("/api/users/triggerhhistory", { history: isHistoryOn })
+    setIsHistoryOn(response.data.data)
+  }, 2000)
 
 
   useEffect(() => {
     const getWatchHistoryAcceptence = async () => {
-      setVideos(state.profile.watchHistory)
       setIsLoading(true)
       let response = await axios.get("/api/users/triggerhhistory")
       setIsHistoryOn(response.data.data)
@@ -47,7 +46,7 @@ const debounceHistory=useDebounceCallback(async()=>{
       debounceHistory()
       setIsLoading(false)
     } catch (error) {
-console.log("error to trigger watch-history",error)
+      console.log("error to trigger watch-history", error)
     }
 
   }
@@ -88,14 +87,14 @@ console.log("error to trigger watch-history",error)
 
 
       {/* Videos List */}
-      <div className='p-4'>
-        {state.watchHistoryError || videos?.length==0 || !videos? (
+      <div className='p-4 pb-16'>
+        {state.watchHistoryError || videos?.length == 0 || !videos ? (
           <div className="text-center text-red-700 flex justify-center items-center">
             <h1>No Watched Video</h1>
           </div>
         ) : (
           <div className='flex flex-col gap-4'>
-           
+
             {Array.isArray(videos) && videos?.map((video, index) => (
               <div
                 key={index}
@@ -120,13 +119,16 @@ console.log("error to trigger watch-history",error)
                     )}
                   </div>
                 </div>
-                <div onClick={(e) => {
+                <div
+                  onClick={(e) => {
                     e.stopPropagation();
-                  deletevideo(video._id)
-                }
-                } className='z-50 mr-4 mt-4'>
-                  <MdOutlineDeleteOutline />
+                    deletevideo(video._id);
+                  }}
+                  className="z-50 mr-4 mt-4 hover:scale-110 "
+                >
+                  <MdOutlineDeleteOutline className="text-xl " />
                 </div>
+
               </div>
             ))}
           </div>

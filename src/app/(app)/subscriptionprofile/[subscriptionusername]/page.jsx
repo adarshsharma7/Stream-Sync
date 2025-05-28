@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
-
+import { useSession } from 'next-auth/react';
 
 function Page() {
   const [user, setUser] = useState({})
@@ -19,7 +19,8 @@ function Page() {
 
   const { state, dispatch } = useUser()
 
-
+ const { data: session } = useSession();
+    const _user = session?.user;
 
   useEffect(() => {
     const fetchedUser = async () => {
@@ -45,6 +46,15 @@ function Page() {
     }
   }, [user])
 
+ const requireLogin = (action) => {
+        if (!_user) {
+            // ✅ Replace below with your popup logic or redirect
+            alert("Please login to continue."); // or setShowLoginPopup(true)
+            router.push('/sign-in');
+            return;
+        }
+       return action();
+    };
 
 
 
@@ -79,7 +89,7 @@ function Page() {
             )}
             <div
               className="subscribeButtonBox transition duration-300 hover:scale-[1.02]"
-              onClick={() => subscribe(user?._id, state, dispatch)}
+              onClick={() => requireLogin(() => subscribe(user?._id, state, dispatch))}
             >
               <Button
                 type="button"

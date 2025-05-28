@@ -20,6 +20,7 @@ import { Loader2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton"
 import AnimatedLogo from "../../../helper/AnimatedLogo"
 import Pusher from 'pusher-js';
+import LoginRequiredText from '@/components/loginRequiredText';
 
 
 
@@ -112,7 +113,7 @@ function Page() {
   }, [dispatch]);
 
   useEffect(() => {
-
+    if (!user) return;
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER
     });
@@ -350,13 +351,13 @@ function Page() {
       {/* Header */}
       <div className='h-14 bg-white shadow-md flex justify-between px-4 items-center'>
 
-      <div>
-  <AnimatedLogo 
-    uploadProcessing={uploadProcessing}
-    uploadProcessCount={uploadProcessCount}
-    totalQueueFiles={totalQueueFiles}
-  />
-</div>
+        <div>
+          <AnimatedLogo
+            uploadProcessing={uploadProcessing}
+            uploadProcessCount={uploadProcessCount}
+            totalQueueFiles={totalQueueFiles}
+          />
+        </div>
 
         <div className='flex items-center gap-3 h-full' ref={searchRef}>
           <div className={`flex items-center bg-gray-100 rounded-full p-2 ${searchVisible ? 'hidden' : 'block'}`} onClick={() => setSearchVisible(true)}>
@@ -416,7 +417,7 @@ function Page() {
                 if (myStories.stories?.length > 0) {
                   setShowMyStory(true);
                 } else {
-                  fileInputRef.current.click();
+                 user && fileInputRef.current.click();
                 }
               }}
               className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center cursor-pointer bg-gray-100 hover:bg-blue-50 transition-colors duration-300 ease-in-out'
@@ -435,7 +436,7 @@ function Page() {
 
             {(videoProgress > 0 || myStories.stories?.length > 0) && (
               <div
-                onClick={() => fileInputRef.current.click()}
+                onClick={() => user && fileInputRef.current.click()}
                 className='absolute bottom-2 right-2 transform translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center cursor-pointer border-2 border-white hover:bg-blue-600 transition-colors duration-300 ease-in-out'
               >
                 <IoIosAddCircle size={22} className="text-white" />
@@ -462,7 +463,7 @@ function Page() {
           </div>
 
           <div className='flex gap-4 w-full h-full overflow-x-auto scrollbar-hide'>
-            {stories.length == 0 && !noStoryMsg && (
+            {stories.length == 0 && !noStoryMsg && user && (
 
               <div className="flex flex-col space-y-3">
                 <Skeleton className="w-12 h-12 rounded-full bg-slate-400" />
@@ -492,7 +493,10 @@ function Page() {
                 </div>
               ))
             ) : (
-              <h1 className="text-gray-500 font-medium">{noStoryMsg}</h1>
+              !user ? (
+                <LoginRequiredText text="required to view or post stories." />
+              ) : ( 
+              <h1 className="text-gray-500 font-medium">{noStoryMsg}</h1>)
             )}
           </div>
 
