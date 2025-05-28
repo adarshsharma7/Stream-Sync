@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 export const config = {
-  matcher: ['/sign-in', '/sign-up'],
+  matcher: ['/'], // Only match the root path
 };
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
+export function middleware(request: NextRequest) {
   const url = request.nextUrl;
 
-  // If user is already logged in, redirect them away from sign-in or sign-up
-  if (token && ['/sign-in', '/sign-up'].includes(url.pathname)) {
+  // Always redirect / to /dashboard
+  if (url.pathname === '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

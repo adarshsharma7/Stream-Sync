@@ -231,7 +231,7 @@ function Page() {
       deleteStoryChannel.unbind_all();
       deleteStoryChannel.unsubscribe();
     };
-  }, []);
+  }, [user]);
 
 
 
