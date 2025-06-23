@@ -7,7 +7,7 @@ export async function ForgetPasswordVerification(email, username, hashedToken) {
   try {
   
     // Generate the password reset link (assuming you use a route to handle the reset)
-    const resetLink = `https://streaming-sync.vercel.app//forgetpassword?token=${hashedToken}`;
+    const resetLink = `https://streaming-sync.vercel.app/forgetpassword?token=${hashedToken}`;
 
     // Send the email
     await transport.sendMail({
