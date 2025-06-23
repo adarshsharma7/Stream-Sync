@@ -8,7 +8,7 @@ const forgetPasswordHtml = (username, resetLink) => `
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; margin: 0;">
   <div style="max-width: 600px; margin: 0 auto;">
-    <img src="/sync-draw-logo.png" alt="Logo" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;">
+    <img src="/sync-draw-logo.png" alt="streamSyncLogo" style="width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px;">
     <div style="background-color: #ffffff; border-radius: 8px; padding: 20px;">
       <h2 style="color: #333333; text-align: center;">Reset Your Password</h2>
       <p style="color: #666666; text-align: center;">Hello ${username},</p>
