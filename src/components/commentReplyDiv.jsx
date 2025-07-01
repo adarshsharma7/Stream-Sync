@@ -8,7 +8,7 @@ import { useUser } from '@/context/context';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-function CommentReplyDiv({ allComments, comments, setFilteredComments, replyContent, replyToReplyConntent, commentContent }) {
+function CommentReplyDiv({ allComments, comments, setFilteredComments, commentSearchTerm, replyContent, replyToReplyConntent, commentContent }) {
 
   const { state, dispatch } = useUser()
 
@@ -45,9 +45,12 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
   }, [commentReplyDeletePopup, delComPopup])
 
   useEffect(() => {
-    // Automatically update filteredComments whenever allComments change
-    setFilteredComments(allComments.comments);
-  }, [allComments]);
+    if (commentSearchTerm.trim() === "") {
+      // Automatically update filteredComments whenever allComments change
+      setFilteredComments(allComments.comments);
+    }
+  }, [allComments, commentSearchTerm]);
+
 
   useEffect(() => {
     if (comments) {
@@ -56,7 +59,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
     }
   }, [comments]);
 
-    const requireLogin = (action) => {
+  const requireLogin = (action) => {
     if (!user) {
       // ✅ Replace below with your popup logic or redirect
       alert("Please login to continue."); // or setShowLoginPopup(true)
@@ -287,7 +290,7 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
                     Delete
                   </button>
                   <button
-                    onClick={() => { 
+                    onClick={() => {
 
                       if (commentContent.editingCommentId) {
                         commentContent.setEditingCommentId(null);
@@ -311,11 +314,11 @@ function CommentReplyDiv({ allComments, comments, setFilteredComments, replyCont
             </div>
             <div className="flex mt-2 space-x-4 justify-between">
               <div className='flex gap-1'>
-                <button onClick={() => requireLogin(() => {replyLikeComment(videoComment._id, videoComment.likes?.length)})} className="text-blue-500 hover:underline">
+                <button onClick={() => requireLogin(() => { replyLikeComment(videoComment._id, videoComment.likes?.length) })} className="text-blue-500 hover:underline">
                   {commentReplyLikes.includes(videoComment._id) ? <AiFillLike /> : <AiOutlineLike />}
                 </button>
                 <p>{commentLikesCount[videoComment._id] ?? videoComment.likes?.length}</p>
-                <button onClick={() => requireLogin(() => { 
+                <button onClick={() => requireLogin(() => {
                   replyToReplyConntent.setCommentReplytoReply({ Id: videoComment._id, username: videoComment.owner.username })
                   // Handle reply button click
                 })} className="ml-2 text-blue-500 hover:underline">Reply</button>

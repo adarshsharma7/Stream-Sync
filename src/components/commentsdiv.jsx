@@ -16,6 +16,7 @@ function CommentsDiv({
   allComments,
   comments,
   setFilteredComments,
+  commentSearchTerm,
   UniqueComment,
   commentDelete,
   likeComment,
@@ -68,9 +69,11 @@ function CommentsDiv({
   }, [focusComment]);
 
   useEffect(() => {
-    // Automatically update filteredComments whenever allComments change
-    setFilteredComments(allComments.comments);
-  }, [allComments]);
+    if (commentSearchTerm.trim() === "") {
+      // Automatically update filteredComments whenever allComments change
+      setFilteredComments(allComments.comments);
+    }
+  }, [allComments, commentSearchTerm]);
 
 
   //   const replyForm = useForm({
@@ -248,7 +251,7 @@ function CommentsDiv({
                   className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 shadow-lg rounded-md z-10"
                 >
                   <button
-                    onClick={() => requireLogin(() => {  commentDelete(videoComment._id, videoComment.content) })}
+                    onClick={() => requireLogin(() => { commentDelete(videoComment._id, videoComment.content) })}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
                   >
                     Delete

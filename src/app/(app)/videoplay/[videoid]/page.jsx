@@ -761,13 +761,13 @@ function Page() {
                         </div>
                         <div>
 
-                            <CommentsDiv allComments={{ comments, setComments }} comments={replyArray} setFilteredComments={setFilteredComments} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
+                            <CommentsDiv allComments={{ comments, setComments }} comments={replyArray} setFilteredComments={setFilteredComments} commentSearchTerm={commentSearchTerm} UniqueComment={{ setUniqueComment, uniqueComment }} CommentDeletePopup={{ setCommentDeletePopup, commentDeletePopup }} commentDelete={commentDelete} commentContent={{ editingCommentId, setEditingCommentId, editedContent, setEditedContent, currentCommentContent, setCurrentCommentContent }} likeComment={{ likeComment, commentLikes, commentLikesCount }} form={form} saveEditedComment={saveEditedComment} loading={{ editCommentLoading, setEditCommentLoading }} replyContent={{ currentReplyCommentContent, setCurrentReplyCommentContent, editingReplyCommentId, editedReplyContent, setEditingReplyCommentId, setEditedReplyContent, setEditedReplyContent, setCommentReplytoReply }} replyToReplyConntent={{ commentReplytoReply, setCommentReplytoReply }} router={router} />
 
                         </div>
 
 
                         <div className='ml-8 mt-4 max-h-[281px] overflow-y-auto'>
-                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form} setFilteredComments={setFilteredComments} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
+                            < CommentReplyDiv allComments={{ comments, setComments }} comments={replyArray[0]} form={form} setFilteredComments={setFilteredComments} commentSearchTerm={commentSearchTerm} replyContent={{ setCurrentReplyCommentContent, setEditingReplyCommentId, setEditedReplyContent }} replyToReplyConntent={{ setCommentReplytoReply }} commentContent={{ setEditedContent, setEditingCommentId, editingCommentId, setCurrentCommentContent }} />
                         </div>
 
 
