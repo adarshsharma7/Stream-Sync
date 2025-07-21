@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { IoClose } from "react-icons/io5";
 import { TiTick, TiTickOutline } from 'react-icons/ti';
 import { RxDotsVertical } from "react-icons/rx";
+import { format, isToday } from 'date-fns';
 
 
 
@@ -64,7 +65,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
-        console.log("messege update aur initiall time pr  messages ye hai bhai ",messages);
+        console.log("messege update aur initiall time pr  messages ye hai bhai ", messages);
     }, [messages]);
 
 
@@ -92,6 +93,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
 
     useEffect(() => {
+
 
         const updateMsgStatus = async () => {
             try {
@@ -208,12 +210,12 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         const msgChannel = pusher.subscribe(`private-${uniqueChatId}`);
         msgChannel.bind('newmsg', function (data) {
 
-            const { msgId,message, msgSenderId, username, videodata, replyMsg } = data;
+            const { msgId, message, msgSenderId, username, videodata, replyMsg } = data;
             if (msgSenderId !== user._id) {
-                setMessages((prevMessages) => [...prevMessages, {_id:msgId , edited:false, sender: { _id: chatId, username }, repliedContent: replyMsg, content: message, videodata, timestamp: new Date() }]);
+                setMessages((prevMessages) => [...prevMessages, { _id: msgId, edited: false, sender: { _id: chatId, username }, repliedContent: replyMsg, content: message, videodata, timestamp: new Date() }]);
             }
-          
-            
+
+
 
         });
         const statusChannel = pusher.subscribe(`private-${uniqueChatId}`);
@@ -254,7 +256,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
         })
         statusChannel.bind('messagesEdit', function (data) {
             // console.log("m edit msg k andr huuu");
-            
+
             const { msgId, msgContent } = data
             // console.log("ye hai bhai msgId jo backend se aayi hai ab m match kraunga" ,msgId );
             // console.log("aur edit k baad m ye content kr dunga " ,msgContent );
@@ -271,7 +273,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                 return prevObj
             }))
             console.log("ab ye hi bhai messages edit k baad to ", messages);
-            
+
         })
 
         // Cleanup function to unsubscribe from Pusher channels
@@ -299,7 +301,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
             // Add the sent message to the messages array
             setMessages((prevMessages) => [...prevMessages, { sender: { _id: user._id }, _id: tempMsgId, videoData: undefined, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent', repliedContent: { msgId: replyMsg.msgId, content: replyMsg.content }, content: userTyping, timestamp: new Date() }]);
             setUserTyping('')
-            
+
 
             let response = await axios.post("/api/users/sendmessages", { message: data.chatMessage, replyMsg, chatId, msgStatus: isChatVisible && inChat ? 'read' : isChatVisible ? 'delivered' : 'sent' });
 
@@ -541,13 +543,13 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                         className={`relative p-3 rounded-lg shadow-lg ${msg.sender._id === user._id ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100 '}`}
 
                                     >
-                                     
-                                            <div className='cursor-pointer absolute right-0' onClick={() => {
-                                                setUniqueIndexforUpdateMsgPopup(index)
-                                                setUpdateMsgPopup(!updateMsgPopup)
-                                            }
-                                            }><RxDotsVertical /></div>
-                                      
+
+                                        <div className='cursor-pointer absolute right-0' onClick={() => {
+                                            setUniqueIndexforUpdateMsgPopup(index)
+                                            setUpdateMsgPopup(!updateMsgPopup)
+                                        }
+                                        }><RxDotsVertical /></div>
+
                                         {updateMsgPopup && index == uniqueIndexforUpdateMsgPopup && (
                                             <div className='flex flex-col justify-center items-center text-black' ref={updateMsgref} style={{
                                                 position: 'absolute',
@@ -571,7 +573,7 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
                                                 }}>
                                                     Reply
                                                 </Button>
-                                                {msg.sender._id === user._id  && (<>
+                                                {msg.sender._id === user._id && (<>
                                                     <Button variant="outline" onClick={() => {
                                                         setUpdateMsgPopup(false)
                                                         setUserTyping(msg.content)
@@ -608,7 +610,12 @@ function ChatOpen({ avatar, username, chatId, status, setIsChatOpen, setChats, s
 
                                         <div className="flex items-center justify-end mt-1">
                                             <span className="text-xs text-gray-400 mr-2">
-                                                {new Date(msg.timestamp).toLocaleTimeString()}
+                                                 {/* {new Date(msg.timestamp).toLocaleTimeString()}  */}
+                                                {
+                                                    isToday(new Date(msg.timestamp))
+                                                        ? format(new Date(msg.timestamp), 'hh:mm a')
+                                                        : format(new Date(msg.timestamp), 'dd MMM yyyy, hh:mm a')
+                                                }
                                             </span>
                                             {msg.sender._id === user._id && (
                                                 <span className="flex items-center">

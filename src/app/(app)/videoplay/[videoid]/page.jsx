@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow,format  } from 'date-fns'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -808,7 +808,10 @@ function Page() {
                                     </div>
                                     <div className='flex flex-col items-center'>
                                         <h1 className='font-semibold'>Date</h1>
-                                        <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1>
+                                        
+                                        {/* <h1>{formatDistanceToNow(new Date(videoData.createdAt), { addSuffix: true })}</h1> */}
+                                        <h1>{format(new Date(videoData.createdAt), 'dd MMMM yyyy')}</h1>
+
 
                                     </div>
 
