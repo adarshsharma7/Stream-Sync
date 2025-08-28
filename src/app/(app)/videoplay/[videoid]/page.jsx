@@ -475,7 +475,7 @@ function Page() {
                         <>
                             <div><h1 className='text-2xl font-bold'>{videoData.title}</h1></div>
                             <div className='discriptionBox flex text-sm '>
-                                <p className='mr-2'>{videoData.views} views</p>
+                                <p className='mr-2'>{videoData.views?.length} views</p>
                                 <p className='cursor-pointer' onClick={() => setDescriptionBox(true)}>more...</p>
                             </div>
                             <div className='md:flex md:justify-between'>
@@ -804,7 +804,7 @@ function Page() {
                                     </div>
                                     <div className='flex flex-col items-center'>
                                         <h1 className='font-semibold'>Views</h1>
-                                        <h1>{videoData.views}</h1>
+                                        <h1>{videoData.views?.length}</h1>
                                     </div>
                                     <div className='flex flex-col items-center'>
                                         <h1 className='font-semibold'>Date</h1>
@@ -902,7 +902,7 @@ function Page() {
                                     <p>{video.owner?.username}</p>
                                 </div>
                                 <div className='flex gap-2'>
-                                    <div>{video.views} views</div>
+                                    <div>{video.views?.length} views</div>
                                     <div>{formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</div>
                                 </div>
 

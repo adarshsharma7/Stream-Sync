@@ -144,8 +144,8 @@ function Page() {
                             )}
                         </div>
                         <div className='flex gap-4 text-gray-500 text-xs'>
-                            {video.views ? (
-                                <div>{video.views} views</div>
+                            {video.views.length ? (
+                                <div>{video.views.length} views</div>
                             ) : (
                                 <Skeleton className="w-12 h-4" />
                             )}

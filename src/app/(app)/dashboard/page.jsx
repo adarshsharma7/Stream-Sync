@@ -554,7 +554,7 @@ function Page() {
                     </div>
                   </div>
                   <div className='text-sm text-gray-600 flex justify-between'>
-                    <p>{video.views} views</p>
+                    <p>{video.views?.length} views</p>
                     <p>{formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</p>
                   </div>
                 </div>

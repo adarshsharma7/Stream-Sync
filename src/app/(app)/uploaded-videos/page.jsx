@@ -215,7 +215,7 @@ function Page() {
                         <h3 className='text-lg font-medium text-gray-800'>{video.title}</h3>
                         {/* <div className='text-sm text-gray-500 mt-1'>{video.description}</div> */}
                         <div className='flex justify-between text-xs text-gray-500 mt-2'>
-                          <span>{video.views} views</span>
+                          <span>{video.views.length} views</span>
                           {video.createdAt && (
                             <span>Uploaded {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</span>
                           )}

@@ -151,7 +151,7 @@ function Page() {
                   </div>
                 </div>
                 <div className='flex justify-between text-xs text-gray-500 mt-2'>
-                  <span>{video.views} views</span>
+                  <span>{video.views.length} views</span>
                   <span>{formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</span>
                 </div>
               </div>

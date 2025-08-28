@@ -72,7 +72,7 @@ useEffect(() => {
                     </div>
                   </div>
                   <div className='flex justify-between text-xs text-gray-500 mt-2'>
-                    <span>{video.views} views</span>
+                    <span>{video.views.length} views</span>
                     {video.createdAt && (
                       <span>watched {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}</span>
                     )}
